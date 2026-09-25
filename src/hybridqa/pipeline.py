@@ -112,7 +112,10 @@ class RetrievalPipeline:
         fused = fuse([self.bm25.search(query), self.dense.search(query)], self.cfg)
         if variant == "fusion":
             return fused
-        return self.reranker.rerank(query, fused, self.chunk_texts)
+        # Return the whole list (reranked head + original tail), not just rerank.top_k:
+        # the other variants are evaluated on ~100 chunks, so cutting this one to 10
+        # would make its Recall@20/@100 incomparable.
+        return self.reranker.rerank(query, fused, self.chunk_texts, top_k=len(fused))
 
     def run_variant(self, variant: str, k_values: Sequence[int] | None = None) -> VariantResult:
         k_values = k_values or self.cfg.get_path("evaluation.k_values", [1, 3, 5, 10, 20, 100])

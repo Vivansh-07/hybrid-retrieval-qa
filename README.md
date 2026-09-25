@@ -28,7 +28,7 @@ failure analysis of what still goes wrong.
 ## Quick start
 
 ```bash
-git clone https://github.com/<your-username>/hybrid-retrieval-qa.git
+git clone https://github.com/Vivansh-07/hybrid-retrieval-qa.git
 cd hybrid-retrieval-qa
 python -m venv .venv && .venv\Scripts\activate      # Windows
 # python -m venv .venv && source .venv/bin/activate # Linux / macOS
@@ -42,6 +42,9 @@ python scripts/make_plots.py
 
 # one ad-hoc question, with a cited answer
 python -m hybridqa.cli query "Does vitamin D supplementation reduce respiratory infections?" --answer
+
+# interactive web demo: four strategies side by side + cited answer (http://127.0.0.1:7860)
+python scripts/demo.py
 ```
 
 If `torch.cuda.is_available()` is `False`, everything still runs on CPU — expect the
@@ -81,6 +84,7 @@ scripts/
   run_ablation.py        the four variants + rerank-depth and RRF-k sweeps
   make_plots.py          results/*.json → paper/figures/*.png
   failure_analysis.py    picks the hard queries, writes a CSV for manual annotation
+  demo.py                Gradio web demo: one question, all four variants side by side
 tests/                   unit tests for the metrics, RRF, and chunking
 paper/                   LaTeX skeleton, bibliography, figures
 docs/
