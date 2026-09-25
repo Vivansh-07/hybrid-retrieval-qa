@@ -1,0 +1,39 @@
+# Data & artifacts (regenerable — never commit)
+data/**
+!data/.gitkeep
+indexes/
+*.faiss
+*.npy
+*.pkl
+*.zip
+
+# Results: keep the small JSON/CSV summaries, drop bulky run files
+results/runs/
+results/**/*.trec
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+env/
+*.egg-info/
+.pytest_cache/
+.ipynb_checkpoints/
+
+# LaTeX
+paper/*.aux
+paper/*.log
+paper/*.out
+paper/*.bbl
+paper/*.blg
+paper/*.synctex.gz
+paper/*.fdb_latexmk
+paper/*.fls
+paper/*.toc
+
+# OS / editors
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
