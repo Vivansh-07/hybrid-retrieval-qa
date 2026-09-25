@@ -15,6 +15,7 @@ The "Results" tab shows results/ablation.csv and the figures once they exist.
 from __future__ import annotations
 
 import argparse
+import os
 import sys
 import time
 from pathlib import Path
@@ -22,12 +23,16 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
 
-import gradio as gr  # noqa: E402
-import pandas as pd  # noqa: E402
-
+# hybridqa first: it points the Hugging Face cache at data/hf_cache, and gradio
+# imports huggingface_hub, which reads that setting once at import time.
 from hybridqa.answer import AnswerGenerator, faithfulness_signals  # noqa: E402
 from hybridqa.config import load_config, resolve  # noqa: E402
 from hybridqa.pipeline import VARIANTS, RetrievalPipeline  # noqa: E402
+
+os.environ.setdefault("GRADIO_TEMP_DIR", str(ROOT / "data" / "gradio_tmp"))  # not C:\...\Temp
+
+import gradio as gr  # noqa: E402
+import pandas as pd  # noqa: E402
 
 TOP_N = 5  # documents shown per variant
 LABELS = {
@@ -143,8 +148,9 @@ def main() -> None:
     p.add_argument("--config", default="configs/scifact.yaml")
     p.add_argument("--device", default=None, help="cuda | cpu (default: auto)")
     p.add_argument("--port", type=int, default=7860)
+    p.add_argument("--no-browser", action="store_true", help="don't open a browser tab automatically")
     args = p.parse_args()
-    build_app(args.config, args.device).launch(server_port=args.port, inbrowser=True)
+    build_app(args.config, args.device).launch(server_port=args.port, inbrowser=not args.no_browser)
 
 
 if __name__ == "__main__":

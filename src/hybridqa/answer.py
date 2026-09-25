@@ -49,18 +49,58 @@ class AnswerGenerator:
         self.gen_model_name = cfg.get_path("answer.generative_model", "google/flan-t5-base")
         self.ext_model_name = cfg.get_path("answer.extractive_model", "deepset/roberta-base-squad2")
         self.device = device
-        self._pipe = None
+        self._tokenizer = None
+        self._model = None
 
-    @property
-    def pipe(self):
-        if self._pipe is None:
-            from transformers import pipeline
+    # Models are called directly rather than through transformers.pipeline(): the
+    # "text2text-generation" and "question-answering" pipelines were removed in
+    # transformers 5, and the explicit version shows exactly what the reader does.
+    def _load(self):
+        if self._model is None:
+            import torch
+            from transformers import AutoModelForQuestionAnswering, AutoModelForSeq2SeqLM, AutoTokenizer
 
+            device = self.device or ("cuda" if torch.cuda.is_available() else "cpu")
             if self.mode == "extractive":
-                self._pipe = pipeline("question-answering", model=self.ext_model_name, device_map="auto")
+                name, model_cls = self.ext_model_name, AutoModelForQuestionAnswering
             else:
-                self._pipe = pipeline("text2text-generation", model=self.gen_model_name, device_map="auto")
-        return self._pipe
+                name, model_cls = self.gen_model_name, AutoModelForSeq2SeqLM
+            self._tokenizer = AutoTokenizer.from_pretrained(name)
+            self._model = model_cls.from_pretrained(name).to(device).eval()
+        return self._tokenizer, self._model
+
+    def _generate(self, prompt: str) -> str:
+        """Greedy decoding with flan-t5: deterministic, so answers are reproducible."""
+        import torch
+
+        tok, model = self._load()
+        inputs = tok(prompt, return_tensors="pt", truncation=True, max_length=1024).to(model.device)
+        with torch.no_grad():
+            ids = model.generate(**inputs, max_new_tokens=self.max_new_tokens, do_sample=False)
+        return tok.decode(ids[0], skip_special_tokens=True)
+
+    def _extract_span(self, question: str, passage: str, max_answer_tokens: int = 30) -> str:
+        """Pick the highest-scoring (start, end) span inside the passage, end >= start."""
+        import torch
+
+        tok, model = self._load()
+        inputs = tok(question, passage, return_tensors="pt", truncation="only_second",
+                     max_length=512).to(model.device)
+        with torch.no_grad():
+            out = model(**inputs)
+        start_logits, end_logits = out.start_logits[0], out.end_logits[0]
+
+        # only tokens that belong to the passage (sequence id 1) may be part of the answer
+        in_passage = torch.tensor([s == 1 for s in inputs.sequence_ids(0)], device=model.device)
+        start_logits = start_logits.masked_fill(~in_passage, float("-inf"))
+        end_logits = end_logits.masked_fill(~in_passage, float("-inf"))
+
+        scores = start_logits[:, None] + end_logits[None, :]           # score[s, e]
+        n = scores.size(0)
+        valid = torch.ones(n, n, device=model.device).triu().tril(max_answer_tokens - 1).bool()
+        scores = scores.masked_fill(~valid, float("-inf"))
+        start, end = divmod(int(scores.argmax()), n)
+        return tok.decode(inputs["input_ids"][0][start : end + 1], skip_special_tokens=True).strip()
 
     def answer(
         self,
@@ -75,12 +115,11 @@ class AnswerGenerator:
 
         if self.mode == "extractive":
             cid, passage = selected[0]
-            out = self.pipe(question=query, context=passage)
-            return Answer(query_id, query, out["answer"], [cid], selected)
+            return Answer(query_id, query, self._extract_span(query, passage), [cid], selected)
 
         numbered = "\n\n".join(f"[{i}] {text}" for i, (_, text) in enumerate(selected, start=1))
         prompt = PROMPT.format(passages=numbered, question=query)
-        out = self.pipe(prompt, max_new_tokens=self.max_new_tokens, do_sample=False)[0]["generated_text"]
+        out = self._generate(prompt)
 
         cited_idx = {int(m) for m in re.findall(r"\[(\d+)\]", out) if 1 <= int(m) <= len(selected)}
         cited = [selected[i - 1][0] for i in sorted(cited_idx)] or [selected[0][0]]

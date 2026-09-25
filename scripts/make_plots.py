@@ -11,15 +11,18 @@ copy your examiner reads may well be black and white.
 from __future__ import annotations
 
 import json
+import os
 import sys
 from pathlib import Path
 
-import matplotlib
+REPO = Path(__file__).resolve().parents[1]
+os.environ.setdefault("MPLCONFIGDIR", str(REPO / "data" / "mpl_cache"))  # keep font cache off C:
+
+import matplotlib  # noqa: E402
 
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt  # noqa: E402
 
-REPO = Path(__file__).resolve().parents[1]
 RESULTS = REPO / "results"
 FIGDIR = REPO / "paper" / "figures"
 

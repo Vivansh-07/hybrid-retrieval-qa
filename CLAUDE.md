@@ -171,13 +171,21 @@ plus RAG/FiD and attribution (ALCE). **Three research gaps** this project addres
 2. Fusion and reranking are rarely isolated — whole pipelines are compared, contributions not separable.
 3. Cost is reported inconsistently — accuracy at one rerank depth, no cost curve.
 
-### Current status (as of 2026-09-25)
-- `results/` and `data/` contain only `.gitkeep` → **no experiment runs recorded yet**.
-- `EXPERIMENT_LOG.md` has only the template and an empty BM25 baseline entry.
-- README results table and paper `TODO`s (k1/b values, abstract numbers, GitHub URL, institution/supervisor) are unfilled.
-- No `.git` folder visible in the project folder → repo may not be initialised/pushed from this copy yet.
-- By the plan's calendar this is end of Week 2, so the project is **behind schedule** — Week 1–2
-  tasks (baselines, fusion, rerank, full ablation, plots) are the immediate priority.
+### Current status (as of 2026-09-25, end of day)
+- **Git/GitHub:** repo initialised; private repo https://github.com/Vivansh-07/hybrid-retrieval-qa
+  (`gh` CLI is logged in as Vivansh-07). Make public after grading.
+- **Environment:** project venv at `.venv\` on D: (torch 2.6.0+cu126, CUDA works on the RTX 3050
+  4 GB). `pip install -e .` done (`pyproject.toml` added). See `docs/RUN_AND_PRESENT.md`.
+- **Pipeline verified end to end** on 2026-09-25 (tests, all 4 variants, sweeps, plots, failure CSV,
+  answers, Gradio demo), then all test outputs were deleted so Vivansh generates every reported
+  number with their own run. `results/` is empty again; `data/hf_cache/` keeps the downloads.
+- **Fixes made 2026-09-25:** reranker output was truncated to `rerank.top_k`=10 before evaluation
+  (now keeps the full list); `answer.py` no longer uses transformers pipelines (removed in v5);
+  `python -m hybridqa.cli` works via `pyproject.toml`; paper converted to IEEEtran.
+- **Open decision:** flan-t5-base mostly outputs only a citation (`[3].`) instead of an answer.
+  Options (keep + report / extractive mode / flan-t5-large) are in `docs/RUN_AND_PRESENT.md` §5.
+- `EXPERIMENT_LOG.md` still has no entries; paper `TODO`s left: abstract numbers, institution.
+- Day-by-day plan to 15 Oct (one real commit per day) is in `docs/RUN_AND_PRESENT.md` §4.
 
 ---
 
@@ -218,6 +226,12 @@ not 0) → extractive mode → query-subset analysis.
 
 - Vivansh is a 3rd-year student learning this material for a viva: explain *why*, not just *what*,
   and keep code readable over clever.
-- Don't ask for GitHub tokens; he pushes himself.
+- Don't ask for GitHub tokens. The `gh` CLI is already authenticated; commit/push only when asked.
+- **Never install or cache anything on C: — the C: drive is nearly full.** Packages go in `.venv\`
+  (D:), downloads in `data\hf_cache\` (set in `src/hybridqa/__init__.py`), pip cache in
+  `data\pip-cache\` (`.venv\pip.ini`). For pip installs also set `TMP`/`TEMP` to a folder on D:.
+  Never `pip install --user` or install into the global Python.
+- Vivansh runs the code and presents the output personally; GitHub is only a reference. Prefer
+  giving tested commands to run over running experiments for them.
 - Windows paths and `cmd`/`.bat` workflows are the default environment.
 - Real numbers come only from `results/` — never invent or estimate metrics for the paper or README.

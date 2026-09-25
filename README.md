@@ -30,12 +30,17 @@ failure analysis of what still goes wrong.
 ```bash
 git clone https://github.com/Vivansh-07/hybrid-retrieval-qa.git
 cd hybrid-retrieval-qa
-python -m venv .venv && .venv\Scripts\activate      # Windows
-# python -m venv .venv && source .venv/bin/activate # Linux / macOS
-pip install -r requirements.txt
+python -m venv .venv
+.venv\Scripts\activate                              # Windows (Command Prompt)
+# source .venv/bin/activate                          # Linux / macOS
+python -m pip install torch --index-url https://download.pytorch.org/whl/cu126   # GPU build
+python -m pip install -r requirements.txt
+python -m pip install -e .
 
-# full four-way ablation + sweeps (downloads SciFact on first run, ~10 min on a local GPU)
-python scripts/run_ablation.py --sweep-depth 10 25 50 100
+python -m pytest tests/ -q                           # 18 tests
+
+# full four-way ablation + sweeps (downloads SciFact + models on first run, ~13 min on an RTX 3050)
+python scripts/run_ablation.py --sweep-depth 10 25 50 100 --sweep-fusion-k 10 30 60 100
 
 # figures for the paper
 python scripts/make_plots.py
@@ -46,6 +51,10 @@ python -m hybridqa.cli query "Does vitamin D supplementation reduce respiratory 
 # interactive web demo: four strategies side by side + cited answer (http://127.0.0.1:7860)
 python scripts/demo.py
 ```
+
+Downloads (SciFact, models) are cached inside the project in `data/hf_cache/`, not in
+your user profile. **Step-by-step instructions, expected output and a presentation
+script:** [docs/RUN_AND_PRESENT.md](docs/RUN_AND_PRESENT.md).
 
 If `torch.cuda.is_available()` is `False`, everything still runs on CPU — expect the
 dense indexing step to take a few minutes instead of seconds.

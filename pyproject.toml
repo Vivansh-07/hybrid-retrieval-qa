@@ -1,0 +1,17 @@
+# Makes `src/hybridqa` importable, so `python -m hybridqa.cli ...` works from any folder.
+# Install once from the project root:   pip install -e .
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "hybridqa"
+version = "0.1.0"
+description = "Hybrid sparse-dense retrieval with cross-encoder reranking for scientific QA (SciFact)"
+requires-python = ">=3.10"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
