@@ -1,0 +1,14 @@
+{
+  "fusion+rerank vs bm25": {
+    "delta": 0.0592,
+    "p_value": 0.0002
+  },
+  "fusion+rerank vs dense": {
+    "delta": 0.0365,
+    "p_value": 0.0253
+  },
+  "fusion+rerank vs fusion": {
+    "delta": 0.0057,
+    "p_value": 0.6533
+  }
+}

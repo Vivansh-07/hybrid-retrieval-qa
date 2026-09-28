@@ -1,0 +1,188 @@
+{
+  "config": {
+    "dataset": {
+      "name": "scifact",
+      "hf_id": "BeIR/scifact",
+      "split": "test",
+      "max_docs": null
+    },
+    "chunking": {
+      "strategy": "sentence_window",
+      "window_sentences": 3,
+      "stride_sentences": 2,
+      "min_chars": 120
+    },
+    "sparse": {
+      "method": "bm25",
+      "k1": 0.9,
+      "b": 0.4,
+      "top_k": 100,
+      "lowercase": true,
+      "remove_stopwords": true,
+      "stem": true
+    },
+    "dense": {
+      "model": "sentence-transformers/all-MiniLM-L6-v2",
+      "query_prefix": "",
+      "batch_size": 128,
+      "max_seq_length": 256,
+      "normalize": true,
+      "top_k": 100,
+      "index": "flat_ip"
+    },
+    "fusion": {
+      "method": "rrf",
+      "k": 60,
+      "weights": [
+        1.0,
+        1.0
+      ],
+      "top_k": 100
+    },
+    "rerank": {
+      "model": "cross-encoder/ms-marco-MiniLM-L-6-v2",
+      "batch_size": 64,
+      "max_length": 512,
+      "candidates": 50,
+      "top_k": 10
+    },
+    "answer": {
+      "enabled": true,
+      "mode": "generative",
+      "generative_model": "google/flan-t5-base",
+      "extractive_model": "deepset/roberta-base-squad2",
+      "n_passages": 5,
+      "max_new_tokens": 128
+    },
+    "evaluation": {
+      "k_values": [
+        1,
+        3,
+        5,
+        10,
+        20,
+        100
+      ],
+      "primary_k": 10,
+      "seed": 42
+    },
+    "paths": {
+      "data_dir": "data",
+      "index_dir": "data/indexes",
+      "results_dir": "results"
+    }
+  },
+  "build_stats": {
+    "load_and_chunk_s": 15.473,
+    "bm25_index_s": 22.412,
+    "dense_index_s": 0.098,
+    "dense_from_cache": 1.0,
+    "embedding_mb": 32.279
+  },
+  "corpus": {
+    "n_chunks": 21015,
+    "n_queries": 300
+  },
+  "variants": [
+    {
+      "variant": "bm25",
+      "latency_ms_per_query": 61.56,
+      "Recall@1": 0.5269,
+      "Precision@1": 0.5467,
+      "nDCG@1": 0.5467,
+      "Recall@3": 0.6569,
+      "Precision@3": 0.2322,
+      "nDCG@3": 0.6102,
+      "Recall@5": 0.7081,
+      "Precision@5": 0.152,
+      "nDCG@5": 0.631,
+      "Recall@10": 0.7839,
+      "Precision@10": 0.0847,
+      "nDCG@10": 0.6562,
+      "Recall@20": 0.8255,
+      "Precision@20": 0.0455,
+      "nDCG@20": 0.668,
+      "Recall@100": 0.8818,
+      "Precision@100": 0.0099,
+      "nDCG@100": 0.68,
+      "MRR": 0.6278,
+      "MRR@10": 0.6232,
+      "num_queries": 300.0
+    },
+    {
+      "variant": "dense",
+      "latency_ms_per_query": 84.77,
+      "Recall@1": 0.5229,
+      "Precision@1": 0.5433,
+      "nDCG@1": 0.5433,
+      "Recall@3": 0.6917,
+      "Precision@3": 0.2478,
+      "nDCG@3": 0.6341,
+      "Recall@5": 0.7342,
+      "Precision@5": 0.16,
+      "nDCG@5": 0.6508,
+      "Recall@10": 0.8149,
+      "Precision@10": 0.0913,
+      "nDCG@10": 0.6789,
+      "Recall@20": 0.8703,
+      "Precision@20": 0.0493,
+      "nDCG@20": 0.6938,
+      "Recall@100": 0.916,
+      "Precision@100": 0.0104,
+      "nDCG@100": 0.7033,
+      "MRR": 0.6455,
+      "MRR@10": 0.6405,
+      "num_queries": 300.0
+    },
+    {
+      "variant": "fusion",
+      "latency_ms_per_query": 125.22,
+      "Recall@1": 0.5609,
+      "Precision@1": 0.58,
+      "nDCG@1": 0.58,
+      "Recall@3": 0.7269,
+      "Precision@3": 0.2578,
+      "nDCG@3": 0.6679,
+      "Recall@5": 0.7826,
+      "Precision@5": 0.17,
+      "nDCG@5": 0.6908,
+      "Recall@10": 0.8326,
+      "Precision@10": 0.0933,
+      "nDCG@10": 0.7097,
+      "Recall@20": 0.8829,
+      "Precision@20": 0.0495,
+      "nDCG@20": 0.7229,
+      "Recall@100": 0.947,
+      "Precision@100": 0.0107,
+      "nDCG@100": 0.7358,
+      "MRR": 0.6802,
+      "MRR@10": 0.6751,
+      "num_queries": 300.0
+    },
+    {
+      "variant": "fusion+rerank",
+      "latency_ms_per_query": 395.45,
+      "Recall@1": 0.5768,
+      "Precision@1": 0.6,
+      "nDCG@1": 0.6,
+      "Recall@3": 0.7229,
+      "Precision@3": 0.26,
+      "nDCG@3": 0.6739,
+      "Recall@5": 0.7725,
+      "Precision@5": 0.1707,
+      "nDCG@5": 0.6941,
+      "Recall@10": 0.8329,
+      "Precision@10": 0.094,
+      "nDCG@10": 0.7154,
+      "Recall@20": 0.8857,
+      "Precision@20": 0.0498,
+      "nDCG@20": 0.7291,
+      "Recall@100": 0.947,
+      "Precision@100": 0.0107,
+      "nDCG@100": 0.7413,
+      "MRR": 0.6902,
+      "MRR@10": 0.685,
+      "num_queries": 300.0
+    }
+  ]
+}
