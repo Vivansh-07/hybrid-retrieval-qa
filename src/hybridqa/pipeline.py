@@ -12,6 +12,7 @@ That is what makes the ablation an ablation rather than four unrelated systems.
 
 from __future__ import annotations
 
+import hashlib
 import json
 import time
 from dataclasses import dataclass, field
@@ -85,19 +86,37 @@ class RetrievalPipeline:
         self._log(f"BM25 index built in {self.build_stats['bm25_index_s']:.1f}s")
 
         t = time.perf_counter()
-        cache = resolve(self.cfg, "index_dir") / (
-            self.cfg.get_path("dense.model", "model").replace("/", "__") + ".npy"
-        )
+        cache = self.embedding_cache_path()
+        from_cache = cache.exists()
         self.dense = DenseRetriever(self.cfg, self.device).index(self.chunks, cache=cache)
         self.build_stats["dense_index_s"] = time.perf_counter() - t
+        # a cached run only loads vectors, so its time is NOT the index build cost —
+        # record which one it was before quoting dense_index_s in the paper
+        self.build_stats["dense_from_cache"] = float(from_cache)
         self.build_stats["embedding_mb"] = (
             self.dense.embeddings.nbytes / 1e6 if self.dense.embeddings is not None else 0.0
         )
-        self._log(f"dense index built in {self.build_stats['dense_index_s']:.1f}s "
+        how = "loaded from cache" if from_cache else "built"
+        self._log(f"dense index {how} in {self.build_stats['dense_index_s']:.1f}s "
                   f"({self.build_stats['embedding_mb']:.1f} MB)")
 
         self.reranker = CrossEncoderReranker(self.cfg, self.device)
         return self
+
+    def embedding_cache_path(self) -> Path:
+        """Cache file for the passage embeddings: one per (dataset, chunking, encoder).
+
+        The vectors depend on which passages exist and how they were encoded, so all of
+        that is hashed into the file name. Changing the chunking or the model then
+        re-embeds, instead of loading vectors that belong to a different set of passages.
+        """
+        keyed = {k: self.cfg.get_path(k) for k in (
+            "dataset.name", "dataset.max_docs", "chunking",
+            "dense.model", "dense.max_seq_length", "dense.normalize",
+        )}
+        digest = hashlib.sha1(json.dumps(keyed, sort_keys=True, default=str).encode()).hexdigest()[:10]
+        model = self.cfg.get_path("dense.model", "model").replace("/", "__")
+        return resolve(self.cfg, "index_dir") / f"{model}__{digest}.npy"
 
     # -- retrieval ---------------------------------------------------------------------
     def retrieve(self, query: str, variant: str = "fusion+rerank") -> List[Tuple[str, float]]:

@@ -14,16 +14,21 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
-from hybridqa.config import load_config, resolve  # noqa: E402
+from hybridqa.config import apply_overrides, load_config, output_dir  # noqa: E402
 from hybridqa.pipeline import VARIANTS, RetrievalPipeline  # noqa: E402
 
 
+def _config(args):
+    """The YAML config plus any --set key=value overrides for this run."""
+    return apply_overrides(load_config(args.config), args.overrides)
+
+
 def cmd_ablation(args) -> None:
-    cfg = load_config(args.config)
+    cfg = _config(args)
     pipe = RetrievalPipeline(cfg, device=args.device).prepare()
     variants = args.variants or list(VARIANTS)
     results = pipe.run_all(variants)
-    out = pipe.save_results(results)
+    out = pipe.save_results(results, output_dir(cfg, args.out, args.overrides))
 
     print("\n=== Ablation ===")
     header = ["variant", "nDCG@10", "Recall@10", "Recall@100", "MRR@10", "latency_ms_per_query"]
@@ -35,7 +40,7 @@ def cmd_ablation(args) -> None:
 
 
 def cmd_query(args) -> None:
-    cfg = load_config(args.config)
+    cfg = _config(args)
     pipe = RetrievalPipeline(cfg, device=args.device).prepare()
     ranked = pipe.retrieve(args.text, args.variant)[: args.top_k]
 
@@ -57,7 +62,7 @@ def cmd_answer(args) -> None:
     """Generate answers for the evaluation queries and score citation accuracy."""
     from hybridqa.answer import AnswerGenerator, citation_accuracy, faithfulness_signals
 
-    cfg = load_config(args.config)
+    cfg = _config(args)
     pipe = RetrievalPipeline(cfg, device=args.device).prepare()
     gen = AnswerGenerator(cfg, device=args.device)
 
@@ -70,7 +75,7 @@ def cmd_answer(args) -> None:
         records.append({**ans.as_dict(), "signals": faithfulness_signals(ans)})
         print(f"- {q['query_id']}: {ans.text[:120]}")
 
-    out = resolve(cfg, "results_dir") / "answers.json"
+    out = output_dir(cfg, args.out, args.overrides) / "answers.json"
     out.write_text(
         json.dumps(
             {"citation_metrics": citation_accuracy(answers, pipe.qrels), "answers": records},
@@ -88,20 +93,30 @@ def build_parser() -> argparse.ArgumentParser:
     p.add_argument("--device", default=None, help="cuda | cpu (default: auto)")
     sub = p.add_subparsers(dest="command", required=True)
 
-    a = sub.add_parser("ablation", help="run the full retrieval ablation and write results/")
+    # every subcommand accepts --set, placed after the subcommand name:
+    #   python -m hybridqa.cli ablation --variants bm25 --set chunking.strategy=none
+    common = argparse.ArgumentParser(add_help=False)
+    common.add_argument("--set", dest="overrides", action="append", default=[], metavar="KEY=VALUE",
+                        help="change one config value for this run (repeatable)")
+    out_help = "output folder (default: results/, or results/set_... with --set)"
+
+    a = sub.add_parser("ablation", parents=[common],
+                       help="run the full retrieval ablation and write results/")
     a.add_argument("--variants", nargs="*", choices=list(VARIANTS))
+    a.add_argument("--out", default=None, help=out_help)
     a.set_defaults(func=cmd_ablation)
 
-    q = sub.add_parser("query", help="retrieve for one ad-hoc question")
+    q = sub.add_parser("query", parents=[common], help="retrieve for one ad-hoc question")
     q.add_argument("text")
     q.add_argument("--variant", default="fusion+rerank", choices=list(VARIANTS))
     q.add_argument("--top-k", type=int, default=5)
     q.add_argument("--answer", action="store_true", help="also generate a cited answer")
     q.set_defaults(func=cmd_query)
 
-    ans = sub.add_parser("answer", help="generate cited answers for the eval queries")
+    ans = sub.add_parser("answer", parents=[common], help="generate cited answers for the eval queries")
     ans.add_argument("--variant", default="fusion+rerank", choices=list(VARIANTS))
     ans.add_argument("--limit", type=int, default=50)
+    ans.add_argument("--out", default=None, help=out_help)
     ans.set_defaults(func=cmd_answer)
     return p
 

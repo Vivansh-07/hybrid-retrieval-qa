@@ -186,6 +186,9 @@ plus RAG/FiD and attribution (ALCE). **Three research gaps** this project addres
   Options (keep + report / extractive mode / flan-t5-large) are in `docs/RUN_AND_PRESENT.md` §5.
 - `EXPERIMENT_LOG.md` still has no entries; paper `TODO`s left: abstract numbers, institution.
 - Day-by-day plan to 15 Oct (one real commit per day) is in `docs/RUN_AND_PRESENT.md` §4.
+- **2026-09-28:** 26–27 Sep tasks were not done (no runs yet); plan revised. Added `--set`/`--out`
+  overrides, per-config embedding cache, `dense_from_cache` build stat, `tests/test_config.py`
+  (25 tests pass). Still to write: a query-subset analysis script (needed by 6 Oct).
 
 ---
 
@@ -216,7 +219,9 @@ not 0) → extractive mode → query-subset analysis.
 - **Log every run** in `docs/EXPERIMENT_LOG.md` immediately, including failures.
 - **Commit every day the code is touched** — `git log` is evidence of own work.
 - **Never regenerate a number already in the paper** without re-checking the paper. Leave `evaluation.seed` at 42.
-- **Delete `data/indexes/`** after changing the dense encoder (embedding cache is keyed by model name).
+- **Use `--set key=value` for one-change runs** (e.g. `--set chunking.strategy=none`); they write to
+  `results/set_<key>=<value>/` and never overwrite the main `results/`. The embedding cache in
+  `data/indexes/` is keyed by dataset + chunking + encoder settings, so it no longer needs deleting.
 - **Do not "fix" BM25 beating dense** by silently swapping models — report both.
 - **Cite nothing that can't be explained in one sentence** — the examiner may ask about any reference.
 - **Failure annotation is manual** — do not automate the category labelling.

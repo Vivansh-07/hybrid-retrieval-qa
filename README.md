@@ -37,7 +37,7 @@ python -m pip install torch --index-url https://download.pytorch.org/whl/cu126  
 python -m pip install -r requirements.txt
 python -m pip install -e .
 
-python -m pytest tests/ -q                           # 18 tests
+python -m pytest tests/ -q                           # 25 tests
 
 # full four-way ablation + sweeps (downloads SciFact + models on first run, ~13 min on an RTX 3050)
 python scripts/run_ablation.py --sweep-depth 10 25 50 100 --sweep-fusion-k 10 30 60 100

@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import copy
 from pathlib import Path
-from typing import Any
+from typing import Any, Sequence
 
 import yaml
 
@@ -48,6 +48,31 @@ def load_config(path: str | Path = "configs/scifact.yaml") -> Config:
         return Config(yaml.safe_load(fh))
 
 
+_MISSING = object()
+
+
+def apply_overrides(cfg: Config, assignments: Sequence[str] | None) -> Config:
+    """Apply command-line overrides such as ``chunking.strategy=none``.
+
+    Lets a run change one setting without editing the YAML (the full config used is
+    saved with the results, so the change is still on record). Values are parsed as
+    YAML: ``60`` becomes an int, ``true`` a bool, ``[1, 0.5]`` a list, ``none`` stays
+    the string "none". The key must already exist, so a typo fails loudly instead of
+    silently running the default configuration.
+    """
+    for item in assignments or []:
+        key, sep, raw = item.partition("=")
+        key = key.strip()
+        if not sep or not key:
+            raise ValueError(f"override must look like key=value, got {item!r}")
+        if cfg.get_path(key, _MISSING) is _MISSING:
+            section = cfg.get_path(key.rsplit(".", 1)[0], {}) if "." in key else cfg
+            options = ", ".join(sorted(section)) if isinstance(section, dict) else "?"
+            raise KeyError(f"unknown config key {key!r} (keys here: {options})")
+        cfg = cfg.override(key, yaml.safe_load(raw))
+    return cfg
+
+
 def resolve(cfg: Config, key: str) -> Path:
     """Resolve a `paths.*` entry to an absolute directory, creating it if needed."""
     rel = cfg.get_path(f"paths.{key}", key)
@@ -56,3 +81,24 @@ def resolve(cfg: Config, key: str) -> Path:
         out = REPO_ROOT / out
     out.mkdir(parents=True, exist_ok=True)
     return out
+
+
+def output_dir(cfg: Config, out: str | Path | None = None,
+               overrides: Sequence[str] | None = None) -> Path:
+    """Where a run writes its results.
+
+    `out` if given; otherwise results/ for a run with the default config, and a named
+    subfolder (results/set_<key>=<value>/) for a run with --set overrides, so a side
+    experiment can never overwrite the main results the paper is built from.
+    """
+    if out:
+        path = Path(out)
+        path = path if path.is_absolute() else REPO_ROOT / path
+    elif overrides:
+        name = "__".join(o.replace(" ", "") for o in overrides)
+        safe = "".join(c if c.isalnum() or c in "._=-" else "-" for c in name)
+        path = resolve(cfg, "results_dir") / f"set_{safe}"
+    else:
+        path = resolve(cfg, "results_dir")
+    path.mkdir(parents=True, exist_ok=True)
+    return path

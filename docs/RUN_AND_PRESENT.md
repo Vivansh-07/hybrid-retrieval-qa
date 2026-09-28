@@ -85,9 +85,10 @@ models (~100 MB–1 GB each) once, into `data\hf_cache\`. After that it works of
 ```
 python -m pytest tests/ -q
 ```
-**Expect:** `18 passed`.
+**Expect:** `25 passed`.
 **What it shows:** the metrics (Recall, MRR, nDCG) and RRF are implemented correctly;
-the tests compare them to hand-worked answers.
+the tests compare them to hand-worked answers. They also check the config overrides
+and the embedding-cache naming.
 
 ### Step 2: BM25 baseline (≈3 min first time, including downloads)
 ```
@@ -98,9 +99,11 @@ python -m hybridqa.cli ablation --variants bm25
 [pipeline] loaded 5183 docs, 300 judged queries
 [pipeline] chunked into 21015 passages (4.05 per doc)
 [pipeline] BM25 index built in …
-[pipeline] dense index built in …
+[pipeline] dense index built in …            (≈1–2 min: embeds all 21,015 passages)
 ```
 then a one-row table with nDCG@10, Recall@10, Recall@100, MRR@10, latency.
+Later runs say `dense index loaded from cache` instead: the embeddings are saved in
+`data\indexes\`. For the paper's index-build time, quote the first ("built") run.
 **Sanity check:** Recall@10 should be in the 0.6–0.8 band. If it is, data loading,
 chunking and evaluation are all working.
 **Log it:** add an entry to `docs/EXPERIMENT_LOG.md`.
@@ -124,6 +127,19 @@ with a `delta` and `p` for each comparison, then one line per sweep setting.
 | `sweep_rerank_depth.json` | Accuracy and ms/query at depth 10/25/50/100 |
 | `sweep_rrf_k.json` | Fusion accuracy at k = 10/30/60/100 |
 | `runs/*.json` | Per-question rankings (used by the failure analysis) |
+
+### Step 3b: One-change experiments (≈5 min each)
+Change **one** setting for one run with `--set key=value`; no YAML editing needed.
+Results go to their own folder, `results\set_<key>=<value>\`, so they never overwrite
+the main `results\` files from step 3. The full config used is saved in that folder's
+`metrics.json`.
+```
+python scripts/run_ablation.py --set chunking.strategy=none
+python scripts/run_ablation.py --variants fusion --set fusion.method=nsf
+```
+The first is the **chunking study** (whole abstracts vs 3-sentence windows); the second
+is **rank fusion vs score fusion**. Compare each folder's `ablation.csv` with the main
+one. A mistyped key stops immediately with a list of the valid keys. Log each run.
 
 ### Step 4: Figures (seconds)
 ```
@@ -229,30 +245,31 @@ message, click **Commit**, then **Sync Changes**.
 a steady history of real steps is strong evidence of your own work. Empty or trivial
 commits made only for green squares are easy to spot, so don't make them.
 
-### Day-by-day plan (26 Sep → 15 Oct)
+### Day-by-day plan (28 Sep → 15 Oct; revised after 26–27 Sep were missed)
 
 | Date | Work | Commit message idea |
 |---|---|---|
-| Sat 26 Sep | Steps 1–2: tests + BM25 baseline; first EXPERIMENT_LOG entry | `Run BM25 baseline on SciFact` |
-| Sun 27 Sep | `--variants dense`; chunking study (`chunking.strategy: none` vs `sentence_window`) | `Chunking study: none vs sentence window` |
-| Mon 28 Sep | Step 3: full ablation + sweeps; commit `results/` | `Full four-way ablation with significance tests` |
-| Tue 29 Sep | Step 4: figures; check they read in greyscale | `Generate paper figures` |
-| Wed 30 Sep | Fusion method: `fusion.method: nsf` vs `rrf`, one run | `Compare rank fusion vs score fusion` |
-| Thu 1 Oct | Paper §3 Method | `Paper: method section` |
-| Fri 2 Oct | Paper §4 Setup + §5 results table | `Paper: setup and results table` |
-| Sat 3 Oct | Step 5: failure CSV; hand-label first 20 | `Failure analysis: first 20 labelled` |
-| Sun 4 Oct | Hand-label remaining 20 | `Failure analysis: all 40 labelled` |
-| Mon 5 Oct | Query-subset analysis (BM25 vs dense on numeral/rare-term queries) | `Query-subset analysis` |
-| Tue 6 Oct | Step 6: generate 50 answers; write the scoring rubric first | `Generate answers; scoring rubric` |
-| Wed 7 Oct | Hand-score 25 answers | `Answer scoring: 25/50` |
-| Thu 8 Oct | Hand-score remaining 25 | `Answer scoring complete` |
-| Fri 9 Oct | Paper §6 Failure analysis + answer-quality subsection | `Paper: failure analysis` |
-| Sat 10 Oct | Paper §1 Introduction + §2 Related work | `Paper: intro and related work` |
-| Sun 11 Oct | Paper §7 Limitations, abstract, conclusion | `Paper: abstract, limitations, conclusion` |
-| Mon 12 Oct | Slides (12) | `Presentation slides` |
-| Tue 13 Oct | Fresh-clone test: clone into a new folder, follow this file from step 1 | `Reproducibility pass; README results` |
-| Wed 14 Oct | Viva rehearsal with `docs/VIVA_PREP.md`; fix what you stumble on | `Viva prep notes` |
+| Mon 28 Sep | Steps 1–3: tests, BM25 baseline, full ablation + sweeps (≈20 min of running); EXPERIMENT_LOG entries; commit `results/` | `BM25 baseline and full four-way ablation` |
+| Tue 29 Sep | Step 4: figures; check they read in greyscale; note BM25 vs dense in the log | `Generate paper figures` |
+| Wed 30 Sep | Step 3b: chunking study (`--set chunking.strategy=none`) | `Chunking study: whole abstracts vs sentence windows` |
+| Thu 1 Oct | Step 3b: rank vs score fusion (`--variants fusion --set fusion.method=nsf`) | `Compare rank fusion vs score fusion` |
+| Fri 2 Oct | Paper §3 Method | `Paper: method section` |
+| Sat 3 Oct | Paper §4 Setup + §5 results table | `Paper: setup and results table` |
+| Sun 4 Oct | Step 5: failure CSV; hand-label first 20 | `Failure analysis: first 20 labelled` |
+| Mon 5 Oct | Hand-label remaining 20 | `Failure analysis: all 40 labelled` |
+| Tue 6 Oct | Query-subset analysis (BM25 vs dense on numeral/rare-term queries; needs a small script) | `Query-subset analysis` |
+| Wed 7 Oct | Decide the answer model (§5); Step 6: generate 50 answers; write the scoring rubric first | `Generate answers; scoring rubric` |
+| Thu 8 Oct | Hand-score 25 answers | `Answer scoring: 25/50` |
+| Fri 9 Oct | Hand-score remaining 25 | `Answer scoring complete` |
+| Sat 10 Oct | Paper §6 Failure analysis + answer-quality subsection | `Paper: failure analysis` |
+| Sun 11 Oct | Paper §1 Introduction + §2 Related work | `Paper: intro and related work` |
+| Mon 12 Oct | Paper §7 Limitations, abstract, conclusion | `Paper: abstract, limitations, conclusion` |
+| Tue 13 Oct | Slides (12) | `Presentation slides` |
+| Wed 14 Oct | Fresh-clone test (follow this file from step 1) + viva rehearsal with `docs/VIVA_PREP.md` | `Reproducibility pass; viva prep` |
 | Thu 15 Oct | Buffer | |
+
+If a day slips, drop items in the order listed in `CLAUDE.md` §7 ("If behind, cut in
+this order"), never the four-row ablation, the failure analysis or the significance test.
 
 After grading, make the repo public for your resume:
 ```
@@ -275,4 +292,10 @@ not answer. Options:
 3. **Try `google/flan-t5-large`** (780M): better at following the instruction, ~3 GB
    download, tight but should fit in 4 GB VRAM.
 
+Try an option without editing the YAML: `--set` writes to its own folder, so your
+default answers.json is kept:
+```
+python -m hybridqa.cli answer --limit 50 --set answer.mode=extractive
+python -m hybridqa.cli answer --limit 50 --set answer.generative_model=google/flan-t5-large
+```
 Whichever you pick, change one thing, run it, and log it.
