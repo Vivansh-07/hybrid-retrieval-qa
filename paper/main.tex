@@ -196,13 +196,16 @@ RRF fusion      & & & & & \\
 \label{fig:ablation}
 \end{figure}
 
-\begin{figure}[t]
+\begin{figure*}[t]
 \centering
-\includegraphics[width=\columnwidth]{figures/latency_accuracy.png}
-\caption{Reranking depth $N$ trades latency for accuracy. % state where it saturates
+\includegraphics[width=\textwidth]{figures/latency_accuracy.png}
+\caption{Effect of the reranking depth $N$ (number of fused candidates scored by
+the cross-encoder) on nDCG@10 (left) and latency (right). ``none'' is RRF fusion
+without reranking; dotted lines mark BM25 and dense alone.
+% TODO: add the one-sentence takeaway in your own words, from results/sweep_rerank_depth.json
 }
 \label{fig:latency}
-\end{figure}
+\end{figure*}
 
 \subsection{Which stage helps which question?}
 % The interesting part. Split queries by a property you can compute:

@@ -189,6 +189,14 @@ plus RAG/FiD and attribution (ALCE). **Three research gaps** this project addres
 - **2026-09-28:** 26–27 Sep tasks were not done (no runs yet); plan revised. Added `--set`/`--out`
   overrides, per-config embedding cache, `dense_from_cache` build stat, `tests/test_config.py`
   (25 tests pass). Still to write: a query-subset analysis script (needed by 6 Oct).
+- **2026-09-28 (evening):** Vivansh ran BM25 + the full ablation; results committed (a866a59).
+  Headline: fusion significantly beats BM25 and dense; dense vs BM25 and rerank vs fusion are
+  NOT significant (see `docs/EXPERIMENT_LOG.md`). Latency varies up to ~2x between runs.
+- **2026-09-29:** `hybridqa/significance.py` tests all 6 variant pairs (also better/worse/same
+  counts); `scripts/significance.py` recomputes it from `results/runs/` in seconds. Figures
+  redesigned for print (column width, greyscale-safe; depth figure now a 2-panel `figure*`).
+  Cold-cache dense build: 129.6 s (`results/index_build_timing/`). Log filled for all runs.
+  31 tests pass.
 
 ---
 

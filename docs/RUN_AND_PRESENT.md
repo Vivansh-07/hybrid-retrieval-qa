@@ -85,10 +85,10 @@ models (~100 MB–1 GB each) once, into `data\hf_cache\`. After that it works of
 ```
 python -m pytest tests/ -q
 ```
-**Expect:** `25 passed`.
+**Expect:** `31 passed`.
 **What it shows:** the metrics (Recall, MRR, nDCG) and RRF are implemented correctly;
 the tests compare them to hand-worked answers. They also check the config overrides
-and the embedding-cache naming.
+the embedding-cache naming and the significance comparisons.
 
 ### Step 2: BM25 baseline (≈3 min first time, including downloads)
 ```
@@ -116,17 +116,26 @@ python scripts/run_ablation.py --sweep-depth 10 25 50 100 --sweep-fusion-k 10 30
 significance test, then re-runs fusion+rerank at 4 reranking depths (accuracy vs
 speed) and fusion at 4 RRF-k values (robustness).
 **Expect:** the four-row ablation table, then `=== Paired bootstrap on nDCG@10 ===`
-with a `delta` and `p` for each comparison, then one line per sweep setting.
+with one line per pair of variants (gain, p-value, how many questions got
+better/worse/same, and "significant" or "not significant"), then one line per sweep setting.
 **Files written to `results/`:**
 
 | File | Contains |
 |---|---|
 | `ablation.csv` | **The main table** (open it in VS Code or Excel) |
 | `metrics.json` | Same numbers plus build times, chunk count, full config |
-| `significance.json` | p-values: is each improvement real or noise? (p < 0.05 = real) |
+| `significance.json` | p-values for all 6 pairs of variants: is each difference real or noise? (p < 0.05 = real) |
 | `sweep_rerank_depth.json` | Accuracy and ms/query at depth 10/25/50/100 |
 | `sweep_rrf_k.json` | Fusion accuracy at k = 10/30/60/100 |
 | `runs/*.json` | Per-question rankings (used by the failure analysis) |
+
+To recompute `significance.json` from the saved run files **without** re-running the
+13-minute experiment (seconds):
+```
+python scripts/significance.py
+```
+A p-value printed as `< 0.0001` means none of the 10,000 bootstrap resamples produced a gain
+that large by chance. Write it that way in the paper, never as "p = 0".
 
 ### Step 3b: One-change experiments (≈5 min each)
 Change **one** setting for one run with `--set key=value`; no YAML editing needed.
@@ -147,6 +156,15 @@ python scripts/make_plots.py
 ```
 **Writes:** `paper/figures/ablation_ndcg.png`, `recall_curve.png`, `latency_accuracy.png`.
 Click them in the VS Code file explorer to view. These go into the paper and slides.
+
+- `ablation_ndcg.png` and `recall_curve.png` are drawn 3.5 inches wide, exactly one IEEE
+  column, so the text prints at full size. `latency_accuracy.png` is two panels spanning
+  both columns (`figure*` in `main.tex`).
+- Lines differ by dash pattern and marker shape, not only colour, so they still read on a
+  black-and-white printout.
+- In `latency_accuracy.png`, "none" means fusion without the reranker, and the dotted lines
+  mark BM25 and dense alone. Read it as "does reranking more candidates buy accuracy, and
+  at what cost?"
 
 ### Step 5: Failure-analysis worksheet (seconds)
 ```

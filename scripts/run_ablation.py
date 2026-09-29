@@ -25,8 +25,8 @@ REPO = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(REPO / "src"))
 
 from hybridqa.config import apply_overrides, load_config, output_dir  # noqa: E402
-from hybridqa.metrics import paired_bootstrap  # noqa: E402
 from hybridqa.pipeline import VARIANTS, RetrievalPipeline  # noqa: E402
+from hybridqa.significance import save_significance  # noqa: E402
 
 
 def main() -> None:
@@ -53,26 +53,12 @@ def main() -> None:
     results = pipe.run_all(args.variants)
     out_dir = pipe.save_results(results, out_dir)
 
-    # significance: is fusion+rerank really better than the strongest single retriever?
+    # significance: every pair of variants, so each claim in the paper has a p-value
     primary_k = cfg.get_path("evaluation.primary_k", 10)
     key = f"nDCG@{primary_k}"
-    sig = {}
-    if "fusion+rerank" in results:
-        target = {q: m[key] for q, m in results["fusion+rerank"].per_query.items()}
-        for base in ("bm25", "dense", "fusion"):
-            if base in results:
-                baseline = {q: m[key] for q, m in results[base].per_query.items()}
-                sig[f"fusion+rerank vs {base}"] = {
-                    "delta": round(
-                        sum(target.values()) / len(target) - sum(baseline.values()) / len(baseline), 4
-                    ),
-                    "p_value": paired_bootstrap(baseline, target),
-                }
-    if sig:
-        (out_dir / "significance.json").write_text(json.dumps(sig, indent=2), encoding="utf-8")
-        print("\n=== Paired bootstrap on " + key + " ===")
-        for name, s in sig.items():
-            print(f"  {name}: delta={s['delta']:+.4f}  p={s['p_value']:.4f}")
+    if len(results) > 1:
+        save_significance({name: res.per_query for name, res in results.items()}, out_dir,
+                          key=key, seed=cfg.get_path("evaluation.seed", 42))
 
     # rerank depth sweep: the accuracy-vs-latency curve the paper needs
     if args.sweep_depth:
