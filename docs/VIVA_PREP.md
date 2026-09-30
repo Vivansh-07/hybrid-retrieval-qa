@@ -13,23 +13,28 @@ an understood one, and the tell is usually that you cannot handle the follow-up.
 Each fails on a different query type. BM25 matches surface terms, so it is strong on
 exact identifiers, gene names and numerals, and it fails when the claim is phrased
 differently from the abstract. The dense bi-encoder matches meaning, so it survives
-paraphrase, but it compresses a passage into one [384]-dimensional vector and rare
-identifiers get averaged away — and on SciFact it is out of domain, which BEIR shows
-costs dense models a lot. My ablation shows [X] queries where one succeeds and the
-other fails; fusion recovers most of them.
+paraphrase, but it compresses a passage into one 384-dimensional vector and rare
+identifiers get averaged away — and on SciFact it is out of domain. In my results the two
+are statistically tied (nDCG@10 0.656 vs 0.679, p = 0.25), but they succeed on different
+claims: for 42 of the 300 claims only one of them puts a gold paper in the top 10 (17 only
+BM25, 25 only dense). Fusion keeps the gold paper in the top 10 for 27 of those 42, and is
+significantly better than both (0.710; p < 0.0001 vs BM25, p = 0.019 vs dense).
 
 **What is Reciprocal Rank Fusion and why not just average the scores?**
 RRF scores a document as the sum over systems of 1/(k + rank). It uses ranks, not
-scores. Averaging scores does not work because BM25 scores are unbounded and depend on
-corpus statistics while cosine similarity lives in [-1, 1] — there is no fixed weighting
-that transfers across queries. I did implement score fusion as a baseline; it scored
-[Y] against RRF's [Z].
+scores. Adding raw scores does not work because BM25 scores are unbounded and depend on
+corpus statistics while cosine similarity lives in [-1, 1]. The alternative is to min-max
+normalise each list per query and then add them. I implemented that as a baseline: it
+scored 0.717 against RRF's 0.710, and the difference is not significant (p = 0.27). So I
+do not claim RRF is more accurate. I keep it because it needs no normalisation and no
+tuning data, and because it is stable: the k sweep below barely moves the result.
 
 **What does k=60 do?**
 It damps the top ranks. With k=60, rank 1 contributes 1/61 and rank 2 contributes 1/62 —
 almost the same. A small k would make rank 1 hugely more valuable than rank 2, letting one
-over-confident system dominate. 60 is Cormack et al.'s value; I swept k over [10, 30, 60,
-100] and the result moved by less than [W], so the finding is not a k artefact.
+over-confident system dominate. 60 is Cormack et al.'s value; I swept k over 10, 30, 60
+and 100 and nDCG@10 stayed between 0.709 and 0.714 (a range of 0.005), so the finding is
+not a k artefact.
 
 **Bi-encoder vs cross-encoder — what is the actual difference?**
 A bi-encoder encodes query and passage separately, so the only interaction is a dot
@@ -37,7 +42,8 @@ product between two fixed vectors. That lets you precompute the whole corpus off
 A cross-encoder feeds `[CLS] query [SEP] passage [SEP]` through one Transformer, so every
 query token attends to every passage token. Far more accurate, but it needs one forward
 pass per pair — you cannot precompute anything, which is exactly why it runs only over
-the fused top-[50] and never over the corpus.
+the fused top-50 and never over the corpus. (In general it is more accurate; on my data
+it was not significantly better than fusion alone — see the Tier 2 questions.)
 
 **Why nDCG as the primary metric?**
 It is the only one of my four that is both graded and rank-discounted. Recall@k ignores
@@ -70,9 +76,12 @@ contribute is the controlled comparison and the failure analysis. [If you did fi
 say what, on what, for how long, and what it bought you.]
 
 **Why chunk at all? SciFact abstracts are short.**
-Honest answer: on SciFact the benefit is small — I measured [ΔX] nDCG@10 between chunked
-and unchunked. Chunking matters because the pipeline is meant to generalise to long
-documents where an embedding of 4,000 words is uselessly diffuse. I report both settings.
+I measured it. For BM25 it makes no difference (+0.002 nDCG@10 unchunked, p = 0.82). For
+the neural models it matters: on whole abstracts the dense encoder loses 0.031 (p = 0.009)
+and the full system loses 0.029 (p = 0.007). The reason is the input limit: 71.6% of
+whole abstracts are longer than the encoder's 256 tokens and get cut off, against 1.2% of
+my 3-sentence windows. The cost of chunking is a 4x larger index (32 MB vs 8 MB). Fusion
+still beats both single retrievers without chunking, so that finding does not depend on it.
 
 **Your chunks overlap. Does that not inflate your scores?**
 No, because relevance is judged at document level, so I collapse chunk ranks to parent
@@ -80,19 +89,24 @@ doc ids before scoring and de-duplicate. Three chunks from the same document cou
 That is `chunk_to_doc` in `data.py`.
 
 **How do you know the improvement is real and not noise?**
-Paired bootstrap over per-query nDCG@10, 10,000 resamples, two-sided. Fusion+rerank vs
-[baseline] gives p = [p]. [If any comparison is not significant, say so first — it reads
-as rigour, not weakness.]
+Paired bootstrap over per-query nDCG@10, 10,000 resamples, two-sided, for every pair of
+variants. Say the non-significant ones first — it reads as rigour, not weakness:
+- dense vs BM25: +0.023, p = 0.25 — not significant, they are tied.
+- reranker vs fusion: +0.006, p = 0.65 — not significant (helps 52 claims, hurts 46).
+- fusion vs BM25: +0.053, p < 0.0001; fusion vs dense: +0.031, p = 0.019 — significant.
+- full system vs BM25: +0.059, p = 0.0002; vs dense: +0.037, p = 0.025 — significant.
 
 **What is the latency cost and would you deploy this?**
-[A] ms/query for BM25, [B] for dense, [C] for fusion, [D] with reranking at depth 50.
-Reranking is [D-C] ms of that. Whether it is worth it depends on the application: for
-interactive search, reranking depth 25 is probably the right point on my curve; for
-offline evidence gathering, take the full 100.
+About 62 ms/query for BM25, 85 for dense, 125 for fusion, 395 with reranking at depth 50,
+so reranking adds roughly 270 ms. These are single-laptop numbers and varied up to about
+2x between identical runs, so I quote them as approximate. Would I deploy the reranker
+here? No: on this data it triples the latency for a gain that is not significant, and
+accuracy is flat from depth 10 to 100 (0.716-0.722). I would deploy fusion, and only add a
+reranker trained on scientific text.
 
 **What is FAISS actually doing? Is it approximate?**
-I use `IndexFlatIP`, which is exact brute-force inner product — with [N] chunks × 384
-dims that is a few milliseconds. FAISS's approximate indexes (IVF, HNSW) matter at
+I use `IndexFlatIP`, which is exact brute-force inner product — with 21,015 chunks × 384
+dims (32 MB) that is a few milliseconds. FAISS's approximate indexes (IVF, HNSW) matter at
 millions of vectors; at my scale approximation would trade accuracy for nothing.
 
 **Why inner product rather than cosine?**
@@ -105,14 +119,24 @@ same thing with one fewer division per comparison.
 
 **When would fusion make things worse?**
 When one retriever is much weaker than the other, RRF's uniform weights let the weak
-system pull bad documents up. Weighted RRF helps, but the weights need a dev set. [Check
-your own results — if you have queries where fusion underperforms both inputs, you have a
-concrete example, and that is a strong answer.]
+system pull bad documents up. Weighted RRF helps, but the weights need a dev set. In my
+results this is rare: fusion scores below BOTH inputs on 1 of 300 claims and above both on
+25. It does lose some of what a single retriever found: of the 42 claims where only one
+retriever had a gold paper in the top 10, fusion keeps it there for 27, so 15 drop out.
+The one claim is 1259 (tamoxifen metabolism and genetic make-up, gold paper 24341590):
+BM25 and dense both rank the gold paper first, but through different chunks of it
+(`24341590#1` and `24341590#4`). RRF fuses chunks, not documents, so those two votes do
+not add up, and a chunk of another paper that both lists rank fairly high
+(`13069283#0`) overtakes them; the gold paper drops to rank 2. This is a limitation of
+chunk-level fusion. The reranker puts it back at rank 1. Fusing at document level is
+future work.
 
 **Your reranker demoted a correct document. Why would that happen?**
 Cross-encoders are trained on MS MARCO — web queries and passages. SciFact claims are
 formal scientific statements, so there is a domain gap in the *reranker* too, not just the
-retriever. `failure_analysis.py` counts these as `reranker_regression`; I found [N] of them.
+retriever. Across all 300 claims the reranker improved nDCG@10 on 52 and lowered it on 46,
+which is why its average gain (+0.006) is not significant. `failure_analysis.py` counts the
+worst cases as `reranker_regression`; I found [N] of them. [Fill in after running it.]
 
 **What would you do with more time / compute?**
 In order of expected value: (1) fine-tune the bi-encoder on in-domain pairs, since the
@@ -157,5 +181,7 @@ defend is worse than code you do not have.
 
 - Rerun the ablation from a clean clone. Numbers in your slides must match `results/`.
 - Print the paper and one page with the ablation table on it. Bring both.
-- Know your three headline numbers cold: nDCG@10 for the full system, the gain over the
-  best single retriever, and the reranking latency.
+- Know your three headline numbers cold: nDCG@10 for the full system (0.715), the gain over
+  the best single retriever (+0.037 over dense, p = 0.025; fusion alone already gives
+  +0.031, p = 0.019), and the reranking latency (about +270 ms/query for a gain over fusion
+  that is not significant, p = 0.65).

@@ -1,0 +1,18 @@
+{
+  "metric": "nDCG@10",
+  "baseline": "results",
+  "other": "results/set_fusion.method=nsf",
+  "variants": {
+    "fusion": {
+      "baseline": 0.7097,
+      "other": 0.7174,
+      "delta": 0.0078,
+      "p_value": 0.2728,
+      "better": 32,
+      "worse": 26,
+      "same": 242,
+      "baseline_docs_per_query": 52.8,
+      "other_docs_per_query": 52.0
+    }
+  }
+}

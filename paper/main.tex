@@ -238,6 +238,9 @@ without reranking; dotted lines mark BM25 and dense alone.
 %  - Recall@100 is recall within the top-100 *passages*, which cover only ~47--58
 %    distinct documents per query (several passages share a parent abstract). The @10
 %    metrics are unaffected. State this wherever the R@100 column appears.
+%  - Fusion is done over chunks, not documents: when BM25 and dense each rank a
+%    DIFFERENT chunk of the same gold paper first, their votes do not combine
+%    (claim 1259 is a concrete case; see docs/VIVA_PREP.md).
 %  - Latency varied up to ~2x between identical runs (see docs/EXPERIMENT_LOG.md):
 %    report it as approximate.
 %  - Off-the-shelf models; no in-domain fine-tuning of either encoder.

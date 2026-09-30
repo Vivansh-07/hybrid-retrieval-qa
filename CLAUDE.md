@@ -204,6 +204,13 @@ plus RAG/FiD and attribution (ALCE). **Three research gaps** this project addres
   the top-100 passages cover only ~47-58 documents per query, so the main table's "Recall@100"
   is recall within the top-100 passages; @10 metrics are unaffected. 32 tests pass.
   Next: `--variants fusion --set fusion.method=nsf` (1 Oct).
+- **2026-09-30 (later):** fusion-method run done early (`results/set_fusion.method=nsf/`): score
+  fusion 0.717 vs RRF 0.710, p = 0.27, NOT significant, so never claim RRF beats score fusion;
+  RRF is the default for robustness (no normalisation, k-insensitive). `docs/VIVA_PREP.md`
+  now holds the real numbers. Found: fusion is chunk-level, so votes for different chunks of one
+  gold paper do not combine (claim 1259). None of the side experiments raised accuracy over
+  the default config; the project's claim is the comparison, not a tuned score.
+  Next: paper section 3 (Method); optional stronger dense encoder (report both).
 
 ---
 

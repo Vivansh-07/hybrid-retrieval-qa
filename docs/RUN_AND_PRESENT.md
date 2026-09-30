@@ -284,10 +284,10 @@ commits made only for green squares are easy to spot, so don't make them.
 |---|---|---|
 | Mon 28 Sep | Steps 1–3: tests, BM25 baseline, full ablation + sweeps (≈20 min of running); EXPERIMENT_LOG entries; commit `results/` | `BM25 baseline and full four-way ablation` |
 | Tue 29 Sep | Step 4: figures; check they read in greyscale; note BM25 vs dense in the log | `Generate paper figures` |
-| Wed 30 Sep | Step 3b: chunking study (`--set chunking.strategy=none`) | `Chunking study: whole abstracts vs sentence windows` |
-| Thu 1 Oct | Step 3b: rank vs score fusion (`--variants fusion --set fusion.method=nsf`) | `Compare rank fusion vs score fusion` |
-| Fri 2 Oct | Paper §3 Method | `Paper: method section` |
-| Sat 3 Oct | Paper §4 Setup + §5 results table | `Paper: setup and results table` |
+| Wed 30 Sep | Step 3b: chunking study and rank vs score fusion (both done) | done |
+| Thu 1 Oct | Paper §3 Method | `Paper: method section` |
+| Fri 2 Oct | Paper §4 Setup + §5 results table | `Paper: setup and results table` |
+| Sat 3 Oct | Spare day: catch up, or optional stronger dense encoder (report both) | |
 | Sun 4 Oct | Step 5: failure CSV; hand-label first 20 | `Failure analysis: first 20 labelled` |
 | Mon 5 Oct | Hand-label remaining 20 | `Failure analysis: all 40 labelled` |
 | Tue 6 Oct | Query-subset analysis (BM25 vs dense on numeral/rare-term queries; needs a small script) | `Query-subset analysis` |

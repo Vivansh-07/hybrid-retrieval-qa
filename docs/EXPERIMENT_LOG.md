@@ -151,4 +151,27 @@ Next:        rank fusion vs score fusion (`--variants fusion --set fusion.method
 
 ---
 
+### 2026-09-30 — Rank fusion (RRF) vs score fusion (min-max normalised, equal weights)
+Commit:      dfe51b3
+Config:      changed: fusion.method=nsf (default: rrf, k = 60)
+Command:     `python scripts/run_ablation.py --variants fusion --set fusion.method=nsf`
+             then `python scripts/compare_runs.py "results/set_fusion.method=nsf"`
+Hardware:    NVIDIA GeForce RTX 3050 Laptop GPU (4 GB), PyTorch 2.6.0+cu126
+
+Result:      score fusion: nDCG@10 = 0.7174   Recall@10 = 0.8368   MRR@10 = 0.6826
+             RRF (main run): nDCG@10 = 0.7097  Recall@10 = 0.8326   MRR@10 = 0.6751
+             difference +0.0078, p = 0.2728, better/worse/same = 32/26/242: not significant
+Latency:     235.2 ms/query (RRF in the main run: 125.2). Both do the same retrieval work, so
+             this gap is timing noise, not a cost of the method. Total run 98 s.
+
+Observation: Score fusion is numerically a little higher, but the two methods are statistically
+             tied on SciFact. So the data does NOT show that rank fusion beats score fusion. RRF
+             stays the default for a different reason: it needs no score normalisation and is
+             insensitive to its one parameter (k = 10-100 gives 0.709-0.714), which matters when
+             there is no labelled data to tune on.
+Next:        paper section 3 (Method). Optional: a stronger dense encoder, reported alongside
+             MiniLM, not instead of it.
+
+---
+
 <!-- add new entries above this line, newest last -->
