@@ -108,41 +108,126 @@ and citation faithfulness remain open~\cite{gao2023enabling}.
 \section{Method}
 \label{sec:method}
 
+% ---------------------------------------------------------------------------
+% DRAFT (2026-09-30), written from the code and configs/scifact.yaml.
+% Every statement below describes what the implementation does. REWRITE IT IN
+% YOUR OWN WORDS and make sure you can explain each sentence: the examiner may
+% ask about any of them. Results do not belong here; they go in Section V.
+% Optional citations you may add if you can explain them in one sentence:
+% FAISS, MiniLM, Flan-T5 (not yet in references.bib).
+% ---------------------------------------------------------------------------
+The system is a pipeline of five stages. A query is sent to a sparse and a dense
+retriever independently; their ranked lists are fused; the fused list is reranked
+by a cross-encoder; and the top passages are passed to a reader that produces a
+cited answer. Every stage reads its settings from one configuration file, so two runs
+differ only in the settings that are changed on purpose.
+
 \subsection{Corpus preparation}
-% Chunking strategy and why. Report the resulting chunk count and chunks/doc from
-% results/metrics.json ("corpus" block).
+Each abstract is split into sentences and cut into overlapping passages of three
+consecutive sentences with a stride of two, so neighbouring passages share one
+sentence and evidence that straddles a boundary stays retrievable. A trailing
+passage shorter than 120 characters is discarded, and an abstract of at most
+three sentences forms a single passage. The title of the paper is prepended to
+every passage, because in scientific abstracts the title carries much of the
+topical signal. This turns the 5{,}183 abstracts into 21{,}015 passages (4.05
+per abstract), which both retrievers index. Relevance is judged per document,
+so a ranked list of passages is mapped to documents by keeping each document at
+the position of its highest-ranked passage.
 
 \subsection{Stage 1: sparse retrieval}
-BM25 scores a query--passage pair as
+BM25~\cite{robertson2009bm25} scores a query--passage pair as
 \begin{equation}
 \mathrm{BM25}(q,d)=\sum_{t \in q}\mathrm{IDF}(t)\,
 \frac{f(t,d)\,(k_1+1)}{f(t,d)+k_1\!\left(1-b+b\frac{|d|}{\mathrm{avgdl}}\right)},
 \end{equation}
-with $k_1=0.9$ and $b=0.4$, the Anserini defaults used by BEIR.
-% One sentence on what this stage is good at: exact terms, codes, rare entities.
+where $f(t,d)$ is the frequency of term $t$ in passage $d$, $|d|$ the passage
+length, $\mathrm{avgdl}$ the mean passage length and
+$\mathrm{IDF}(t)=\ln\frac{N-n_t+0.5}{n_t+0.5}$ for $N$ passages of which $n_t$
+contain $t$. We use $k_1=0.9$ and $b=0.4$, the Anserini defaults used by BEIR.
+Text is lower-cased and tokenised so that hyphenated terms such as ``IL-6'' stay
+one token; 47 common function words are removed and the remaining tokens are
+Porter-stemmed. The 100 highest-scoring passages are returned. BM25 rewards exact
+overlap on rare terms, which suits the gene, drug and disease names that
+scientific claims are built around, but it cannot match a claim that is phrased
+differently from its evidence.
 
 \subsection{Stage 2: dense retrieval}
-% Bi-encoder name, dimensionality, pooling, normalisation, index type.
-% Make the independence explicit: E(q) and E(d) never see each other.
+The dense retriever is a bi-encoder~\cite{reimers2019sbert}: one Transformer
+$E$ encodes the query and the passage separately, and relevance is the inner
+product of the two vectors,
+\begin{equation}
+s(q,d)=E(q)^{\top}E(d).
+\end{equation}
+We use \texttt{all-MiniLM-L6-v2}, a 6-layer model whose token outputs are
+mean-pooled into a 384-dimensional vector and L2-normalised, so that the inner
+product equals cosine similarity. Inputs are truncated to 256 tokens. Because
+$E(d)$ does not depend on the query, all passages are encoded once offline and
+stored in an exact inner-product index; at query time only the query is encoded
+and the 100 nearest passages are returned. The price of this efficiency is that
+query and passage never interact before the final inner product.
+
+\subsection{In-domain fine-tuning of the dense encoder}
+The pretrained encoder has not seen scientific claims. We therefore also
+fine-tune it on the 809 training claims of SciFact, which are disjoint from the
+300 test claims; 120 of them are held out as a development set. Relevance is
+annotated per document, so for each training claim the positive passage $d_i^{+}$
+is the passage of its evidence abstract that the pretrained encoder scores
+highest. The encoder is trained with a contrastive loss that uses the other
+passages of the mini-batch as negatives~\cite{karpukhin2020dpr}:
+\begin{equation}
+\mathcal{L}=-\frac{1}{B}\sum_{i=1}^{B}
+\log\frac{\exp\!\big(\tau\,s(q_i,d_i^{+})\big)}
+{\sum_{j=1}^{B}\exp\!\big(\tau\,s(q_i,d_j^{+})\big)},
+\end{equation}
+with batch size $B=32$ and scale $\tau=20$. This is a cross-entropy over the
+$B\times B$ similarity matrix whose correct class for row $i$ is column $i$. We
+train for 12 epochs with AdamW (learning rate $2\times10^{-5}$, weight decay
+0.01), a linear warm-up over the first 10\% of steps followed by linear decay,
+and gradient clipping at norm 1. After every epoch the corpus is re-encoded and
+nDCG@10 is measured on the development claims; the weights of the best epoch
+are kept. The test claims are used neither for training nor for choosing the
+number of epochs.
 
 \subsection{Stage 3: rank fusion}
-Reciprocal Rank Fusion~\cite{cormack2009rrf} scores a document by
+Reciprocal Rank Fusion~\cite{cormack2009rrf} scores a passage by
 \begin{equation}
 \mathrm{RRF}(d)=\sum_{s \in S} \frac{w_s}{k + \mathrm{rank}_s(d)},
 \end{equation}
 where $\mathrm{rank}_s(d)$ is $d$'s position in system $s$'s list and $k$
 damps the influence of the very top ranks. Fusing \emph{ranks} rather than scores
 sidesteps the incompatibility between unbounded BM25 scores and bounded cosine
-similarities.
-% State k and weights. Reference the sweep in results/sweep_rrf_k.json to show the
-% result is not an artefact of one k.
+similarities, and it needs no labelled data. We use $k=60$ and equal weights
+$w_s=1$ for the two retrievers and keep the 100 best passages; a passage that
+appears in only one list receives a contribution from that list alone. As a
+baseline we also implement score fusion, which min-max normalises the scores of
+each list per query and adds them.
 
 \subsection{Stage 4: cross-encoder reranking}
-% [CLS] q [SEP] p [SEP], full cross-attention, one forward pass per pair.
-% State the model, the candidate depth N, and that cost is O(N) per query.
+The 50 highest-ranked fused passages are rescored by a
+cross-encoder~\cite{nogueira2019passage}. Query and passage are concatenated
+into one input, \texttt{[CLS]}~$q$~\texttt{[SEP]}~$d$~\texttt{[SEP]}, truncated
+to 512 tokens, and a single Transformer outputs one relevance score, so every
+query token can attend to every passage token. We use
+\texttt{ms-marco-MiniLM-L-6-v2}, trained on MS~MARCO passage ranking. Nothing
+can be precomputed: each query costs one forward pass per candidate, which is
+why the cross-encoder sees only a shallow pool and never the corpus. The
+candidate depth $N$ is therefore the dial between accuracy and latency that we
+sweep in Section~\ref{sec:results}. Passages below depth $N$ keep their fused
+order behind the reranked block, so reranking reorders the list but never
+removes a passage from it.
 
 \subsection{Stage 5: grounded answering}
-% Prompt, number of passages, citation format, abstention behaviour.
+The five highest-ranked passages are numbered \texttt{[1]}--\texttt{[5]} and
+given to a sequence-to-sequence reader (\texttt{flan-t5-base}) with the
+instruction to answer using only these passages, to cite each statement with the
+passage number in square brackets, and to reply ``Not enough evidence'' if the
+passages do not contain the answer. Decoding is greedy with at most 128 new
+tokens, so answers are reproducible. Bracketed numbers in the output are mapped
+back to the cited passages and their source documents; if the output contains no
+citation, the top passage is recorded as the source. As an alternative reader,
+an extractive model (\texttt{roberta-base-squad2}) selects an answer span from
+the top passage, which makes the citation exact by construction.
+% TODO: once the answer experiments are run, keep only the reader(s) you report.
 
 % ===========================================================================
 \section{Experimental Setup}
@@ -180,13 +265,17 @@ chunking and one index; only the retrieval strategy differs.}
 \toprule
 Variant & nDCG@10 & R@10 & R@100 & MRR@10 & ms/q \\
 \midrule
-BM25            & & & & & \\
-Dense           & & & & & \\
-RRF fusion      & & & & & \\
-\; $+$ reranking & & & & & \\
+BM25            & 0.656 & 0.784 & 0.882 & 0.623 & \textbf{62} \\
+Dense           & 0.679 & 0.815 & 0.916 & 0.641 & 85 \\
+RRF fusion      & 0.710 & \textbf{0.833} & \textbf{0.947} & 0.675 & 125 \\
+\; $+$ reranking & \textbf{0.715} & \textbf{0.833} & \textbf{0.947} & \textbf{0.685} & 395 \\
 \bottomrule
 \end{tabular}
-% Fill from results/ablation.csv. Bold the best cell per column.
+% Numbers: results/ablation.csv (main run, 2026-09-28), off-the-shelf all-MiniLM-L6-v2.
+% TODO: say in the text that R@100 is recall within the top-100 passages (~50 documents),
+%       and that ms/q is approximate (re-time after the warm-up fix before the final version).
+% TODO: add a second table for the stronger/fine-tuned encoders:
+%       results/dense_bge_small/ and results/dense_minilm_finetuned/ (see README Results).
 \end{table}
 
 \begin{figure}[t]

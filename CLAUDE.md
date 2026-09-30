@@ -228,6 +228,9 @@ plus RAG/FiD and attribution (ALCE). **Three research gaps** this project addres
   script). Local model folders work as `dense.model`; the embedding cache is tied to the
   weights' timestamp. Training-curve figure added. 34 tests pass. Due date is about 10 Oct.
   Remaining: failure analysis (manual labels), 50 answers, query-subset script, paper, slides.
+- **2026-09-30 (late):** paper Method section drafted from the code (marked DRAFT in main.tex:
+  Vivansh must rewrite it in own words); ablation table filled with the main-run numbers.
+  `paper_overleaf.zip` (git-ignored) is the Overleaf upload; rebuild it after paper edits.
 
 ---
 
