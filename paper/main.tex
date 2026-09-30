@@ -235,6 +235,11 @@ without reranking; dotted lines mark BM25 and dense alone.
 % Be honest and specific; this section earns marks rather than losing them.
 %  - One dataset, one domain: generality is not established.
 %  - Document-level judgements mean chunk-level precision is not directly measured.
+%  - Recall@100 is recall within the top-100 *passages*, which cover only ~47--58
+%    distinct documents per query (several passages share a parent abstract). The @10
+%    metrics are unaffected. State this wherever the R@100 column appears.
+%  - Latency varied up to ~2x between identical runs (see docs/EXPERIMENT_LOG.md):
+%    report it as approximate.
 %  - Off-the-shelf models; no in-domain fine-tuning of either encoder.
 %  - Manual answer annotation by a single annotator, N answers.
 %  - Latency measured on one machine, batch size 1, warm cache.

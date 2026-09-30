@@ -197,6 +197,13 @@ plus RAG/FiD and attribution (ALCE). **Three research gaps** this project addres
   redesigned for print (column width, greyscale-safe; depth figure now a 2-panel `figure*`).
   Cold-cache dense build: 129.6 s (`results/index_build_timing/`). Log filled for all runs.
   31 tests pass.
+- **2026-09-30:** chunking study done (`results/set_chunking.strategy=none/`): whole abstracts do
+  not change BM25, but significantly hurt dense (-0.031, p = 0.009) and fusion+rerank (-0.029,
+  p = 0.007); 71.6% of whole abstracts exceed the 256-token encoder limit. `scripts/compare_runs.py`
+  compares a `--set` run with the main results. **Caveat for the paper:** with sentence windows
+  the top-100 passages cover only ~47-58 documents per query, so the main table's "Recall@100"
+  is recall within the top-100 passages; @10 metrics are unaffected. 32 tests pass.
+  Next: `--variants fusion --set fusion.method=nsf` (1 Oct).
 
 ---
 

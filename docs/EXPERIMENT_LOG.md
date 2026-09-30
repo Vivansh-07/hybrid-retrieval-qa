@@ -114,4 +114,41 @@ Next:        before quoting latency in the paper, consider the median of 3 timin
 
 ---
 
+### 2026-09-30 — Chunking study: whole abstracts vs 3-sentence windows
+Commit:      0c13422 (plus scripts/compare_runs.py, committed 2026-09-30)
+Config:      changed: chunking.strategy=none (default: sentence_window, 3 sentences, stride 2)
+Command:     `python scripts/run_ablation.py --set chunking.strategy=none`
+             then `python scripts/compare_runs.py "results/set_chunking.strategy=none"`
+Hardware:    NVIDIA GeForce RTX 3050 Laptop GPU (4 GB), PyTorch 2.6.0+cu126
+
+Result:      whole abstracts (5,183 passages, 1 per document); results/set_chunking.strategy=none/
+             variant         nDCG@10  R@10    MRR@10  ms/query
+             bm25            0.6579   0.7829  0.6228   34.3
+             dense           0.6484   0.7883  0.6068   25.5
+             fusion          0.7030   0.8409  0.6674   57.3
+             fusion+rerank   0.6866   0.8089  0.6554  452.7
+             nDCG@10 change vs sentence windows (paired bootstrap, 10,000 resamples):
+             bm25            +0.0017  p = 0.8160  not significant
+             dense           -0.0305  p = 0.0090  significant
+             fusion          -0.0066  p = 0.4523  not significant
+             fusion+rerank   -0.0288  p = 0.0067  significant
+Latency:     see table. Index build: dense 48.1 s (8.0 MB) vs 129.6 s (32.3 MB) with sentence
+             windows; BM25 16.8 s. Total run 263 s.
+
+Observation: Chunking does not matter for BM25, but it significantly helps the two neural
+             components: the dense encoder and the cross-encoder both do worse on whole abstracts.
+             Measured cause for the dense encoder: 71.6% of whole abstracts (median 317 tokens;
+             75.3% of the gold-evidence abstracts) exceed its 256-token limit and are cut off,
+             against 1.2% of the 3-sentence windows (median 125 tokens). BM25 reads every word
+             either way.
+             Within the whole-abstract setting fusion still beats both single retrievers
+             (p = 0.0002 vs BM25, p < 0.0001 vs dense), so the fusion result does not depend on
+             the chunking choice. Chunking costs 4x the index size and about 2x first-stage latency.
+             Recall@100 is NOT comparable between the two settings: with sentence windows the
+             top-100 passages cover only about 47-58 distinct documents per query, with whole
+             abstracts exactly 100. Compare the two on @10 metrics only.
+Next:        rank fusion vs score fusion (`--variants fusion --set fusion.method=nsf`).
+
+---
+
 <!-- add new entries above this line, newest last -->

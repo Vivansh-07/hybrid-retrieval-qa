@@ -55,3 +55,28 @@ def test_save_writes_all_default_pairs(tmp_path):
     saved = json.loads((tmp_path / "significance.json").read_text(encoding="utf-8"))
     assert saved["metric"] == "nDCG@10" and saved["n_samples"] == 100
     assert len(saved["comparisons"]) == 6
+
+
+def _write_run(folder, variant, per_query_scores, docs):
+    runs = folder / "runs"
+    runs.mkdir(parents=True, exist_ok=True)
+    (runs / f"{variant.replace('+', '_')}.json").write_text(json.dumps({
+        "run": {q: docs for q in per_query_scores},
+        "per_query": per_query(per_query_scores),
+    }), encoding="utf-8")
+
+
+def test_compare_result_dirs_pairs_the_same_variant_across_two_configs(tmp_path):
+    from hybridqa.significance import compare_result_dirs
+
+    base, other = tmp_path / "main", tmp_path / "side"
+    _write_run(base, "fusion+rerank", {"q1": 0.5, "q2": 0.5}, docs=["d1", "d2"])
+    _write_run(other, "fusion+rerank", {"q1": 1.0, "q2": 0.5}, docs=["d1", "d2", "d3", "d4"])
+    _write_run(base, "bm25", {"q1": 0.5}, docs=["d1"])  # not in `other`: must be skipped
+
+    rows = compare_result_dirs(base, other, n_samples=100)
+    assert list(rows) == ["fusion+rerank"]
+    r = rows["fusion+rerank"]
+    assert (r["baseline"], r["other"], r["delta"]) == (0.5, 0.75, 0.25)
+    assert (r["better"], r["worse"], r["same"]) == (1, 0, 1)
+    assert (r["baseline_docs_per_query"], r["other_docs_per_query"]) == (2.0, 4.0)

@@ -85,7 +85,7 @@ models (~100 MB–1 GB each) once, into `data\hf_cache\`. After that it works of
 ```
 python -m pytest tests/ -q
 ```
-**Expect:** `31 passed`.
+**Expect:** `32 passed`.
 **What it shows:** the metrics (Recall, MRR, nDCG) and RRF are implemented correctly;
 the tests compare them to hand-worked answers. They also check the config overrides
 the embedding-cache naming and the significance comparisons.
@@ -147,8 +147,23 @@ python scripts/run_ablation.py --set chunking.strategy=none
 python scripts/run_ablation.py --variants fusion --set fusion.method=nsf
 ```
 The first is the **chunking study** (whole abstracts vs 3-sentence windows); the second
-is **rank fusion vs score fusion**. Compare each folder's `ablation.csv` with the main
-one. A mistyped key stops immediately with a list of the valid keys. Log each run.
+is **rank fusion vs score fusion**. A mistyped key stops immediately with a list of the
+valid keys. Log each run.
+
+Then compare the run with the main results, method by method (seconds):
+```
+python scripts/compare_runs.py "results/set_chunking.strategy=none"
+python scripts/compare_runs.py "results/set_fusion.method=nsf"
+```
+For each method it prints nDCG@10 in the main run and in this run, the difference, a
+p-value and how many questions got better/worse/same, and saves `comparison.json` in
+that folder.
+
+> **Recall@100 caveat.** With 3-sentence windows, the 100 retrieved *passages* belong to
+> only about 47-58 different *documents* per question. So "Recall@100" in the main table
+> means "recall within the top-100 passages", and it cannot be compared with a
+> whole-abstract run (exactly 100 documents). nDCG@10, Recall@10 and MRR@10 are
+> unaffected: compare configurations on those.
 
 ### Step 4: Figures (seconds)
 ```

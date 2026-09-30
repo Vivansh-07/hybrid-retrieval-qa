@@ -86,3 +86,52 @@ def save_significance(
         print(f"  {name:<24} delta={s['delta']:+.4f}  p={format_p(s['p_value'], n_samples):<9}"
               f"  better/worse/same = {s['better']}/{s['worse']}/{s['same']}  ({verdict})")
     return payload
+
+
+# --------------------------------------------------------------------------------------
+# Comparing two configurations (e.g. sentence-window chunks vs whole abstracts)
+# --------------------------------------------------------------------------------------
+
+def load_runs(results_dir: str | Path) -> Dict[str, dict]:
+    """Every saved run in <results_dir>/runs as {variant: {"run": ..., "per_query": ...}}."""
+    runs = {}
+    for path in sorted(Path(results_dir, "runs").glob("*.json")):
+        variant = path.stem.replace("_", "+")  # fusion_rerank.json -> fusion+rerank
+        runs[variant] = json.loads(path.read_text(encoding="utf-8"))
+    return runs
+
+
+def compare_result_dirs(
+    baseline_dir: str | Path,
+    other_dir: str | Path,
+    key: str = "nDCG@10",
+    n_samples: int = 10000,
+    seed: int = 42,
+) -> Dict[str, dict]:
+    """Same variant, two configurations: is `other` better than `baseline`?
+
+    Both folders hold results for the same queries, so the test is paired per query.
+    Also reports how many distinct documents each ranked list contains on average:
+    with passage chunking, 100 retrieved passages collapse to fewer than 100 documents,
+    so metrics beyond the shallowest list (Recall@100) are not comparable across
+    chunking strategies, while @10 metrics are.
+    """
+    base, other = load_runs(baseline_dir), load_runs(other_dir)
+    out: Dict[str, dict] = {}
+    for variant in base:
+        if variant not in other:
+            continue
+        a, b = base[variant], other[variant]
+        stats = compare_runs({"baseline": a["per_query"], "other": b["per_query"]},
+                             pairs=[("baseline", "other")], key=key,
+                             n_samples=n_samples, seed=seed)["other vs baseline"]
+        mean = lambda pq: sum(m[key] for m in pq.values()) / len(pq)  # noqa: E731
+        docs = lambda run: sum(len(d) for d in run.values()) / len(run)  # noqa: E731
+        out[variant] = {
+            "baseline": round(mean(a["per_query"]), 4),
+            "other": round(mean(b["per_query"]), 4),
+            **stats,
+            "baseline_docs_per_query": round(docs(a["run"]), 1),
+            "other_docs_per_query": round(docs(b["run"]), 1),
+        }
+    return out

@@ -1,0 +1,50 @@
+{
+  "metric": "nDCG@10",
+  "test": "two-sided paired bootstrap",
+  "n_samples": 10000,
+  "seed": 42,
+  "comparisons": {
+    "dense vs bm25": {
+      "delta": -0.0095,
+      "p_value": 0.6226,
+      "better": 72,
+      "worse": 65,
+      "same": 163
+    },
+    "fusion vs bm25": {
+      "delta": 0.0451,
+      "p_value": 0.0002,
+      "better": 83,
+      "worse": 24,
+      "same": 193
+    },
+    "fusion vs dense": {
+      "delta": 0.0546,
+      "p_value": 0.0,
+      "better": 82,
+      "worse": 38,
+      "same": 180
+    },
+    "fusion+rerank vs bm25": {
+      "delta": 0.0287,
+      "p_value": 0.0676,
+      "better": 70,
+      "worse": 45,
+      "same": 185
+    },
+    "fusion+rerank vs dense": {
+      "delta": 0.0382,
+      "p_value": 0.0258,
+      "better": 75,
+      "worse": 53,
+      "same": 172
+    },
+    "fusion+rerank vs fusion": {
+      "delta": -0.0164,
+      "p_value": 0.2454,
+      "better": 56,
+      "worse": 59,
+      "same": 185
+    }
+  }
+}
