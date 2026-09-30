@@ -37,7 +37,7 @@ python -m pip install torch --index-url https://download.pytorch.org/whl/cu126  
 python -m pip install -r requirements.txt
 python -m pip install -e .
 
-python -m pytest tests/ -q                           # 32 tests
+python -m pytest tests/ -q                           # 33 tests
 
 # full four-way ablation + sweeps (downloads SciFact + models on first run, ~13 min on an RTX 3050)
 python scripts/run_ablation.py --sweep-depth 10 25 50 100 --sweep-fusion-k 10 30 60 100
@@ -63,14 +63,34 @@ dense indexing step to take a few minutes instead of seconds.
 
 ## Results
 
-Filled in from `results/ablation.csv` once you have run the ablation.
+SciFact test set, 300 claims, from `results/ablation.csv` (RTX 3050 Laptop GPU). Latency
+is approximate: it varied up to about 2x between identical runs.
 
-| Variant | nDCG@10 | Recall@10 | Recall@100 | MRR@10 | ms/query |
-|---|---|---|---|---|---|
-| BM25 | | | | | |
-| Dense | | | | | |
-| RRF fusion | | | | | |
-| + cross-encoder rerank | | | | | |
+| Variant | nDCG@10 | Recall@10 | MRR@10 | ms/query |
+|---|---|---|---|---|
+| BM25 | 0.656 | 0.784 | 0.623 | 62 |
+| Dense (all-MiniLM-L6-v2) | 0.679 | 0.815 | 0.641 | 85 |
+| RRF fusion | 0.710 | 0.833 | 0.675 | 125 |
+| + cross-encoder rerank | 0.715 | 0.833 | 0.685 | 395 |
+
+Paired bootstrap on nDCG@10 (10,000 resamples, `results/significance.json`):
+
+- Dense vs BM25: not significant (p = 0.25). The two are tied, but succeed on different claims.
+- Fusion vs BM25 and vs dense: significant (p < 0.0001 and p = 0.019).
+- Reranker vs fusion: not significant (p = 0.65), at about 3x the latency.
+
+With a stronger dense encoder (`BAAI/bge-small-en-v1.5`, `results/dense_bge_small/`):
+
+| Variant | nDCG@10 | vs MiniLM run |
+|---|---|---|
+| Dense | 0.723 | +0.044, p = 0.002 |
+| RRF fusion | 0.721 | +0.012, not significant |
+| + rerank (ms-marco-MiniLM) | 0.712 | not significant |
+| + rerank (bge-reranker-base) | 0.714 | not significant, about 1.3 s/query |
+
+Here dense clearly beats BM25 and fusion adds nothing over dense alone: the fusion gain
+depends on the two retrievers being of similar strength. Neither reranker helps.
+Every run is recorded in [docs/EXPERIMENT_LOG.md](docs/EXPERIMENT_LOG.md).
 
 ---
 

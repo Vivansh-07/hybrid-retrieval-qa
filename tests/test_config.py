@@ -66,3 +66,11 @@ def test_embedding_cache_ignores_settings_that_do_not_change_the_vectors(cfg):
     a = RetrievalPipeline(cfg, verbose=False).embedding_cache_path()
     b = RetrievalPipeline(apply_overrides(cfg, ["dense.top_k=50"]), verbose=False).embedding_cache_path()
     assert a == b
+
+
+def test_string_settings_are_taken_literally(cfg):
+    # BGE's query prefix ends in ": " — as YAML that would parse as a mapping, not a string
+    prefix = "Represent this sentence for searching relevant passages: "
+    new = apply_overrides(cfg, ["dense.model=BAAI/bge-small-en-v1.5", f"dense.query_prefix={prefix}"])
+    assert new.get_path("dense.model") == "BAAI/bge-small-en-v1.5"
+    assert new.get_path("dense.query_prefix") == prefix  # trailing space kept

@@ -211,6 +211,15 @@ plus RAG/FiD and attribution (ALCE). **Three research gaps** this project addres
   gold paper do not combine (claim 1259). None of the side experiments raised accuracy over
   the default config; the project's claim is the comparison, not a tuned score.
   Next: paper section 3 (Method); optional stronger dense encoder (report both).
+- **2026-09-30 (evening), stronger models, all on D::** `results/dense_bge_small/` (BGE-small
+  dense 0.723 vs MiniLM 0.679, p = 0.002; fusion 0.721 = dense alone; MiniLM rerank 0.712) and
+  `results/dense_bge_small__rerank_bge_base/` (0.714, p = 0.86 vs MiniLM reranker, 1.3 s/query).
+  Story for the paper: fusion helps when retrievers are of similar strength (MiniLM) and not
+  when one dominates (BGE); two rerankers both add nothing. Best single number: 0.723.
+  Code: `--set` takes string settings literally; `run_variant` runs an untimed warm-up query
+  (earlier latencies include model loading: re-time the main run before final numbers);
+  `demo.py` accepts `--set`. 33 tests pass. Vivansh says only a few days remain before the
+  presentation: prioritise paper, slides, failure analysis over further experiments.
 
 ---
 

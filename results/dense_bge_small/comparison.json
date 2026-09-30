@@ -1,0 +1,51 @@
+{
+  "metric": "nDCG@10",
+  "baseline": "results",
+  "other": "results/dense_bge_small",
+  "variants": {
+    "bm25": {
+      "baseline": 0.6562,
+      "other": 0.6562,
+      "delta": 0.0,
+      "p_value": 1.0,
+      "better": 0,
+      "worse": 0,
+      "same": 300,
+      "baseline_docs_per_query": 58.0,
+      "other_docs_per_query": 58.0
+    },
+    "dense": {
+      "baseline": 0.6789,
+      "other": 0.7232,
+      "delta": 0.0442,
+      "p_value": 0.0021,
+      "better": 74,
+      "worse": 39,
+      "same": 187,
+      "baseline_docs_per_query": 46.8,
+      "other_docs_per_query": 48.8
+    },
+    "fusion": {
+      "baseline": 0.7097,
+      "other": 0.7214,
+      "delta": 0.0117,
+      "p_value": 0.1819,
+      "better": 43,
+      "worse": 33,
+      "same": 224,
+      "baseline_docs_per_query": 52.8,
+      "other_docs_per_query": 53.8
+    },
+    "fusion+rerank": {
+      "baseline": 0.7154,
+      "other": 0.7123,
+      "delta": -0.0031,
+      "p_value": 0.4316,
+      "better": 11,
+      "worse": 13,
+      "same": 276,
+      "baseline_docs_per_query": 52.8,
+      "other_docs_per_query": 53.8
+    }
+  }
+}

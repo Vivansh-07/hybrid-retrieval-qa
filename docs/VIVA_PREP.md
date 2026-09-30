@@ -138,6 +138,16 @@ retriever. Across all 300 claims the reranker improved nDCG@10 on 52 and lowered
 which is why its average gain (+0.006) is not significant. `failure_analysis.py` counts the
 worst cases as `reranker_regression`; I found [N] of them. [Fill in after running it.]
 
+**Did you try better models? What happened?**
+Yes, and I report them next to the baseline, not instead of it. Swapping the dense encoder
+for BGE-small raised dense retrieval from 0.679 to 0.723 nDCG@10 (p = 0.002), and dense then
+clearly beats BM25 (p = 0.0003). But fusion no longer helps: 0.721, the same as dense alone.
+With MiniLM the two retrievers were tied and fusion beat both; with BGE one retriever
+dominates and equal-weight RRF adds nothing. So the fusion gain depends on the retrievers
+being of similar strength. I also tried a reranker about 8x heavier (bge-reranker-base): 0.714,
+no better than the small one (p = 0.86) and no better than dense alone, at about 1.3 s per
+query. Two rerankers giving the same answer makes that finding robust.
+
 **What would you do with more time / compute?**
 In order of expected value: (1) fine-tune the bi-encoder on in-domain pairs, since the
 domain gap is the dominant error source; (2) swap in a stronger reranker like monoT5-3B and

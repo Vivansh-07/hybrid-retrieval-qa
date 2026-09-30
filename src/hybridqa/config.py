@@ -55,10 +55,12 @@ def apply_overrides(cfg: Config, assignments: Sequence[str] | None) -> Config:
     """Apply command-line overrides such as ``chunking.strategy=none``.
 
     Lets a run change one setting without editing the YAML (the full config used is
-    saved with the results, so the change is still on record). Values are parsed as
-    YAML: ``60`` becomes an int, ``true`` a bool, ``[1, 0.5]`` a list, ``none`` stays
-    the string "none". The key must already exist, so a typo fails loudly instead of
-    silently running the default configuration.
+    saved with the results, so the change is still on record). A setting that is
+    currently a string is replaced by the text exactly as typed (so a model name, or a
+    query prefix ending in ": ", needs no quoting tricks). Anything else is parsed as
+    YAML: ``60`` becomes an int, ``true`` a bool, ``[1, 0.5]`` a list. The key must
+    already exist, so a typo fails loudly instead of silently running the default
+    configuration.
     """
     for item in assignments or []:
         key, sep, raw = item.partition("=")
@@ -69,7 +71,8 @@ def apply_overrides(cfg: Config, assignments: Sequence[str] | None) -> Config:
             section = cfg.get_path(key.rsplit(".", 1)[0], {}) if "." in key else cfg
             options = ", ".join(sorted(section)) if isinstance(section, dict) else "?"
             raise KeyError(f"unknown config key {key!r} (keys here: {options})")
-        cfg = cfg.override(key, yaml.safe_load(raw))
+        value = raw if isinstance(cfg.get_path(key), str) else yaml.safe_load(raw)
+        cfg = cfg.override(key, value)
     return cfg
 
 

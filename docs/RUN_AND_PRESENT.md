@@ -85,7 +85,7 @@ models (~100 MB–1 GB each) once, into `data\hf_cache\`. After that it works of
 ```
 python -m pytest tests/ -q
 ```
-**Expect:** `32 passed`.
+**Expect:** `33 passed`.
 **What it shows:** the metrics (Recall, MRR, nDCG) and RRF are implemented correctly;
 the tests compare them to hand-worked answers. They also check the config overrides
 the embedding-cache naming and the significance comparisons.
@@ -165,6 +165,23 @@ that folder.
 > whole-abstract run (exactly 100 documents). nDCG@10, Recall@10 and MRR@10 are
 > unaffected: compare configurations on those.
 
+### Step 3c: Stronger models (done on 30 Sep; results in `results\dense_bge_small*`)
+Checks whether the findings hold with better models. MiniLM stays the baseline; these are
+reported next to it, never instead of it. Models download into `data\hf_cache\` on D:.
+```
+python scripts/run_ablation.py --set dense.model=BAAI/bge-small-en-v1.5 --set "dense.query_prefix=Represent this sentence for searching relevant passages: " --out results/dense_bge_small
+python scripts/compare_runs.py results/dense_bge_small
+```
+(≈9 min; 129 MB download.) And the stronger reranker on top (≈8 min; 1.1 GB download):
+```
+python scripts/run_ablation.py --variants fusion+rerank --set dense.model=BAAI/bge-small-en-v1.5 --set "dense.query_prefix=Represent this sentence for searching relevant passages: " --set rerank.model=BAAI/bge-reranker-base --out results/dense_bge_small__rerank_bge_base
+python scripts/compare_runs.py results/dense_bge_small__rerank_bge_base --baseline results/dense_bge_small
+```
+Keep the quotes around the `dense.query_prefix=...` part: the prefix ends with a space.
+
+What they showed (nDCG@10): dense 0.679 → **0.723** with BGE (significant); fusion then
+equals dense alone (0.721); neither reranker improves on that (0.712 and 0.714).
+
 ### Step 4: Figures (seconds)
 ```
 python scripts/make_plots.py
@@ -215,6 +232,11 @@ Leave the terminal open. Closing it or pressing `Ctrl+C` stops the demo.
 **The first question after starting is slow (≈40 s)** while the models load onto the
 GPU; after that each question takes under a second. So always ask one warm-up
 question before you present.
+
+To run the demo with the stronger dense model instead (the header shows which models are active):
+```
+python scripts/demo.py --set dense.model=BAAI/bge-small-en-v1.5 --set "dense.query_prefix=Represent this sentence for searching relevant passages: "
+```
 
 - **Live demo tab:** pick a SciFact claim from the dropdown (or type any question) →
   **Retrieve**. Four columns show what BM25, dense, fusion and fusion+rerank each

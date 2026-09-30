@@ -26,7 +26,7 @@ sys.path.insert(0, str(ROOT / "src"))
 # hybridqa first: it points the Hugging Face cache at data/hf_cache, and gradio
 # imports huggingface_hub, which reads that setting once at import time.
 from hybridqa.answer import AnswerGenerator, faithfulness_signals  # noqa: E402
-from hybridqa.config import load_config, resolve  # noqa: E402
+from hybridqa.config import apply_overrides, load_config, resolve  # noqa: E402
 from hybridqa.pipeline import VARIANTS, RetrievalPipeline  # noqa: E402
 
 os.environ.setdefault("GRADIO_TEMP_DIR", str(ROOT / "data" / "gradio_tmp"))  # not C:\...\Temp
@@ -44,8 +44,8 @@ LABELS = {
 FIGURES = ["ablation_ndcg.png", "recall_curve.png", "latency_accuracy.png"]
 
 
-def build_app(cfg_path: str, device: str | None) -> gr.Blocks:
-    cfg = load_config(cfg_path)
+def build_app(cfg_path: str, device: str | None, overrides: list[str] | None = None) -> gr.Blocks:
+    cfg = apply_overrides(load_config(cfg_path), overrides)
     pipe = RetrievalPipeline(cfg, device=device).prepare()
     gen = AnswerGenerator(cfg, device=device)
     chunks = {c.chunk_id: c for c in pipe.chunks}
@@ -114,7 +114,10 @@ def build_app(cfg_path: str, device: str | None) -> gr.Blocks:
     with gr.Blocks(title="Hybrid Retrieval QA") as app:
         gr.Markdown("# Hybrid Sparse–Dense Retrieval with Cross-Encoder Reranking\n"
                     "SciFact (BEIR): 5,183 scientific abstracts. One question, four retrieval "
-                    "strategies, same index — only the strategy changes.")
+                    "strategies, same index — only the strategy changes.\n\n"
+                    f"Dense encoder: `{cfg.get_path('dense.model')}` · "
+                    f"Reranker: `{cfg.get_path('rerank.model')}` · "
+                    f"Fusion: `{cfg.get_path('fusion.method')}`")
         with gr.Tab("Live demo"):
             with gr.Row():
                 claim_picker = gr.Dropdown(claims, label="Pick a SciFact test claim (gold evidence is known)",
@@ -149,8 +152,10 @@ def main() -> None:
     p.add_argument("--device", default=None, help="cuda | cpu (default: auto)")
     p.add_argument("--port", type=int, default=7860)
     p.add_argument("--no-browser", action="store_true", help="don't open a browser tab automatically")
+    p.add_argument("--set", dest="overrides", action="append", default=[], metavar="KEY=VALUE",
+                   help="change one config value, e.g. dense.model=BAAI/bge-small-en-v1.5 (repeatable)")
     args = p.parse_args()
-    build_app(args.config, args.device).launch(server_port=args.port, inbrowser=not args.no_browser)
+    build_app(args.config, args.device, args.overrides).launch(server_port=args.port, inbrowser=not args.no_browser)
 
 
 if __name__ == "__main__":

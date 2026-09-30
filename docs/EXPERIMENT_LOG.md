@@ -174,4 +174,61 @@ Next:        paper section 3 (Method). Optional: a stronger dense encoder, repor
 
 ---
 
+### 2026-09-30 — Stronger dense encoder: BAAI/bge-small-en-v1.5 (reported next to MiniLM)
+Commit:      d651ae6 (plus the literal-string `--set` fix, committed 2026-09-30)
+Config:      changed: dense.model=BAAI/bge-small-en-v1.5 and its required query prefix
+             dense.query_prefix="Represent this sentence for searching relevant passages: "
+             (one logical change: the encoder). Everything else unchanged, incl. max_seq_length 256.
+Command:     `python scripts/run_ablation.py --set dense.model=BAAI/bge-small-en-v1.5 --set "dense.query_prefix=Represent this sentence for searching relevant passages: " --out results/dense_bge_small`
+             then `python scripts/compare_runs.py results/dense_bge_small`
+Hardware:    NVIDIA GeForce RTX 3050 Laptop GPU (4 GB), PyTorch 2.6.0+cu126
+
+Result:      variant         nDCG@10  R@10    MRR@10  ms/query   vs MiniLM run (nDCG@10)
+             bm25            0.6562   0.7839  0.6232  118.9      identical (no dense model involved)
+             dense           0.7232   0.8523  0.6866   32.5      +0.0442  p = 0.0021  significant
+             fusion          0.7214   0.8507  0.6843  135.0      +0.0117  p = 0.1819  not significant
+             fusion+rerank   0.7123   0.8274  0.6833  398.2      -0.0031  p = 0.4316  not significant
+             Within this run: dense vs bm25 +0.0669 (p = 0.0003); fusion vs dense -0.0018
+             (p = 0.87); fusion+rerank vs fusion -0.0092 (p = 0.50).
+Latency:     see table (BM25 at 119 ms here vs 62 ms in the main run: timing noise).
+             Index build: dense 240.9 s (12-layer model, 32.3 MB); model download 129 MB to D:.
+
+Observation: The stronger encoder lifts dense retrieval significantly and makes it clearly
+             better than BM25. But fusion no longer helps: it equals dense alone. With MiniLM the
+             two retrievers were tied and fusion beat both; with BGE one retriever dominates and
+             equal-weight RRF adds nothing. So the fusion gain depends on the two retrievers
+             being of similar strength. The MS MARCO MiniLM reranker still adds nothing.
+Next:        a stronger reranker on this setup (BAAI/bge-reranker-base).
+
+---
+
+### 2026-09-30 — Stronger reranker: BAAI/bge-reranker-base (on the BGE dense setup)
+Commit:      d651ae6 (plus the warm-up fix in pipeline.py, committed 2026-09-30)
+Config:      changed vs the previous entry: rerank.model=BAAI/bge-reranker-base
+             (dense stays BAAI/bge-small-en-v1.5 with its query prefix; depth 50 unchanged)
+Command:     `python scripts/run_ablation.py --variants fusion+rerank --set dense.model=BAAI/bge-small-en-v1.5 --set "dense.query_prefix=Represent this sentence for searching relevant passages: " --set rerank.model=BAAI/bge-reranker-base --out results/dense_bge_small__rerank_bge_base`
+             then `python scripts/compare_runs.py results/dense_bge_small__rerank_bge_base --baseline results/dense_bge_small`
+Hardware:    NVIDIA GeForce RTX 3050 Laptop GPU (4 GB), PyTorch 2.6.0+cu126; 3.9 of 4 GB used at batch 64
+
+Result:      fusion+rerank: nDCG@10 = 0.7144   Recall@10 = 0.8438   MRR@10 = 0.6807
+             vs the MiniLM reranker on the same candidates (0.7123): +0.0022, p = 0.8644, 48/52/200
+             vs BGE dense alone (0.7232): -0.0087, p = 0.5058
+             vs BGE fusion (0.7214): -0.0070, p = 0.5774
+             vs BM25 (0.6562): +0.0582, p = 0.0001
+Latency:     1307.5 ms/query (MiniLM reranker on this setup: 398 ms; fusion alone: 135 ms).
+             Model download 1.1 GB to D:. The run was done twice: the first recorded 3932 ms/query
+             because the model download happened inside the first timed query. run_variant now
+             runs one untimed warm-up query first; accuracy was identical in both runs.
+
+Observation: A cross-encoder about 8x heavier gives the same accuracy as the small one and no
+             gain over first-stage retrieval, at about 10x the latency of fusion. Two different
+             rerankers agree, so "reranking does not pay off on SciFact claims in this pipeline"
+             is not a quirk of one model.
+             Latencies of runs before this fix include model loading in their first query (a few
+             seconds spread over 300 queries): re-time the main run before quoting final numbers.
+Next:        choose what the paper reports: MiniLM as the controlled baseline, BGE as the
+             stronger-encoder check.
+
+---
+
 <!-- add new entries above this line, newest last -->

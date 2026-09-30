@@ -1,0 +1,18 @@
+{
+  "metric": "nDCG@10",
+  "baseline": "results/dense_bge_small",
+  "other": "results/dense_bge_small__rerank_bge_base",
+  "variants": {
+    "fusion+rerank": {
+      "baseline": 0.7123,
+      "other": 0.7144,
+      "delta": 0.0022,
+      "p_value": 0.8644,
+      "better": 48,
+      "worse": 52,
+      "same": 200,
+      "baseline_docs_per_query": 53.8,
+      "other_docs_per_query": 53.8
+    }
+  }
+}

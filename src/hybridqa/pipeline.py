@@ -141,6 +141,11 @@ class RetrievalPipeline:
         run: Dict[str, List[str]] = {}
         latencies: List[float] = []
 
+        # One untimed query first. The models load lazily on first use (and download on
+        # a first run); without this, that one-time cost is counted as query latency.
+        if self.queries:
+            self.retrieve(self.queries[0]["text"], variant)
+
         for q in tqdm(self.queries, desc=variant, disable=not self.verbose):
             t0 = time.perf_counter()
             ranked = self.retrieve(q["text"], variant)
