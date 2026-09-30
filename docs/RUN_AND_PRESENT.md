@@ -85,7 +85,7 @@ models (~100 MB–1 GB each) once, into `data\hf_cache\`. After that it works of
 ```
 python -m pytest tests/ -q
 ```
-**Expect:** `33 passed`.
+**Expect:** `34 passed`.
 **What it shows:** the metrics (Recall, MRR, nDCG) and RRF are implemented correctly;
 the tests compare them to hand-worked answers. They also check the config overrides
 the embedding-cache naming and the significance comparisons.
@@ -182,6 +182,29 @@ Keep the quotes around the `dense.query_prefix=...` part: the prefix ends with a
 What they showed (nDCG@10): dense 0.679 → **0.723** with BGE (significant); fusion then
 equals dense alone (0.721); neither reranker improves on that (0.712 and 0.714).
 
+### Step 3d: Fine-tune the dense encoder (done on 30 Sep; ≈10 min training + ≈4 min test)
+This is the part of the project where a model is actually **trained**. It uses SciFact's
+809 *training* claims (none of them is a test claim): 689 to train, 120 held out as a dev
+set that picks the best epoch. The test claims are only used afterwards.
+```
+python scripts/finetune_dense.py --epochs 12
+python scripts/run_ablation.py --set dense.model=data/models/all-MiniLM-L6-v2-scifact --out results/dense_minilm_finetuned
+python scripts/compare_runs.py results/dense_minilm_finetuned
+```
+**Expect (first command):** one line per epoch with the training loss going down and
+`dev nDCG@10` going up (0.691 before training → about 0.770), then the saved model path.
+The model is written to `data\models\all-MiniLM-L6-v2-scifact\` (88 MB, on D:, not on
+GitHub; re-run the first command to recreate it). The history goes to
+`results\finetune_all-MiniLM-L6-v2-scifact\history.json`, and `make_plots.py` turns it
+into `paper\figures\finetune_curve_all-MiniLM-L6-v2-scifact.png`.
+
+What it showed on the test claims (nDCG@10): dense 0.679 → **0.742** (p < 0.0001), the
+best result in the project; fusion 0.710 → 0.731 (p = 0.013).
+
+Be able to explain `scripts/finetune_dense.py`: `contrastive_loss` (why the target for row
+i is column i), `best_chunk_pairs` (where the positives come from) and the dev-set early
+stopping.
+
 ### Step 4: Figures (seconds)
 ```
 python scripts/make_plots.py
@@ -236,6 +259,11 @@ question before you present.
 To run the demo with the stronger dense model instead (the header shows which models are active):
 ```
 python scripts/demo.py --set dense.model=BAAI/bge-small-en-v1.5 --set "dense.query_prefix=Represent this sentence for searching relevant passages: "
+```
+
+Or with your fine-tuned encoder (the best-performing setup):
+```
+python scripts/demo.py --set dense.model=data/models/all-MiniLM-L6-v2-scifact
 ```
 
 - **Live demo tab:** pick a SciFact claim from the dropdown (or type any question) →

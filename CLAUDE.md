@@ -220,6 +220,14 @@ plus RAG/FiD and attribution (ALCE). **Three research gaps** this project addres
   (earlier latencies include model loading: re-time the main run before final numbers);
   `demo.py` accepts `--set`. 33 tests pass. Vivansh says only a few days remain before the
   presentation: prioritise paper, slides, failure analysis over further experiments.
+- **2026-09-30 (night), fine-tuning:** `scripts/finetune_dense.py` (explicit contrastive training
+  loop; 689 train / 120 dev claims from the SciFact train split; test never loaded) fine-tuned
+  MiniLM for 12 epochs: dev nDCG@10 0.691 -> 0.770. TEST (`results/dense_minilm_finetuned/`):
+  dense 0.742 (+0.063, p < 0.0001) = best result in the project; fusion 0.731; rerank 0.725.
+  Model lives in `data/models/all-MiniLM-L6-v2-scifact` (not committed; re-create with the
+  script). Local model folders work as `dense.model`; the embedding cache is tied to the
+  weights' timestamp. Training-curve figure added. 34 tests pass. Due date is about 10 Oct.
+  Remaining: failure analysis (manual labels), 50 answers, query-subset script, paper, slides.
 
 ---
 

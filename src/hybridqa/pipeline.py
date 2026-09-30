@@ -14,6 +14,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+import re
 import time
 from dataclasses import dataclass, field
 from pathlib import Path
@@ -21,7 +22,7 @@ from typing import Dict, List, Sequence, Tuple
 
 from tqdm import tqdm
 
-from .config import Config, resolve
+from .config import Config, resolve, resolve_model
 from .data import Chunk, build_chunks, chunk_to_doc, load_dataset_for
 from .dense import DenseRetriever
 from .fusion import fuse
@@ -114,9 +115,16 @@ class RetrievalPipeline:
             "dataset.name", "dataset.max_docs", "chunking",
             "dense.model", "dense.max_seq_length", "dense.normalize",
         )}
+        model = self.cfg.get_path("dense.model", "model")
+        local = Path(resolve_model(model))
+        if local.is_dir():
+            # a fine-tuned model can be retrained into the same folder: tie the cache to
+            # the saved weights, so stale embeddings from the previous training are not reused
+            keyed["dense.model_saved_at"] = max(
+                (p.stat().st_mtime_ns for p in local.rglob("*.safetensors")), default=0)
         digest = hashlib.sha1(json.dumps(keyed, sort_keys=True, default=str).encode()).hexdigest()[:10]
-        model = self.cfg.get_path("dense.model", "model").replace("/", "__")
-        return resolve(self.cfg, "index_dir") / f"{model}__{digest}.npy"
+        safe_name = re.sub(r"[^A-Za-z0-9._-]+", "__", model)
+        return resolve(self.cfg, "index_dir") / f"{safe_name}__{digest}.npy"
 
     # -- retrieval ---------------------------------------------------------------------
     def retrieve(self, query: str, variant: str = "fusion+rerank") -> List[Tuple[str, float]]:

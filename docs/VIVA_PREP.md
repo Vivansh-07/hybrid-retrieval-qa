@@ -70,10 +70,23 @@ RRF are deliberately not learned — they are the classical baselines the learne
 have to beat, and that contrast is the point of the ablation.
 
 **You did not train anything. Is this a deep learning project?**
-Be straight about it: I used pretrained encoders and evaluated them under domain shift,
-which is a legitimate zero-shot IR setting and is exactly what BEIR was built for. What I
-contribute is the controlled comparison and the failure analysis. [If you did fine-tune,
-say what, on what, for how long, and what it bought you.]
+I did train one: I fine-tuned the dense bi-encoder (all-MiniLM-L6-v2, 6 layers, 22M
+parameters) on SciFact's 809 training claims, which share no claim with the 300 test
+claims. 689 claims (792 claim-passage pairs) for training, 120 held out as a dev set. The
+loss is contrastive (multiple-negatives ranking): for a batch of 32 pairs, each claim must
+score its own evidence passage above the 31 other passages in the batch, which is a
+cross-entropy over the similarity matrix with the diagonal as the target. AdamW, lr 2e-5,
+12 epochs, about 10 minutes on an RTX 3050. Dev nDCG@10 rose from 0.691 to 0.770; I kept
+the best dev epoch and only then evaluated on test: dense 0.679 → 0.742 (p < 0.0001).
+The rest of the project uses pretrained models zero-shot, which is the standard BEIR
+setting, and the contribution there is the controlled comparison and the failure analysis.
+
+**How do you know the fine-tuning did not overfit or leak test data?**
+Three things. The test split is never loaded by the training script. The number of epochs
+was chosen on the dev set before the test set was evaluated, once. And the gain on dev
+(+0.079) carries over to unseen test claims (+0.063). The honest caveats: it is one
+training run with one seed, and the positives are weak labels (the chunk of the evidence
+paper that the base model found most similar), not human-marked sentences.
 
 **Why chunk at all? SciFact abstracts are short.**
 I measured it. For BM25 it makes no difference (+0.002 nDCG@10 unchunked, p = 0.82). For
@@ -149,9 +162,9 @@ no better than the small one (p = 0.86) and no better than dense alone, at about
 query. Two rerankers giving the same answer makes that finding robust.
 
 **What would you do with more time / compute?**
-In order of expected value: (1) fine-tune the bi-encoder on in-domain pairs, since the
-domain gap is the dominant error source; (2) swap in a stronger reranker like monoT5-3B and
-report the cost; (3) evaluate on a second BEIR dataset to test whether the fusion gain
+In order of expected value: (1) fine-tune the reranker in-domain too, since fine-tuning the
+bi-encoder gave the largest gain and two off-the-shelf rerankers did not help; (2) mine hard
+negatives for the bi-encoder instead of only in-batch negatives, and repeat over several seeds; (3) evaluate on a second BEIR dataset to test whether the fusion gain
 generalises; (4) learned sparse retrieval (SPLADE) instead of BM25.
 
 **How does this relate to RAG?**
@@ -191,7 +204,7 @@ defend is worse than code you do not have.
 
 - Rerun the ablation from a clean clone. Numbers in your slides must match `results/`.
 - Print the paper and one page with the ablation table on it. Bring both.
-- Know your three headline numbers cold: nDCG@10 for the full system (0.715), the gain over
-  the best single retriever (+0.037 over dense, p = 0.025; fusion alone already gives
-  +0.031, p = 0.019), and the reranking latency (about +270 ms/query for a gain over fusion
-  that is not significant, p = 0.65).
+- Know your headline numbers cold. Zero-shot pipeline: full system 0.715 nDCG@10; fusion
+  gives +0.031 over dense (p = 0.019) and +0.053 over BM25 (p < 0.0001); the reranker adds
+  about +270 ms/query for a gain over fusion that is not significant (p = 0.65).
+  Fine-tuned: dense 0.679 → 0.742 (p < 0.0001), the best result, at no extra query cost.

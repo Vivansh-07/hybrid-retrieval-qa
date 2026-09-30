@@ -74,3 +74,23 @@ def test_string_settings_are_taken_literally(cfg):
     new = apply_overrides(cfg, ["dense.model=BAAI/bge-small-en-v1.5", f"dense.query_prefix={prefix}"])
     assert new.get_path("dense.model") == "BAAI/bge-small-en-v1.5"
     assert new.get_path("dense.query_prefix") == prefix  # trailing space kept
+
+
+def test_local_model_folder_is_resolved_and_tied_to_its_weights(cfg, tmp_path):
+    import os
+    from hybridqa.config import resolve_model
+
+    assert resolve_model("BAAI/bge-small-en-v1.5") == "BAAI/bge-small-en-v1.5"  # a Hub id is left alone
+
+    model_dir = tmp_path / "my-finetuned-model"
+    model_dir.mkdir()
+    weights = model_dir / "model.safetensors"
+    weights.write_bytes(b"v1")
+    assert resolve_model(str(model_dir)) == str(model_dir)
+
+    local_cfg = apply_overrides(cfg, [f"dense.model={model_dir}"])
+    before = RetrievalPipeline(local_cfg, verbose=False).embedding_cache_path()
+    os.utime(weights, ns=(1, 1))  # "retrain": the weights file changes
+    after = RetrievalPipeline(local_cfg, verbose=False).embedding_cache_path()
+    assert before != after  # stale embeddings from the old weights are not reused
+    assert ":" not in before.name  # Windows drive letters are sanitised out of the file name

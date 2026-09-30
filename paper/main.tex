@@ -207,6 +207,16 @@ without reranking; dotted lines mark BM25 and dense alone.
 \label{fig:latency}
 \end{figure*}
 
+\begin{figure}[t]
+\centering
+\includegraphics[width=\columnwidth]{figures/finetune_curve_all-MiniLM-L6-v2-scifact.png}
+\caption{Fine-tuning the dense encoder on SciFact training claims: training loss (top) and
+nDCG@10 on 120 held-out dev claims (bottom) per epoch. Epoch 0 is the pretrained model.
+% TODO: one-sentence takeaway in your own words (numbers: results/finetune_*/history.json)
+}
+\label{fig:finetune}
+\end{figure}
+
 \subsection{Which stage helps which question?}
 % The interesting part. Split queries by a property you can compute:
 %   - queries containing a rare term / numeral / entity  -> expect BM25 to win
@@ -243,7 +253,10 @@ without reranking; dotted lines mark BM25 and dense alone.
 %    (claim 1259 is a concrete case; see docs/VIVA_PREP.md).
 %  - Latency varied up to ~2x between identical runs (see docs/EXPERIMENT_LOG.md):
 %    report it as approximate.
-%  - Off-the-shelf models; no in-domain fine-tuning of either encoder.
+%  - Only the dense encoder is fine-tuned (one run, one seed, weak chunk-level positives,
+%    in-batch negatives only); the reranker and the reader are used off the shelf.
+%  - Against the original full pipeline the fine-tuned dense model's gain is not
+%    significant (p = 0.13); against BM25, dense and fusion it is.
 %  - Manual answer annotation by a single annotator, N answers.
 %  - Latency measured on one machine, batch size 1, warm cache.
 

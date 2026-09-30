@@ -37,7 +37,7 @@ python -m pip install torch --index-url https://download.pytorch.org/whl/cu126  
 python -m pip install -r requirements.txt
 python -m pip install -e .
 
-python -m pytest tests/ -q                           # 33 tests
+python -m pytest tests/ -q                           # 34 tests
 
 # full four-way ablation + sweeps (downloads SciFact + models on first run, ~13 min on an RTX 3050)
 python scripts/run_ablation.py --sweep-depth 10 25 50 100 --sweep-fusion-k 10 30 60 100
@@ -90,6 +90,19 @@ With a stronger dense encoder (`BAAI/bge-small-en-v1.5`, `results/dense_bge_smal
 
 Here dense clearly beats BM25 and fusion adds nothing over dense alone: the fusion gain
 depends on the two retrievers being of similar strength. Neither reranker helps.
+
+With the MiniLM encoder **fine-tuned on SciFact's training claims** (`scripts/finetune_dense.py`:
+contrastive loss, 689 training claims, 120 dev claims for early stopping, no test claim seen;
+`results/dense_minilm_finetuned/`):
+
+| Variant | nDCG@10 | Recall@10 | vs before fine-tuning |
+|---|---|---|---|
+| Dense | **0.742** | 0.886 | +0.063, p < 0.0001 |
+| RRF fusion | 0.731 | 0.888 | +0.022, p = 0.013 |
+| + cross-encoder rerank | 0.725 | 0.848 | not significant |
+
+Fine-tuning is the largest gain of any change tried, at no extra query cost. The 6-layer
+fine-tuned model is statistically level with the larger off-the-shelf BGE-small (p = 0.23).
 Every run is recorded in [docs/EXPERIMENT_LOG.md](docs/EXPERIMENT_LOG.md).
 
 ---
@@ -114,6 +127,9 @@ scripts/
   make_plots.py          results/*.json → paper/figures/*.png
   failure_analysis.py    picks the hard queries, writes a CSV for manual annotation
   demo.py                Gradio web demo: one question, all four variants side by side
+  finetune_dense.py      contrastive fine-tuning of the dense encoder on SciFact train claims
+  significance.py        recompute significance.json from saved runs
+  compare_runs.py        paired comparison of a one-change run against the main results
 tests/                   unit tests for the metrics, RRF, and chunking
 paper/                   LaTeX skeleton, bibliography, figures
 docs/

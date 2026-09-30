@@ -231,4 +231,64 @@ Next:        choose what the paper reports: MiniLM as the controlled baseline, B
 
 ---
 
+### 2026-09-30 — Fine-tuning the dense encoder on SciFact train claims (training run)
+Commit:      9d89cb5 plus scripts/finetune_dense.py (committed 2026-09-30)
+Config:      base model sentence-transformers/all-MiniLM-L6-v2; contrastive loss (multiple-negatives
+             ranking, in-batch negatives, scale 20); AdamW lr 2e-5, weight decay 0.01, 10% warm-up
+             then linear decay; batch 32; max_seq_length 256; seed 42
+Command:     `python scripts/finetune_dense.py --epochs 12`
+             (first `python scripts/finetune_dense.py`, 6 epochs: dev was still rising, see below)
+Hardware:    NVIDIA GeForce RTX 3050 Laptop GPU (4 GB), PyTorch 2.6.0+cu126
+
+Result:      data: 809 train claims (no overlap with the 300 test claims) -> 689 for training
+             (792 claim-passage pairs), 120 held out as dev. Test split never loaded.
+             6-epoch trial, dev nDCG@10 by epoch 0-6: 0.691 0.706 0.733 0.733 0.738 0.742 0.745
+             12-epoch run, dev nDCG@10 by epoch 0-12:
+               0.691 0.703 0.730 0.730 0.735 0.751 0.749 0.748 0.758 0.767 0.768 0.767 0.770
+             training loss by epoch 1-12:
+               0.264 0.162 0.117 0.093 0.087 0.080 0.066 0.052 0.073 0.070 0.068 0.080
+             kept: epoch 12 (best dev nDCG@10 = 0.7704; dev Recall@10 0.829 -> 0.888)
+Latency:     n/a. Training took 584 s including a full-corpus dev evaluation after every epoch.
+             Model saved to data/models/all-MiniLM-L6-v2-scifact (88 MB, not committed).
+
+Observation: The loss falls and dev accuracy rises from 0.691 to 0.770, flattening from epoch 9
+             (0.767-0.770), so 12 epochs is enough. The training length was decided on the dev
+             set only, before the test set was evaluated. The loss is not perfectly monotonic
+             after epoch 8: with 24 batches per epoch and random in-batch negatives it is noisy.
+Next:        evaluate once on the test claims.
+
+---
+
+### 2026-09-30 — Fine-tuned dense encoder on the TEST claims
+Commit:      as above
+Config:      changed: dense.model=data/models/all-MiniLM-L6-v2-scifact (everything else unchanged)
+Command:     `python scripts/run_ablation.py --set dense.model=data/models/all-MiniLM-L6-v2-scifact --out results/dense_minilm_finetuned`
+             then `python scripts/compare_runs.py results/dense_minilm_finetuned`
+Hardware:    as above
+
+Result:      variant         nDCG@10  R@10    MRR@10  ms/query   vs the same model before fine-tuning
+             bm25            0.6562   0.7839  0.6232   80.0      identical
+             dense           0.7416   0.8860  0.6994   15.8      +0.0626  p < 0.0001  significant
+             fusion          0.7313   0.8875  0.6875   93.1      +0.0216  p = 0.0129  significant
+             fusion+rerank   0.7245   0.8484  0.6925  255.5      +0.0092  p = 0.1064  not significant
+             Within this run: dense vs bm25 +0.0853 (p < 0.0001); fusion vs dense -0.0102 (p = 0.44);
+             fusion+rerank vs fusion -0.0068 (p = 0.64).
+             Fine-tuned dense vs the original pipeline: vs fusion +0.0319 (p = 0.043); vs
+             fusion+rerank +0.0262 (p = 0.13, not significant).
+             Fine-tuned MiniLM dense vs off-the-shelf BGE-small dense (0.7232): +0.0184, p = 0.23.
+             Claims with a gold paper in the top 10: 269 of 300 (MiniLM before: 248; BM25: 240).
+Latency:     see table (with the warm-up fix; not comparable to the earlier main-run timings).
+             Index build: dense 53.3 s (32.3 MB), same size and speed as the base model.
+
+Observation: In-domain fine-tuning gives the largest gain of any change tried: dense retrieval
+             +0.063 nDCG@10 on unseen test claims, at no extra query cost (same model size).
+             The dev gain (+0.079) carries over to test (+0.063), so it is not overfitting to dev.
+             A 6-layer model fine-tuned on 689 claims is statistically level with the larger
+             off-the-shelf BGE-small. As with BGE, once dense is clearly stronger than BM25,
+             equal-weight fusion no longer adds anything, and the reranker still does not help.
+             Honest limit: against the original full pipeline (0.715) the gain is not significant.
+Next:        paper: method (fine-tuning subsection) and results; failure analysis on this setup.
+
+---
+
 <!-- add new entries above this line, newest last -->

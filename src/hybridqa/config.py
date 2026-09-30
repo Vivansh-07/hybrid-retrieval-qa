@@ -76,6 +76,14 @@ def apply_overrides(cfg: Config, assignments: Sequence[str] | None) -> Config:
     return cfg
 
 
+def resolve_model(name: str) -> str:
+    """A model name is a Hugging Face id, or a folder inside the project (a fine-tuned
+    model under data/models/). Folders come back as absolute paths, so commands work
+    from any working directory."""
+    local = Path(name) if Path(name).is_absolute() else REPO_ROOT / name
+    return str(local) if local.is_dir() else name
+
+
 def resolve(cfg: Config, key: str) -> Path:
     """Resolve a `paths.*` entry to an absolute directory, creating it if needed."""
     rel = cfg.get_path(f"paths.{key}", key)

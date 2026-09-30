@@ -13,6 +13,7 @@ from typing import List, Sequence, Tuple
 
 import numpy as np
 
+from .config import resolve_model
 from .data import Chunk
 
 
@@ -35,7 +36,8 @@ class DenseRetriever:
         if self._model is None:
             from sentence_transformers import SentenceTransformer
 
-            self._model = SentenceTransformer(self.model_name, device=self.device)
+            # resolve_model: a fine-tuned model saved under data/models/ is loaded from disk
+            self._model = SentenceTransformer(resolve_model(self.model_name), device=self.device)
             self._model.max_seq_length = self.max_seq_length
         return self._model
 

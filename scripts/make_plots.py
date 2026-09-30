@@ -155,12 +155,50 @@ def plot_latency_accuracy(data: dict) -> None:
     plt.close(fig)
 
 
+def plot_finetune_curve() -> None:
+    """Training loss and dev nDCG@10 per epoch, from scripts/finetune_dense.py.
+
+    Two stacked panels sharing the epoch axis: loss falling shows the model is fitting
+    the training pairs, dev nDCG@10 rising shows that this transfers to held-out claims.
+    Epoch 0 is the untouched base model. The kept (best dev) epoch is marked.
+    """
+    for path in sorted(RESULTS.glob("finetune_*/history.json")):
+        run = json.loads(path.read_text(encoding="utf-8"))
+        hist = run["history"]
+        epochs = [h["epoch"] for h in hist]
+
+        fig, (top, bottom) = plt.subplots(2, 1, figsize=(3.5, 3.4), sharex=True)
+        top.plot(epochs[1:], [h["train_loss"] for h in hist[1:]], color=INK, marker="s", markersize=3.5,
+                 linewidth=1.5)
+        top.set_ylabel("training loss")
+        top.set_ylim(bottom=0)
+        top.set_title("Fine-tuning the dense encoder", loc="left", fontweight="bold")
+
+        dev = [h["dev_nDCG@10"] for h in hist]
+        bottom.plot(epochs, dev, color=ACCENT, marker="o", markersize=3.5, linewidth=1.5)
+        best = run["best_epoch"]
+        bottom.scatter([best], [dev[epochs.index(best)]], s=70, facecolors="none", edgecolors=INK,
+                       linewidths=1.2, zorder=3)
+        bottom.annotate("kept", (best, dev[epochs.index(best)]), textcoords="offset points",
+                        xytext=(0, -13), ha="center", fontsize=7)
+        bottom.set_ylabel("dev nDCG@10")
+        bottom.set_xlabel("epoch (0 = before training)")
+        bottom.set_xticks(epochs)
+        bottom.set_ylim(min(dev) - 0.02, max(dev) + 0.015)
+
+        fig.tight_layout()
+        name = path.parent.name.replace("finetune_", "finetune_curve_")
+        fig.savefig(FIGDIR / f"{name}.png")
+        plt.close(fig)
+
+
 def main() -> None:
     FIGDIR.mkdir(parents=True, exist_ok=True)
     data = load_metrics()
     plot_ablation(data)
     plot_recall_curve(data)
     plot_latency_accuracy(data)
+    plot_finetune_curve()
     print(f"figures written to {FIGDIR}")
 
 
