@@ -236,6 +236,11 @@ plus RAG/FiD and attribution (ALCE). **Three research gaps** this project addres
   hardware (i5-12450H, 16 GB, RTX 3050 4 GB), latency protocol, metrics incl. P@10 ceiling ~0.11 and
   the R@100-over-passages caveat, bootstrap description, no multiple-comparison correction.
   Paper now ~1,570 words of text; Results, Failure Analysis, Limitations, Conclusion still empty.
+- **2026-09-30 (late):** Results drafted (DRAFT marker): ablation (with complementarity counts),
+  depth/k/score-fusion, passage length, stronger + fine-tuned encoders (new Table: tab:configs),
+  cost ranges. Query-subset and answer-quality subsections are commented out until that work
+  exists. Paper ~2,260 words; still empty: Failure Analysis, Limitations, Conclusion, abstract
+  numbers, introduction prose. TODO in text: verify BEIR's BM25 SciFact figure (0.665).
 
 ---
 

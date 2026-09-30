@@ -334,10 +334,25 @@ multiple comparisons, so $p$-values close to 0.05 should be read with care.
 \section{Results}
 \label{sec:results}
 
+% ---------------------------------------------------------------------------
+% DRAFT (2026-09-30). Every number is taken from results/ (ablation.csv,
+% significance.json, comparison.json, sweep_*.json, finetune_*/history.json)
+% and docs/EXPERIMENT_LOG.md. REWRITE IN YOUR OWN WORDS, and re-check the
+% numbers if you re-run anything (e.g. after re-timing the main run).
+% ---------------------------------------------------------------------------
+We first report the four-way ablation in the main configuration, then how the
+reranking depth and the fusion settings affect it, then each configuration that
+changes one component, and finally the cost of every stage. All differences are
+in nDCG@10 on the 300 test claims unless stated otherwise.
+
+\subsection{The retrieval ablation}
+
 \begin{table}[t]
 \centering\small
-\caption{Retrieval ablation on SciFact. All variants share one corpus, one
-chunking and one index; only the retrieval strategy differs.}
+\caption{Retrieval ablation on SciFact (300 test claims) in the main
+configuration. All variants share one corpus, one passage split and one index;
+only the retrieval strategy differs. R@100 counts relevant abstracts within the
+top 100 passages; ms/q is approximate.}
 \label{tab:ablation}
 \begin{tabular}{lccccr}
 \toprule
@@ -350,52 +365,160 @@ RRF fusion      & 0.710 & \textbf{0.833} & \textbf{0.947} & 0.675 & 125 \\
 \bottomrule
 \end{tabular}
 % Numbers: results/ablation.csv (main run, 2026-09-28), off-the-shelf all-MiniLM-L6-v2.
-% TODO: say in the text that R@100 is recall within the top-100 passages (~50 documents),
-%       and that ms/q is approximate (re-time after the warm-up fix before the final version).
-% TODO: add a second table for the stronger/fine-tuned encoders:
-%       results/dense_bge_small/ and results/dense_minilm_finetuned/ (see README Results).
+% TODO: re-time the main run after the warm-up fix and update the ms/q column.
 \end{table}
 
 \begin{figure}[t]
 \centering
 \includegraphics[width=\columnwidth]{figures/ablation_ndcg.png}
-\caption{nDCG@10 by variant.}
+\caption{nDCG@10 of the four variants in the main configuration
+(Table~\ref{tab:ablation}).}
+% If the paper runs over the page limit, drop this figure: it repeats Table II.
 \label{fig:ablation}
 \end{figure}
+
+Table~\ref{tab:ablation} and Fig.~\ref{fig:ablation} show the ablation. BM25
+reaches an nDCG@10 of 0.656, close to the BM25 result reported for SciFact in
+BEIR~\cite{thakur2021beir} (0.665), which suggests that our passage split and
+evaluation behave as intended.
+% TODO: check the 0.665 against the BEIR paper's table before submitting.
+The pretrained dense retriever scores 0.679. Its advantage over BM25 is not
+significant ($+0.023$, $p=0.25$): per claim, dense is better on 73, BM25 on 60,
+and 167 are tied.
+
+The two retrievers are tied on average but not on the same claims. For 223 of
+the 300 claims both place a relevant abstract in their top ten, for 17 only BM25
+does, for 25 only the dense retriever does, and for 35 neither does. This
+complementarity is what fusion exploits. RRF raises nDCG@10 to 0.710,
+significantly above both BM25 ($+0.053$, $p<10^{-4}$) and the dense retriever
+($+0.031$, $p=0.019$). Of the 42 claims on which only one retriever has a
+relevant abstract in its top ten, fusion keeps it there for 27. Fusion scores
+below both of its inputs on a single claim and above both on 25, and it raises
+the recall within the top 100 passages from 0.882 (BM25) and 0.916 (dense) to
+0.947.
+
+Reranking the top 50 fused passages with the cross-encoder adds $+0.006$, which
+is not significant ($p=0.65$): the reranker improves 52 claims and worsens 46.
+Its largest change is at the first position (Recall@1 rises from 0.561 to
+0.577), but it triples the latency per claim (about 395 against 125~ms). In the
+main configuration, therefore, the stage that earns its place is fusion, not
+reranking.
+
+\subsection{Reranking depth and fusion settings}
 
 \begin{figure*}[t]
 \centering
 \includegraphics[width=\textwidth]{figures/latency_accuracy.png}
 \caption{Effect of the reranking depth $N$ (number of fused candidates scored by
 the cross-encoder) on nDCG@10 (left) and latency (right). ``none'' is RRF fusion
-without reranking; dotted lines mark BM25 and dense alone.
-% TODO: add the one-sentence takeaway in your own words, from results/sweep_rerank_depth.json
-}
+without reranking; dotted lines mark BM25 and dense alone. Accuracy is flat from
+$N=10$ to $N=100$ while latency grows with $N$.}
 \label{fig:latency}
 \end{figure*}
+
+Fig.~\ref{fig:latency} varies the number $N$ of fused passages that the
+cross-encoder rescores. Accuracy is flat: nDCG@10 stays between 0.716 and 0.722
+for $N$ from 10 to 100, against 0.710 without reranking, while latency grows
+from about 125~ms without reranking to about 500~ms at $N=100$. Scoring more
+candidates therefore buys cost, not accuracy. Fusion is equally insensitive to
+its constant: for $k\in\{10,30,60,100\}$, nDCG@10 lies between 0.709 and 0.714,
+so the fusion gain is not an artefact of the default $k=60$. Replacing RRF with
+min-max score fusion gives 0.717 against 0.710 ($p=0.27$). The two are tied on
+this data, so we keep RRF for its practical advantages, not for accuracy: it
+needs no score normalisation and no labelled data to tune.
+
+\subsection{Passage length}
+With whole abstracts instead of three-sentence passages
+(Table~\ref{tab:configs}), BM25 is unchanged ($+0.002$, $p=0.82$), but the two
+neural stages lose significantly: the dense retriever by 0.031 ($p=0.009$) and
+the full pipeline by 0.029 ($p=0.007$). For the dense retriever the cause is
+measurable: 71.6\% of the abstracts (median 317 tokens) exceed its 256-token
+input limit and are truncated, against 1.2\% of the passages (median 125
+tokens). BM25, which reads every word either way, is unaffected. Fusion still
+beats both single retrievers on whole abstracts ($p=0.0002$ against BM25,
+$p<10^{-4}$ against dense), so the fusion result does not depend on the passage
+split. The passages cost a four times larger embedding index (32.3 against
+8.0~MB).
+
+\subsection{Stronger and fine-tuned encoders}
+
+\begin{table}[t]
+\centering\footnotesize
+\caption{nDCG@10 when one component of the main configuration is changed.
+$^{*}$: significantly different from the main configuration for the same
+variant (paired bootstrap, $p<0.05$).}
+\label{tab:configs}
+\begin{tabular}{@{}lcccc@{}}
+\toprule
+Configuration & BM25 & Dense & Fusion & $+$Rerank \\
+\midrule
+Main (MiniLM, zero-shot)    & 0.656 & 0.679 & 0.710 & 0.715 \\
+Whole abstracts             & 0.658 & 0.648$^{*}$ & 0.703 & 0.687$^{*}$ \\
+Score fusion instead of RRF & --    & --    & 0.717 & --    \\
+BGE-small encoder           & 0.656 & 0.723$^{*}$ & 0.721 & 0.712 \\
+\quad with BGE reranker     & --    & --    & --    & 0.714 \\
+Fine-tuned MiniLM           & 0.656 & \textbf{0.742}$^{*}$ & 0.731$^{*}$ & 0.725 \\
+\bottomrule
+\end{tabular}
+% Numbers: results/set_*/, results/dense_bge_small*/, results/dense_minilm_finetuned/
+% (comparison.json in each folder holds the per-variant p-values).
+\end{table}
 
 \begin{figure}[t]
 \centering
 \includegraphics[width=\columnwidth]{figures/finetune_curve_all-MiniLM-L6-v2-scifact.png}
-\caption{Fine-tuning the dense encoder on SciFact training claims: training loss (top) and
-nDCG@10 on 120 held-out dev claims (bottom) per epoch. Epoch 0 is the pretrained model.
-% TODO: one-sentence takeaway in your own words (numbers: results/finetune_*/history.json)
-}
+\caption{Fine-tuning the dense encoder on SciFact training claims: training loss
+(top) and nDCG@10 on 120 held-out development claims (bottom) per epoch. Epoch 0
+is the pretrained model. Development accuracy rises from 0.691 to 0.770 and
+levels off after epoch 9; the weights of epoch 12 are kept.}
 \label{fig:finetune}
 \end{figure}
 
-\subsection{Which stage helps which question?}
-% The interesting part. Split queries by a property you can compute:
-%   - queries containing a rare term / numeral / entity  -> expect BM25 to win
-%   - queries with low lexical overlap with their gold doc -> expect dense to win
-% Report the two subsets separately. This is the claim the ablation exists to support.
+Table~\ref{tab:configs} also reports two stronger encoders. The off-the-shelf
+BGE-small encoder raises dense retrieval to 0.723 ($+0.044$ over MiniLM,
+$p=0.002$), which is now significantly better than BM25 ($+0.067$, $p=0.0003$).
+Fine-tuning MiniLM on the SciFact training claims raises its nDCG@10 on the 120
+development claims from 0.691 to 0.770 (Fig.~\ref{fig:finetune}) and on the
+test claims from 0.679 to 0.742 ($+0.063$, $p<10^{-4}$), the best result in this
+study. The fine-tuned retriever places a relevant abstract in its top ten for
+269 of the 300 claims, against 248 before fine-tuning, at no extra cost per
+query. With the same size as before, it is level with the larger BGE-small
+($+0.018$, $p=0.23$).
 
-\subsection{Answer quality}
-% Table: correctness, completeness, faithfulness, citation precision/recall.
-% State n annotated and inter-annotator agreement if you had a second annotator.
+A stronger dense retriever changes the role of fusion. With BGE-small, fusion
+equals the dense retriever alone (0.721 against 0.723, $p=0.87$); with the
+fine-tuned encoder it is slightly below it (0.731 against 0.742, $p=0.44$).
+Fusion helps when the two retrievers are comparably strong and fail on
+different claims, as with the pretrained MiniLM; once one retriever clearly
+dominates, equal-weight fusion adds nothing. Reranking does not significantly
+improve on fusion in any configuration: with BGE-small it gives 0.712 ($p=0.50$
+against fusion), and replacing the MS~MARCO cross-encoder by the twelve times
+larger BGE reranker gives 0.714 ($+0.002$, $p=0.86$) at about 1.2~s more per
+claim. Measured against the original full pipeline (0.715), the fine-tuned dense
+retriever alone is higher by 0.026, but that difference is not significant
+($p=0.13$).
+
+% \subsection{Which stage helps which question?}
+% TODO (after scripts for the query-subset analysis exist): split the claims by a
+% property you can compute (contains a numeral / rare term vs not; lexical overlap
+% with the gold abstract) and compare BM25 and dense on each subset.
+
+% \subsection{Answer quality}
+% TODO (after scoring the 50 answers by hand): table with correctness,
+% completeness, faithfulness, citation precision/recall; n annotated; the rubric.
 
 \subsection{Cost}
-% Index build time, index size on disk, per-query latency by stage.
+All costs were measured on the laptop described in Section~\ref{sec:setup} and
+varied between repetitions of the same run, so we give ranges. Building the BM25
+index over the 21{,}015 passages took 18 to 41~s with a pure-Python
+implementation. Encoding the passages took 53 to 130~s with MiniLM and 241~s
+with the twelve-layer BGE-small; either index occupies 32.3~MB (21{,}015 vectors
+of 384 dimensions), against 8.0~MB for whole abstracts. Per claim, BM25 took
+about 60 to 120~ms because it scores every passage, dense retrieval 16 to 85~ms,
+fusion roughly the sum of the two, and reranking 50 candidates added about 160
+to 270~ms with the MS~MARCO cross-encoder and about 1.2~s with the BGE reranker.
+Fine-tuning is a one-off cost of about ten minutes on the GPU, including an
+evaluation on the development claims after every epoch.
 
 % ===========================================================================
 \section{Failure Analysis}
