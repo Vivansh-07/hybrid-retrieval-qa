@@ -231,6 +231,11 @@ plus RAG/FiD and attribution (ALCE). **Three research gaps** this project addres
 - **2026-09-30 (late):** paper Method section drafted from the code (marked DRAFT in main.tex:
   Vivansh must rewrite it in own words); ablation table filled with the main-run numbers.
   `paper_overleaf.zip` (git-ignored) is the Overleaf upload; rebuild it after paper edits.
+- **2026-09-30 (late):** Experimental Setup drafted (DRAFT marker): dataset stats (300 test claims,
+  339 relevant, 1.13/claim, 277 with one; train 809/919), models table with sizes, configurations,
+  hardware (i5-12450H, 16 GB, RTX 3050 4 GB), latency protocol, metrics incl. P@10 ceiling ~0.11 and
+  the R@100-over-passages caveat, bootstrap description, no multiple-comparison correction.
+  Paper now ~1,570 words of text; Results, Failure Analysis, Limitations, Conclusion still empty.
 
 ---
 

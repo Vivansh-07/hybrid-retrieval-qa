@@ -233,24 +233,102 @@ the top passage, which makes the citation exact by construction.
 \section{Experimental Setup}
 \label{sec:setup}
 
-\paragraph{Dataset.} SciFact~\cite{wadden2020scifact} as distributed in
-BEIR~\cite{thakur2021beir}: 5{,}183 scientific abstracts and 300 test claims with
-document-level relevance judgements.
-% State judged queries actually evaluated and mean gold docs per query.
+% ---------------------------------------------------------------------------
+% DRAFT (2026-09-30), written from the code, the results/ files and measured
+% facts (dataset counts, model sizes, hardware). REWRITE IN YOUR OWN WORDS.
+% ---------------------------------------------------------------------------
+\paragraph{Dataset.} We use SciFact~\cite{wadden2020scifact} as distributed in
+BEIR~\cite{thakur2021beir}. The corpus holds 5{,}183 abstracts of scientific
+papers; each query is a scientific claim, and its relevant documents are the
+abstracts that contain evidence for or against it. Relevance is binary and
+judged per abstract. All 300 test claims are evaluated. They have 339 relevant
+abstracts, 1.13 per claim on average: 277 claims have exactly one and none has
+more than five. The 809 training claims (919 relevant abstracts), which share no
+claim with the test set, are used only to fine-tune the dense encoder
+(Section~\ref{sec:method}).
 
-\paragraph{Models.} % bi-encoder, cross-encoder, reader, with exact HF identifiers.
+\paragraph{Models.} Table~\ref{tab:models} lists the neural models, all
+loaded from the Hugging Face Hub. The main configuration uses the pretrained
+MiniLM bi-encoder and the MS~MARCO cross-encoder without any training on
+SciFact, the zero-shot setting of BEIR. BM25 uses the \texttt{rank\_bm25}
+implementation.
 
-\paragraph{Hardware.} % GPU model, VRAM, CUDA version. Latency numbers are meaningless without it.
+\begin{table}[t]
+\centering\footnotesize
+\caption{Neural models (Hugging Face identifiers) and their sizes.}
+\label{tab:models}
+\begin{tabular}{@{}llr@{}}
+\toprule
+Role & Model & Parameters \\
+\midrule
+Dense, main       & \texttt{all-MiniLM-L6-v2}       & 22.7M \\
+Dense, stronger   & \texttt{bge-small-en-v1.5}      & 33.4M \\
+Dense, fine-tuned & MiniLM on SciFact train         & 22.7M \\
+Reranker, main    & \texttt{ms-marco-MiniLM-L-6-v2} & 22.7M \\
+Reranker, stronger& \texttt{bge-reranker-base}      & 278M \\
+Reader            & \texttt{flan-t5-base}           & 248M \\
+Reader, extractive& \texttt{roberta-base-squad2}    & 124M \\
+\bottomrule
+\end{tabular}
+% TODO: after the answer experiments, keep only the reader(s) you report.
+\end{table}
 
-\paragraph{Metrics.} Recall@$k$ and Precision@$k$ measure whether the evidence
-was found; MRR measures how early; nDCG@$k$ is graded and rank-discounted and is
-our primary metric. Relevance is judged at document level, so chunk rankings are
-collapsed to their parent documents before scoring. Answers are scored on
-correctness, completeness, faithfulness and citation accuracy.
-% State the manual annotation protocol: how many answers, who annotated, what scale.
+\paragraph{Configurations.} The main configuration is evaluated in all four
+variants of the ablation: BM25 alone, dense alone, fusion, and fusion with
+reranking. Every further configuration changes exactly one component of it:
+whole abstracts instead of three-sentence passages; score fusion instead of RRF;
+the BGE-small encoder instead of MiniLM; the BGE reranker instead of the MS~MARCO
+cross-encoder (on top of BGE-small); and the fine-tuned MiniLM encoder. We also
+vary the reranking depth $N\in\{10,25,50,100\}$ and the RRF constant
+$k\in\{10,30,60,100\}$ in the main configuration.
 
-\paragraph{Significance.} Differences are tested with a two-sided paired
-bootstrap over per-query nDCG@10 ($10^4$ resamples).
+\paragraph{Hardware and software.} All experiments run on one laptop: an Intel
+Core i5-12450H CPU, 16~GB of RAM and an NVIDIA GeForce RTX~3050 Laptop GPU with
+4~GB of memory, under Windows~11, with Python~3.13, PyTorch~2.6 (CUDA~12.6),
+sentence-transformers~6.1, transformers~5.17 and FAISS~1.15. The encoders, the
+rerankers and the reader run on the GPU; BM25 scoring and the FAISS search run
+on the CPU.
+
+\paragraph{Latency.} Latency is the wall-clock time from receiving a claim to
+returning its final ranked list, including query encoding, with claims processed
+one at a time, averaged over the 300 test claims. One untimed warm-up query is
+run first, so loading the models is not counted as query time. Index
+construction is reported separately. On this machine the same run differed by up
+to a factor of two in latency between repetitions, so we treat latency as
+approximate and compare it only across orders of magnitude.
+% TODO: the main-run latencies in the ablation table (tab:ablation) were measured
+% before the warm-up query was added. Re-run the main ablation before the final version so all timings
+% follow this protocol.
+
+\paragraph{Metrics.} Each passage ranking is first converted to a document
+ranking (Section~\ref{sec:method}). Recall@$k$ is the fraction of a claim's
+relevant abstracts found in the top $k$, Precision@$k$ the fraction of the top
+$k$ that is relevant, and MRR@10 the reciprocal rank of the first relevant
+abstract within the top ten. nDCG@$k$~\cite{jarvelin2002ndcg} discounts each
+relevant abstract by $\log_2$ of its rank and normalises by the best possible
+ordering; nDCG@10 is our primary metric because it is the only one that rewards
+both finding the evidence and ranking it high. All metrics are averaged over the
+claims. Two consequences of the data are worth stating. With 1.13 relevant
+abstracts per claim, Precision@10 cannot exceed about 0.11. And because several
+passages come from the same abstract, the top 100 passages cover only about 50
+distinct abstracts, so the Recall@100 we report is recall within the top 100
+passages; it is not comparable between runs with different passage lengths.
+The metrics are implemented from their definitions and unit-tested against
+hand-computed values. Generated answers are scored on correctness, completeness,
+faithfulness and citation accuracy.
+% TODO: state the manual annotation protocol: how many answers, who annotated,
+% what scale (e.g. 0-2), and the rubric written before scoring.
+
+\paragraph{Significance.} Every difference we report is tested with a
+two-sided paired bootstrap over per-claim nDCG@10: the 300 claims are resampled
+with replacement 10{,}000 times (seed 42), and the $p$-value is the fraction of
+resamples, shifted to a mean difference of zero, whose mean difference is at
+least as large in magnitude as the observed one. With $10^4$ resamples, $p=0$ is
+reported as $p<10^{-4}$. We test all six pairs of variants within a
+configuration, and the same variant across two configurations, and we call a
+difference significant when $p<0.05$. Next to each test we give the number of
+claims that improved, got worse or stayed the same. We do not correct for
+multiple comparisons, so $p$-values close to 0.05 should be read with care.
 
 % ===========================================================================
 \section{Results}
