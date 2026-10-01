@@ -192,6 +192,46 @@ def plot_finetune_curve() -> None:
         plt.close(fig)
 
 
+def plot_overlap_split() -> None:
+    """nDCG@10 of every variant on paraphrased vs high-overlap claims (query_subsets.py).
+
+    Left: the pretrained encoder; right: the fine-tuned one, when its analysis exists.
+    Bars carry hatch patterns as well as shades, so the variants stay distinguishable
+    in black and white.
+    """
+    panels = [("Pretrained MiniLM", RESULTS / "query_subsets.json"),
+              ("Fine-tuned MiniLM", RESULTS / "dense_minilm_finetuned" / "query_subsets.json")]
+    panels = [(t, p) for t, p in panels if p.exists()]
+    if not panels:
+        print("  skipped overlap_split.png: run scripts/query_subsets.py first")
+        return
+
+    variants = ["bm25", "dense", "fusion", "fusion+rerank"]
+    shades = {"bm25": GREYS[0], "dense": GREYS[1], "fusion": GREYS[2], "fusion+rerank": ACCENT}
+    hatches = {"bm25": "", "dense": "///", "fusion": "...", "fusion+rerank": "xxx"}
+    width = 0.19
+
+    fig, axes = plt.subplots(1, len(panels), figsize=(3.5 * len(panels), 2.6), sharey=True, squeeze=False)
+    for ax, (title, path) in zip(axes[0], panels):
+        groups = json.loads(path.read_text(encoding="utf-8"))["splits"]["overlap"]["groups"]
+        names = list(groups)
+        for i, v in enumerate(variants):
+            xs = [g + (i - 1.5) * width for g in range(len(names))]
+            ys = [groups[n]["mean"].get(v, 0) for n in names]
+            ax.bar(xs, ys, width=width, color=shades[v], hatch=hatches[v], edgecolor=INK, linewidth=0.4,
+                   label=LABELS[v])
+        ax.set_xticks(range(len(names)))
+        ax.set_xticklabels([f"{n.replace(' (paraphrased)', chr(10) + '(paraphrased)')}\nn = {groups[n]['n']}"
+                            for n in names])
+        ax.set_ylim(0, 1)
+        ax.set_title(title, loc="left", fontweight="bold")
+    axes[0][0].set_ylabel("nDCG@10")
+    axes[0][-1].legend(frameon=False, fontsize=7, loc="upper left")
+    fig.tight_layout()
+    fig.savefig(FIGDIR / "overlap_split.png")
+    plt.close(fig)
+
+
 def main() -> None:
     FIGDIR.mkdir(parents=True, exist_ok=True)
     data = load_metrics()
@@ -199,6 +239,7 @@ def main() -> None:
     plot_recall_curve(data)
     plot_latency_accuracy(data)
     plot_finetune_curve()
+    plot_overlap_split()
     print(f"figures written to {FIGDIR}")
 
 
