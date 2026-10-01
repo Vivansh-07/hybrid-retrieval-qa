@@ -68,10 +68,10 @@ is approximate: it varied up to about 2x between identical runs.
 
 | Variant | nDCG@10 | Recall@10 | MRR@10 | ms/query |
 |---|---|---|---|---|
-| BM25 | 0.656 | 0.784 | 0.623 | 62 |
-| Dense (all-MiniLM-L6-v2) | 0.679 | 0.815 | 0.641 | 85 |
-| RRF fusion | 0.710 | 0.833 | 0.675 | 125 |
-| + cross-encoder rerank | 0.715 | 0.833 | 0.685 | 395 |
+| BM25 | 0.656 | 0.784 | 0.623 | 80 |
+| Dense (all-MiniLM-L6-v2) | 0.679 | 0.815 | 0.641 | 22 |
+| RRF fusion | 0.710 | 0.833 | 0.675 | 119 |
+| + cross-encoder rerank | 0.715 | 0.833 | 0.685 | 329 |
 
 Paired bootstrap on nDCG@10 (10,000 resamples, `results/significance.json`):
 

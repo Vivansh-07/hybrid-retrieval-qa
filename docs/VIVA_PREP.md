@@ -110,10 +110,11 @@ variants. Say the non-significant ones first — it reads as rigour, not weaknes
 - full system vs BM25: +0.059, p = 0.0002; vs dense: +0.037, p = 0.025 — significant.
 
 **What is the latency cost and would you deploy this?**
-About 62 ms/query for BM25, 85 for dense, 125 for fusion, 395 with reranking at depth 50,
-so reranking adds roughly 270 ms. These are single-laptop numbers and varied up to about
+About 80 ms/query for BM25, 22 for dense, 119 for fusion, 329 with reranking at depth 50,
+so reranking adds roughly 210 ms. (BM25 is the slow retriever because the library scores
+every passage in pure Python; the dense search is one encoder pass plus a matrix product.) These are single-laptop numbers and varied up to about
 2x between identical runs, so I quote them as approximate. Would I deploy the reranker
-here? No: on this data it triples the latency for a gain that is not significant, and
+here? No: on this data it almost triples the latency for a gain that is not significant, and
 accuracy is flat from depth 10 to 100 (0.716-0.722). I would deploy fusion, and only add a
 reranker trained on scientific text.
 
@@ -216,5 +217,5 @@ defend is worse than code you do not have.
 - Print the paper and one page with the ablation table on it. Bring both.
 - Know your headline numbers cold. Zero-shot pipeline: full system 0.715 nDCG@10; fusion
   gives +0.031 over dense (p = 0.019) and +0.053 over BM25 (p < 0.0001); the reranker adds
-  about +270 ms/query for a gain over fusion that is not significant (p = 0.65).
+  about +210 ms/query for a gain over fusion that is not significant (p = 0.65).
   Fine-tuned: dense 0.679 → 0.742 (p < 0.0001), the best result, at no extra query cost.

@@ -217,7 +217,7 @@ plus RAG/FiD and attribution (ALCE). **Three research gaps** this project addres
   Story for the paper: fusion helps when retrievers are of similar strength (MiniLM) and not
   when one dominates (BGE); two rerankers both add nothing. Best single number: 0.723.
   Code: `--set` takes string settings literally; `run_variant` runs an untimed warm-up query
-  (earlier latencies include model loading: re-time the main run before final numbers);
+  (main run re-timed on 2026-10-01: dense 22 ms, not 85; paper/README updated);
   `demo.py` accepts `--set`. 33 tests pass. Vivansh says only a few days remain before the
   presentation: prioritise paper, slides, failure analysis over further experiments.
 - **2026-09-30 (night), fine-tuning:** `scripts/finetune_dense.py` (explicit contrastive training

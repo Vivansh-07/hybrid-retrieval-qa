@@ -295,9 +295,6 @@ run first, so loading the models is not counted as query time. Index
 construction is reported separately. On this machine the same run differed by up
 to a factor of two in latency between repetitions, so we treat latency as
 approximate and compare it only across orders of magnitude.
-% TODO: the main-run latencies in the ablation table (tab:ablation) were measured
-% before the warm-up query was added. Re-run the main ablation before the final version so all timings
-% follow this protocol.
 
 \paragraph{Metrics.} Each passage ranking is first converted to a document
 ranking (Section~\ref{sec:method}). Recall@$k$ is the fraction of a claim's
@@ -357,14 +354,14 @@ top 100 passages; ms/q is approximate.}
 \toprule
 Variant & nDCG@10 & R@10 & R@100 & MRR@10 & ms/q \\
 \midrule
-BM25            & 0.656 & 0.784 & 0.882 & 0.623 & \textbf{62} \\
-Dense           & 0.679 & 0.815 & 0.916 & 0.641 & 85 \\
-RRF fusion      & 0.710 & \textbf{0.833} & \textbf{0.947} & 0.675 & 125 \\
-\; $+$ reranking & \textbf{0.715} & \textbf{0.833} & \textbf{0.947} & \textbf{0.685} & 395 \\
+BM25            & 0.656 & 0.784 & 0.882 & 0.623 & 80 \\
+Dense           & 0.679 & 0.815 & 0.916 & 0.641 & \textbf{22} \\
+RRF fusion      & 0.710 & \textbf{0.833} & \textbf{0.947} & 0.675 & 119 \\
+\; $+$ reranking & \textbf{0.715} & \textbf{0.833} & \textbf{0.947} & \textbf{0.685} & 329 \\
 \bottomrule
 \end{tabular}
-% Numbers: results/ablation.csv (main run, 2026-09-28), off-the-shelf all-MiniLM-L6-v2.
-% TODO: re-time the main run after the warm-up fix and update the ms/q column.
+% Numbers: results/ablation.csv, off-the-shelf all-MiniLM-L6-v2. Accuracy from the run of
+% 2026-09-28; ms/q from the identical re-run of 2026-10-01 with the warm-up query.
 \end{table}
 
 \begin{figure}[t]
@@ -399,7 +396,7 @@ the recall within the top 100 passages from 0.882 (BM25) and 0.916 (dense) to
 Reranking the top 50 fused passages with the cross-encoder adds $+0.006$, which
 is not significant ($p=0.65$): the reranker improves 52 claims and worsens 46.
 Its largest change is at the first position (Recall@1 rises from 0.561 to
-0.577), but it triples the latency per claim (about 395 against 125~ms). In the
+0.577), but it almost triples the latency per claim (about 329 against 119~ms). In the
 main configuration, therefore, the stage that earns its place is fusion, not
 reranking.
 
@@ -418,7 +415,7 @@ $N=10$ to $N=100$ while latency grows with $N$.}
 Fig.~\ref{fig:latency} varies the number $N$ of fused passages that the
 cross-encoder rescores. Accuracy is flat: nDCG@10 stays between 0.716 and 0.722
 for $N$ from 10 to 100, against 0.710 without reranking, while latency grows
-from about 125~ms without reranking to about 500~ms at $N=100$. Scoring more
+from about 120~ms without reranking to about 470~ms at $N=100$. Scoring more
 candidates therefore buys cost, not accuracy. Fusion is equally insensitive to
 its constant: for $k\in\{10,30,60,100\}$, nDCG@10 lies between 0.709 and 0.714,
 so the fusion gain is not an artefact of the default $k=60$. Replacing RRF with
@@ -554,9 +551,9 @@ index over the 21{,}015 passages took 18 to 41~s with a pure-Python
 implementation. Encoding the passages took 53 to 130~s with MiniLM and 241~s
 with the twelve-layer BGE-small; either index occupies 32.3~MB (21{,}015 vectors
 of 384 dimensions), against 8.0~MB for whole abstracts. Per claim, BM25 took
-about 60 to 120~ms because it scores every passage, dense retrieval 16 to 85~ms,
+about 60 to 120~ms because it scores every passage, dense retrieval 16 to 32~ms,
 fusion roughly the sum of the two, and reranking 50 candidates added about 160
-to 270~ms with the MS~MARCO cross-encoder and about 1.2~s with the BGE reranker.
+to 260~ms with the MS~MARCO cross-encoder and about 1.2~s with the BGE reranker.
 Fine-tuning is a one-off cost of about ten minutes on the GPU, including an
 evaluation on the development claims after every epoch.
 
