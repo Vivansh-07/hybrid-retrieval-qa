@@ -241,6 +241,13 @@ plus RAG/FiD and attribution (ALCE). **Three research gaps** this project addres
   cost ranges. Query-subset and answer-quality subsections are commented out until that work
   exists. Paper ~2,260 words; still empty: Failure Analysis, Limitations, Conclusion, abstract
   numbers, introduction prose. TODO in text: verify BEIR's BM25 SciFact figure (0.665).
+- **2026-10-01:** 10 commits: title shortened everywhere; `.gitattributes` (PDF was treated as
+  text); query-subset analysis (`hybridqa/subsets.py`, `scripts/query_subsets.py`): word overlap
+  separates the retrievers (dense +0.073 on paraphrased claims, p = 0.022; fusion +0.052 over dense
+  on high-overlap claims), BM25 NOT better on claims with numbers; fine-tuning gains +0.106 on
+  paraphrased claims vs +0.016 on the rest; overlap_split figure; paper subsection + Limitations
+  drafted; failure worksheet now shows texts and ranks (`results/failure_analysis.csv`, unlabelled,
+  `--summarize` counts labels). Vivansh wants 2+ real commits per day: plan in RUN_AND_PRESENT §4.
 
 ---
 

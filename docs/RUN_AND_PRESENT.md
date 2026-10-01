@@ -226,8 +226,10 @@ Click them in the VS Code file explorer to view. These go into the paper and sli
 python scripts/failure_analysis.py --top-n 40
 ```
 **Writes:** `results/failure_analysis.csv`: the 40 questions the system gets most wrong.
-Open it in Excel and fill in the category column **by hand** (the six categories are
-listed at the top of `scripts/failure_analysis.py`). This manual part is what the
+**It is already generated for you** (committed on 1 Oct), so you only label it. Each row
+shows the claim, the gold abstract, the rank every variant gave it and the system's top
+three; see "How to label the failure worksheet" in §4 for the six categories. The script
+refuses to overwrite a worksheet that already has labels. This manual part is what the
 examiner will probe hardest. Do not automate it.
 
 ### Step 6: Cited answers (≈2 min for 50 questions)
@@ -324,35 +326,59 @@ git push
 Or use VS Code's **Source Control** panel (the branch icon on the left): type the
 message, click **Commit**, then **Sync Changes**.
 
-**One real piece of work per day, one commit.** The examiner may look at `git log`;
-a steady history of real steps is strong evidence of your own work. Empty or trivial
-commits made only for green squares are easy to spot, so don't make them.
+**Several commits a day is fine, as long as each one is a real step.** Commit every time
+you finish a meaningful piece: a batch of labels, a rewritten section, a set of slides.
+The examiner may look at `git log`, and many small *real* commits are strong evidence of
+your own work. Empty or trivial commits made only for green squares are easy to spot,
+so don't make them.
 
-### Day-by-day plan (28 Sep → 15 Oct; revised after 26–27 Sep were missed)
+### Done so far
+- 25 Sep – 1 Oct: pipeline, fixes, D:-only setup, BM25 + full ablation (your run),
+  significance for all pairs, figures, chunking study, score fusion, stronger encoder and
+  reranker, **fine-tuning (0.742)**, query-subset analysis, paper drafts of Method, Setup,
+  Results and Limitations, problem statement, failure worksheet.
 
-| Date | Work | Commit message idea |
+### Day-by-day plan to the deadline (about 10 Oct), 2–3 commits a day
+
+Commit after **each** row item, not once per day.
+
+| Date | Work, one commit each | Commit message idea |
 |---|---|---|
-| Mon 28 Sep | Steps 1–3: tests, BM25 baseline, full ablation + sweeps (≈20 min of running); EXPERIMENT_LOG entries; commit `results/` | `BM25 baseline and full four-way ablation` |
-| Tue 29 Sep | Step 4: figures; check they read in greyscale; note BM25 vs dense in the log | `Generate paper figures` |
-| Wed 30 Sep | Step 3b: chunking study and rank vs score fusion (both done) | done |
-| Thu 1 Oct | Paper §3 Method | `Paper: method section` |
-| Fri 2 Oct | Paper §4 Setup + §5 results table | `Paper: setup and results table` |
-| Sat 3 Oct | Spare day: catch up, or optional stronger dense encoder (report both) | |
-| Sun 4 Oct | Step 5: failure CSV; hand-label first 20 | `Failure analysis: first 20 labelled` |
-| Mon 5 Oct | Hand-label remaining 20 | `Failure analysis: all 40 labelled` |
-| Tue 6 Oct | Query-subset analysis (BM25 vs dense on numeral/rare-term queries; needs a small script) | `Query-subset analysis` |
-| Wed 7 Oct | Decide the answer model (§5); Step 6: generate 50 answers; write the scoring rubric first | `Generate answers; scoring rubric` |
-| Thu 8 Oct | Hand-score 25 answers | `Answer scoring: 25/50` |
-| Fri 9 Oct | Hand-score remaining 25 | `Answer scoring complete` |
-| Sat 10 Oct | Paper §6 Failure analysis + answer-quality subsection | `Paper: failure analysis` |
-| Sun 11 Oct | Paper §1 Introduction + §2 Related work | `Paper: intro and related work` |
-| Mon 12 Oct | Paper §7 Limitations, abstract, conclusion | `Paper: abstract, limitations, conclusion` |
-| Tue 13 Oct | Slides (12) | `Presentation slides` |
-| Wed 14 Oct | Fresh-clone test (follow this file from step 1) + viva rehearsal with `docs/VIVA_PREP.md` | `Reproducibility pass; viva prep` |
-| Thu 15 Oct | Buffer | |
+| Fri 2 Oct | (1) Re-time the main ablation with the warm-up fix (≈13 min) and update the ms/q numbers in the paper table and README<br>(2) Label failure claims 1–10<br>(3) Label failure claims 11–20 | `Re-time main ablation`<br>`Failure analysis: claims 1-10 labelled`<br>`Failure analysis: claims 11-20 labelled` |
+| Sat 3 Oct | (1) Label claims 21–30<br>(2) Label claims 31–40, run `--summarize`<br>(3) Write the Failure Analysis section of the paper | `Failure analysis: claims 21-30`<br>`Failure analysis: all 40 labelled`<br>`Paper: failure analysis section` |
+| Sun 4 Oct | (1) Write the answer-scoring rubric (`docs/ANSWER_RUBRIC.md`) **before** looking at answers<br>(2) Generate 50 answers, generative and extractive (§5) | `Answer scoring rubric`<br>`Generate 50 answers with both readers` |
+| Mon 5 Oct | (1) Score answers 1–25<br>(2) Score answers 26–50<br>(3) Answer-quality subsection in the paper | `Answer scoring: 25/50`<br>`Answer scoring: 50/50`<br>`Paper: answer quality` |
+| Tue 6 Oct | (1) Rewrite Method in your own words<br>(2) Rewrite Experimental Setup in your own words | `Paper: method in my words`<br>`Paper: setup in my words` |
+| Wed 7 Oct | (1) Rewrite Results in your own words<br>(2) Write the Introduction<br>(3) Conclusion and the abstract's numbers | `Paper: results in my words`<br>`Paper: introduction`<br>`Paper: abstract and conclusion` |
+| Thu 8 Oct | (1) Slides 1–6<br>(2) Slides 7–12 | `Slides: problem and method`<br>`Slides: results and conclusions` |
+| Fri 9 Oct | (1) Fresh-clone test: clone into a new folder **on D:**, follow this file from step 1, fix what breaks<br>(2) Viva rehearsal with `docs/VIVA_PREP.md`; write down what you stumbled on | `Reproducibility pass`<br>`Viva prep notes` |
+| Sat 10 Oct | (1) Final read-through; export the paper PDF from Overleaf into `paper/`<br>(2) Buffer | `Final paper PDF` |
 
 If a day slips, drop items in the order listed in `CLAUDE.md` §7 ("If behind, cut in
 this order"), never the four-row ablation, the failure analysis or the significance test.
+
+### How to label the failure worksheet
+
+Open `results\failure_analysis.csv` in Excel. For each of the 40 rows, read the claim,
+the gold abstract's title and opening, and the ranks, then type **one** category, the
+main cause, into `category` and one sentence of why into `notes`. Save as CSV.
+
+| Category | Choose it when | Columns that help |
+|---|---|---|
+| `terminology_mismatch` | the gold abstract says the same thing in different words | low `word_overlap`; BM25 ranks the gold far down |
+| `ambiguous_query` | the claim is so general that many abstracts fit it | the top-3 abstracts all look plausible |
+| `missing_evidence` | the gold abstract does not actually state what the claim says | read `gold_abstract_start` |
+| `conflicting_evidence` | the top abstracts discuss the same question with opposite findings | read `top3_retrieved` |
+| `granularity` | the gold abstract is found but just outside the top 10, because a different passage of it was matched | gold rank 11–20 for most variants |
+| `reranker_error` | fusion had the gold abstract high, the reranker pushed it down | `reranker_regression` = 1; compare `gold_rank_fusion` with `gold_rank_fusion_rerank` |
+
+Then:
+```
+python scripts/failure_analysis.py --summarize
+```
+It checks that every label is one of the six, prints the distribution for the paper,
+and writes `results\failure_summary.json`. Do the labelling yourself: this is the part
+of the project the examiner will probe hardest.
 
 After grading, make the repo public for your resume:
 ```
