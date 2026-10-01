@@ -112,7 +112,7 @@ def build_app(cfg_path: str, device: str | None, overrides: list[str] | None = N
     claims = [q["text"] for q in pipe.queries]
 
     with gr.Blocks(title="Hybrid Retrieval QA") as app:
-        gr.Markdown("# Hybrid Sparse–Dense Retrieval with Cross-Encoder Reranking\n"
+        gr.Markdown("# Hybrid Sparse–Dense Retrieval for Scientific Question Answering\n"
                     "SciFact (BEIR): 5,183 scientific abstracts. One question, four retrieval "
                     "strategies, same index — only the strategy changes.\n\n"
                     f"Dense encoder: `{cfg.get_path('dense.model')}` · "

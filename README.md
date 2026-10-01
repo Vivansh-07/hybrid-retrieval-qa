@@ -1,4 +1,4 @@
-# Hybrid Sparse–Dense Retrieval with Cross-Encoder Reranking for Domain-Specific QA
+# Hybrid Sparse–Dense Retrieval for Scientific Question Answering
 
 A multi-stage retrieval pipeline for question answering over a specialised corpus,
 evaluated with a controlled ablation on **SciFact** (BEIR).
