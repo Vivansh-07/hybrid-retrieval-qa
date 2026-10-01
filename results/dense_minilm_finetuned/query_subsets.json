@@ -1,0 +1,2140 @@
+{
+  "metric": "nDCG@10",
+  "results": "D:\\Deep Learning\\Claude\\hybrid-retrieval-qa\\results\\dense_minilm_finetuned",
+  "splits": {
+    "number": {
+      "median_cut": null,
+      "groups": {
+        "contains a number": {
+          "n": 114,
+          "mean": {
+            "bm25": 0.6548,
+            "dense": 0.783,
+            "fusion": 0.7469,
+            "fusion+rerank": 0.7284
+          },
+          "comparisons": {
+            "dense vs bm25": {
+              "delta": 0.1281,
+              "p_value": 0.0001,
+              "better": 36,
+              "worse": 14,
+              "same": 64
+            },
+            "fusion vs bm25": {
+              "delta": 0.0921,
+              "p_value": 0.0,
+              "better": 35,
+              "worse": 3,
+              "same": 76
+            },
+            "fusion vs dense": {
+              "delta": -0.036,
+              "p_value": 0.1161,
+              "better": 18,
+              "worse": 24,
+              "same": 72
+            },
+            "fusion+rerank vs fusion": {
+              "delta": -0.0185,
+              "p_value": 0.4236,
+              "better": 16,
+              "worse": 27,
+              "same": 71
+            }
+          }
+        },
+        "no number": {
+          "n": 186,
+          "mean": {
+            "bm25": 0.6571,
+            "dense": 0.7162,
+            "fusion": 0.7217,
+            "fusion+rerank": 0.7222
+          },
+          "comparisons": {
+            "dense vs bm25": {
+              "delta": 0.0591,
+              "p_value": 0.0261,
+              "better": 58,
+              "worse": 30,
+              "same": 98
+            },
+            "fusion vs bm25": {
+              "delta": 0.0646,
+              "p_value": 0.0001,
+              "better": 57,
+              "worse": 17,
+              "same": 112
+            },
+            "fusion vs dense": {
+              "delta": 0.0056,
+              "p_value": 0.7325,
+              "better": 45,
+              "worse": 30,
+              "same": 111
+            },
+            "fusion+rerank vs fusion": {
+              "delta": 0.0004,
+              "p_value": 0.9831,
+              "better": 37,
+              "worse": 36,
+              "same": 113
+            }
+          }
+        }
+      }
+    },
+    "vocabulary": {
+      "median_cut": 5.0,
+      "groups": {
+        "rare term": {
+          "n": 163,
+          "mean": {
+            "bm25": 0.7214,
+            "dense": 0.7783,
+            "fusion": 0.7746,
+            "fusion+rerank": 0.7469
+          },
+          "comparisons": {
+            "dense vs bm25": {
+              "delta": 0.0569,
+              "p_value": 0.0297,
+              "better": 44,
+              "worse": 24,
+              "same": 95
+            },
+            "fusion vs bm25": {
+              "delta": 0.0532,
+              "p_value": 0.0011,
+              "better": 43,
+              "worse": 9,
+              "same": 111
+            },
+            "fusion vs dense": {
+              "delta": -0.0037,
+              "p_value": 0.8216,
+              "better": 29,
+              "worse": 26,
+              "same": 108
+            },
+            "fusion+rerank vs fusion": {
+              "delta": -0.0277,
+              "p_value": 0.1664,
+              "better": 23,
+              "worse": 38,
+              "same": 102
+            }
+          }
+        },
+        "common terms only": {
+          "n": 137,
+          "mean": {
+            "bm25": 0.5787,
+            "dense": 0.6978,
+            "fusion": 0.6798,
+            "fusion+rerank": 0.6979
+          },
+          "comparisons": {
+            "dense vs bm25": {
+              "delta": 0.1191,
+              "p_value": 0.0001,
+              "better": 50,
+              "worse": 20,
+              "same": 67
+            },
+            "fusion vs bm25": {
+              "delta": 0.1011,
+              "p_value": 0.0,
+              "better": 49,
+              "worse": 11,
+              "same": 77
+            },
+            "fusion vs dense": {
+              "delta": -0.018,
+              "p_value": 0.4052,
+              "better": 34,
+              "worse": 28,
+              "same": 75
+            },
+            "fusion+rerank vs fusion": {
+              "delta": 0.0181,
+              "p_value": 0.3605,
+              "better": 30,
+              "worse": 25,
+              "same": 82
+            }
+          }
+        }
+      }
+    },
+    "overlap": {
+      "median_cut": 0.5714,
+      "groups": {
+        "low overlap (paraphrased)": {
+          "n": 156,
+          "mean": {
+            "bm25": 0.4414,
+            "dense": 0.6201,
+            "fusion": 0.5634,
+            "fusion+rerank": 0.5408
+          },
+          "comparisons": {
+            "dense vs bm25": {
+              "delta": 0.1788,
+              "p_value": 0.0,
+              "better": 78,
+              "worse": 24,
+              "same": 54
+            },
+            "fusion vs bm25": {
+              "delta": 0.1221,
+              "p_value": 0.0,
+              "better": 72,
+              "worse": 11,
+              "same": 73
+            },
+            "fusion vs dense": {
+              "delta": -0.0567,
+              "p_value": 0.0143,
+              "better": 37,
+              "worse": 48,
+              "same": 71
+            },
+            "fusion+rerank vs fusion": {
+              "delta": -0.0227,
+              "p_value": 0.3745,
+              "better": 38,
+              "worse": 49,
+              "same": 69
+            }
+          }
+        },
+        "high overlap": {
+          "n": 144,
+          "mean": {
+            "bm25": 0.889,
+            "dense": 0.8731,
+            "fusion": 0.9132,
+            "fusion+rerank": 0.9237
+          },
+          "comparisons": {
+            "dense vs bm25": {
+              "delta": -0.0159,
+              "p_value": 0.4164,
+              "better": 16,
+              "worse": 20,
+              "same": 108
+            },
+            "fusion vs bm25": {
+              "delta": 0.0241,
+              "p_value": 0.0605,
+              "better": 20,
+              "worse": 9,
+              "same": 115
+            },
+            "fusion vs dense": {
+              "delta": 0.0401,
+              "p_value": 0.0006,
+              "better": 26,
+              "worse": 6,
+              "same": 112
+            },
+            "fusion+rerank vs fusion": {
+              "delta": 0.0105,
+              "p_value": 0.3451,
+              "better": 15,
+              "worse": 14,
+              "same": 115
+            }
+          }
+        }
+      }
+    },
+    "length": {
+      "median_cut": 9.0,
+      "groups": {
+        "short": {
+          "n": 181,
+          "mean": {
+            "bm25": 0.6525,
+            "dense": 0.7504,
+            "fusion": 0.726,
+            "fusion+rerank": 0.7053
+          },
+          "comparisons": {
+            "dense vs bm25": {
+              "delta": 0.0979,
+              "p_value": 0.0001,
+              "better": 59,
+              "worse": 25,
+              "same": 97
+            },
+            "fusion vs bm25": {
+              "delta": 0.0735,
+              "p_value": 0.0,
+              "better": 53,
+              "worse": 12,
+              "same": 116
+            },
+            "fusion vs dense": {
+              "delta": -0.0243,
+              "p_value": 0.1789,
+              "better": 37,
+              "worse": 36,
+              "same": 108
+            },
+            "fusion+rerank vs fusion": {
+              "delta": -0.0207,
+              "p_value": 0.2321,
+              "better": 27,
+              "worse": 36,
+              "same": 118
+            }
+          }
+        },
+        "long": {
+          "n": 119,
+          "mean": {
+            "bm25": 0.6619,
+            "dense": 0.7281,
+            "fusion": 0.7394,
+            "fusion+rerank": 0.7539
+          },
+          "comparisons": {
+            "dense vs bm25": {
+              "delta": 0.0662,
+              "p_value": 0.0229,
+              "better": 35,
+              "worse": 19,
+              "same": 65
+            },
+            "fusion vs bm25": {
+              "delta": 0.0774,
+              "p_value": 0.0007,
+              "better": 39,
+              "worse": 8,
+              "same": 72
+            },
+            "fusion vs dense": {
+              "delta": 0.0112,
+              "p_value": 0.5545,
+              "better": 26,
+              "worse": 18,
+              "same": 75
+            },
+            "fusion+rerank vs fusion": {
+              "delta": 0.0145,
+              "p_value": 0.5509,
+              "better": 26,
+              "worse": 27,
+              "same": 66
+            }
+          }
+        }
+      }
+    }
+  },
+  "properties": {
+    "1": {
+      "has_number": true,
+      "rarest_df": 1,
+      "overlap": 0.0,
+      "length": 5
+    },
+    "3": {
+      "has_number": true,
+      "rarest_df": 27,
+      "overlap": 0.4706,
+      "length": 17
+    },
+    "5": {
+      "has_number": true,
+      "rarest_df": 6,
+      "overlap": 0.6667,
+      "length": 6
+    },
+    "13": {
+      "has_number": true,
+      "rarest_df": 20,
+      "overlap": 0.4286,
+      "length": 7
+    },
+    "36": {
+      "has_number": true,
+      "rarest_df": 5,
+      "overlap": 0.5714,
+      "length": 7
+    },
+    "42": {
+      "has_number": false,
+      "rarest_df": 1,
+      "overlap": 0.4167,
+      "length": 12
+    },
+    "48": {
+      "has_number": true,
+      "rarest_df": 3,
+      "overlap": 0.4444,
+      "length": 9
+    },
+    "49": {
+      "has_number": true,
+      "rarest_df": 2,
+      "overlap": 0.4,
+      "length": 5
+    },
+    "50": {
+      "has_number": false,
+      "rarest_df": 37,
+      "overlap": 0.8,
+      "length": 5
+    },
+    "51": {
+      "has_number": true,
+      "rarest_df": 1,
+      "overlap": 0.7143,
+      "length": 7
+    },
+    "53": {
+      "has_number": true,
+      "rarest_df": 1,
+      "overlap": 0.7143,
+      "length": 7
+    },
+    "54": {
+      "has_number": false,
+      "rarest_df": 2,
+      "overlap": 0.4444,
+      "length": 9
+    },
+    "56": {
+      "has_number": true,
+      "rarest_df": 2,
+      "overlap": 0.75,
+      "length": 12
+    },
+    "57": {
+      "has_number": true,
+      "rarest_df": 2,
+      "overlap": 0.75,
+      "length": 12
+    },
+    "70": {
+      "has_number": true,
+      "rarest_df": 2,
+      "overlap": 0.8,
+      "length": 5
+    },
+    "72": {
+      "has_number": false,
+      "rarest_df": 34,
+      "overlap": 0.4,
+      "length": 5
+    },
+    "75": {
+      "has_number": false,
+      "rarest_df": 1,
+      "overlap": 0.4545,
+      "length": 11
+    },
+    "94": {
+      "has_number": false,
+      "rarest_df": 1,
+      "overlap": 0.4,
+      "length": 5
+    },
+    "99": {
+      "has_number": true,
+      "rarest_df": 1,
+      "overlap": 0.3333,
+      "length": 9
+    },
+    "100": {
+      "has_number": false,
+      "rarest_df": 65,
+      "overlap": 0.8571,
+      "length": 7
+    },
+    "113": {
+      "has_number": false,
+      "rarest_df": 16,
+      "overlap": 0.9,
+      "length": 10
+    },
+    "115": {
+      "has_number": false,
+      "rarest_df": 1,
+      "overlap": 0.2857,
+      "length": 7
+    },
+    "118": {
+      "has_number": false,
+      "rarest_df": 3,
+      "overlap": 1.0,
+      "length": 10
+    },
+    "124": {
+      "has_number": true,
+      "rarest_df": 3,
+      "overlap": 0.6,
+      "length": 10
+    },
+    "127": {
+      "has_number": true,
+      "rarest_df": 5,
+      "overlap": 0.3333,
+      "length": 6
+    },
+    "128": {
+      "has_number": false,
+      "rarest_df": 3,
+      "overlap": 0.5,
+      "length": 6
+    },
+    "129": {
+      "has_number": false,
+      "rarest_df": 12,
+      "overlap": 0.8182,
+      "length": 11
+    },
+    "130": {
+      "has_number": false,
+      "rarest_df": 12,
+      "overlap": 0.8182,
+      "length": 11
+    },
+    "132": {
+      "has_number": true,
+      "rarest_df": 8,
+      "overlap": 0.5,
+      "length": 4
+    },
+    "133": {
+      "has_number": true,
+      "rarest_df": 7,
+      "overlap": 0.25,
+      "length": 12
+    },
+    "137": {
+      "has_number": false,
+      "rarest_df": 13,
+      "overlap": 0.8182,
+      "length": 11
+    },
+    "141": {
+      "has_number": false,
+      "rarest_df": 1,
+      "overlap": 0.75,
+      "length": 8
+    },
+    "142": {
+      "has_number": true,
+      "rarest_df": 10,
+      "overlap": 0.8125,
+      "length": 16
+    },
+    "143": {
+      "has_number": true,
+      "rarest_df": 10,
+      "overlap": 0.8,
+      "length": 15
+    },
+    "146": {
+      "has_number": true,
+      "rarest_df": 24,
+      "overlap": 0.9286,
+      "length": 14
+    },
+    "148": {
+      "has_number": false,
+      "rarest_df": 50,
+      "overlap": 1.0,
+      "length": 4
+    },
+    "163": {
+      "has_number": false,
+      "rarest_df": 11,
+      "overlap": 0.6667,
+      "length": 6
+    },
+    "171": {
+      "has_number": false,
+      "rarest_df": 5,
+      "overlap": 0.7778,
+      "length": 9
+    },
+    "179": {
+      "has_number": false,
+      "rarest_df": 176,
+      "overlap": 0.8,
+      "length": 5
+    },
+    "180": {
+      "has_number": true,
+      "rarest_df": 1,
+      "overlap": 0.7857,
+      "length": 14
+    },
+    "183": {
+      "has_number": false,
+      "rarest_df": 59,
+      "overlap": 0.7143,
+      "length": 7
+    },
+    "185": {
+      "has_number": false,
+      "rarest_df": 98,
+      "overlap": 0.7143,
+      "length": 7
+    },
+    "198": {
+      "has_number": true,
+      "rarest_df": 5,
+      "overlap": 0.5,
+      "length": 4
+    },
+    "208": {
+      "has_number": true,
+      "rarest_df": 1,
+      "overlap": 0.8,
+      "length": 5
+    },
+    "212": {
+      "has_number": false,
+      "rarest_df": 9,
+      "overlap": 0.6,
+      "length": 5
+    },
+    "213": {
+      "has_number": false,
+      "rarest_df": 2,
+      "overlap": 0.5833,
+      "length": 12
+    },
+    "216": {
+      "has_number": true,
+      "rarest_df": 2,
+      "overlap": 0.6667,
+      "length": 6
+    },
+    "217": {
+      "has_number": true,
+      "rarest_df": 2,
+      "overlap": 0.8333,
+      "length": 6
+    },
+    "218": {
+      "has_number": true,
+      "rarest_df": 2,
+      "overlap": 0.8333,
+      "length": 6
+    },
+    "219": {
+      "has_number": true,
+      "rarest_df": 2,
+      "overlap": 0.6667,
+      "length": 6
+    },
+    "230": {
+      "has_number": false,
+      "rarest_df": 1,
+      "overlap": 0.5556,
+      "length": 9
+    },
+    "232": {
+      "has_number": false,
+      "rarest_df": 2,
+      "overlap": 0.5714,
+      "length": 7
+    },
+    "233": {
+      "has_number": false,
+      "rarest_df": 1,
+      "overlap": 0.6667,
+      "length": 9
+    },
+    "236": {
+      "has_number": false,
+      "rarest_df": 30,
+      "overlap": 0.8571,
+      "length": 7
+    },
+    "237": {
+      "has_number": false,
+      "rarest_df": 2,
+      "overlap": 0.625,
+      "length": 8
+    },
+    "238": {
+      "has_number": false,
+      "rarest_df": 15,
+      "overlap": 0.4286,
+      "length": 7
+    },
+    "239": {
+      "has_number": false,
+      "rarest_df": 138,
+      "overlap": 0.3333,
+      "length": 6
+    },
+    "248": {
+      "has_number": false,
+      "rarest_df": 11,
+      "overlap": 0.8571,
+      "length": 7
+    },
+    "249": {
+      "has_number": false,
+      "rarest_df": 11,
+      "overlap": 0.7143,
+      "length": 7
+    },
+    "261": {
+      "has_number": false,
+      "rarest_df": 14,
+      "overlap": 0.5455,
+      "length": 11
+    },
+    "268": {
+      "has_number": false,
+      "rarest_df": 7,
+      "overlap": 0.8,
+      "length": 5
+    },
+    "269": {
+      "has_number": false,
+      "rarest_df": 7,
+      "overlap": 0.8,
+      "length": 5
+    },
+    "274": {
+      "has_number": true,
+      "rarest_df": 3,
+      "overlap": 0.625,
+      "length": 16
+    },
+    "275": {
+      "has_number": true,
+      "rarest_df": 2,
+      "overlap": 0.75,
+      "length": 12
+    },
+    "279": {
+      "has_number": true,
+      "rarest_df": 1,
+      "overlap": 0.7,
+      "length": 10
+    },
+    "294": {
+      "has_number": false,
+      "rarest_df": 5,
+      "overlap": 0.5,
+      "length": 10
+    },
+    "295": {
+      "has_number": false,
+      "rarest_df": 5,
+      "overlap": 0.9167,
+      "length": 12
+    },
+    "298": {
+      "has_number": false,
+      "rarest_df": 4,
+      "overlap": 0.7778,
+      "length": 9
+    },
+    "300": {
+      "has_number": true,
+      "rarest_df": 2,
+      "overlap": 0.2727,
+      "length": 11
+    },
+    "303": {
+      "has_number": true,
+      "rarest_df": 1,
+      "overlap": 0.2857,
+      "length": 7
+    },
+    "312": {
+      "has_number": false,
+      "rarest_df": 2,
+      "overlap": 0.7,
+      "length": 10
+    },
+    "314": {
+      "has_number": false,
+      "rarest_df": 1,
+      "overlap": 0.4167,
+      "length": 12
+    },
+    "324": {
+      "has_number": false,
+      "rarest_df": 2,
+      "overlap": 0.2,
+      "length": 5
+    },
+    "327": {
+      "has_number": true,
+      "rarest_df": 75,
+      "overlap": 0.8889,
+      "length": 9
+    },
+    "338": {
+      "has_number": false,
+      "rarest_df": 17,
+      "overlap": 1.0,
+      "length": 5
+    },
+    "343": {
+      "has_number": false,
+      "rarest_df": 19,
+      "overlap": 0.6667,
+      "length": 12
+    },
+    "350": {
+      "has_number": true,
+      "rarest_df": 2,
+      "overlap": 0.5556,
+      "length": 9
+    },
+    "354": {
+      "has_number": false,
+      "rarest_df": 3,
+      "overlap": 0.875,
+      "length": 8
+    },
+    "362": {
+      "has_number": false,
+      "rarest_df": 3,
+      "overlap": 0.5,
+      "length": 18
+    },
+    "380": {
+      "has_number": false,
+      "rarest_df": 58,
+      "overlap": 0.8889,
+      "length": 9
+    },
+    "384": {
+      "has_number": false,
+      "rarest_df": 1,
+      "overlap": 0.4444,
+      "length": 9
+    },
+    "385": {
+      "has_number": false,
+      "rarest_df": 1,
+      "overlap": 0.7,
+      "length": 10
+    },
+    "386": {
+      "has_number": false,
+      "rarest_df": 7,
+      "overlap": 0.5,
+      "length": 12
+    },
+    "388": {
+      "has_number": false,
+      "rarest_df": 6,
+      "overlap": 0.1667,
+      "length": 6
+    },
+    "399": {
+      "has_number": false,
+      "rarest_df": 9,
+      "overlap": 1.0,
+      "length": 8
+    },
+    "410": {
+      "has_number": false,
+      "rarest_df": 7,
+      "overlap": 0.8333,
+      "length": 6
+    },
+    "411": {
+      "has_number": false,
+      "rarest_df": 7,
+      "overlap": 0.6667,
+      "length": 6
+    },
+    "415": {
+      "has_number": true,
+      "rarest_df": 2,
+      "overlap": 0.4444,
+      "length": 9
+    },
+    "421": {
+      "has_number": false,
+      "rarest_df": 3,
+      "overlap": 0.1,
+      "length": 10
+    },
+    "431": {
+      "has_number": true,
+      "rarest_df": 4,
+      "overlap": 0.2222,
+      "length": 9
+    },
+    "436": {
+      "has_number": true,
+      "rarest_df": 65,
+      "overlap": 0.4444,
+      "length": 9
+    },
+    "437": {
+      "has_number": false,
+      "rarest_df": 14,
+      "overlap": 0.1538,
+      "length": 13
+    },
+    "439": {
+      "has_number": false,
+      "rarest_df": 2,
+      "overlap": 0.3636,
+      "length": 11
+    },
+    "440": {
+      "has_number": false,
+      "rarest_df": 2,
+      "overlap": 0.3636,
+      "length": 11
+    },
+    "443": {
+      "has_number": true,
+      "rarest_df": 3,
+      "overlap": 0.7143,
+      "length": 7
+    },
+    "452": {
+      "has_number": false,
+      "rarest_df": 29,
+      "overlap": 0.3,
+      "length": 10
+    },
+    "475": {
+      "has_number": false,
+      "rarest_df": 20,
+      "overlap": 0.1667,
+      "length": 6
+    },
+    "478": {
+      "has_number": true,
+      "rarest_df": 1,
+      "overlap": 0.2143,
+      "length": 14
+    },
+    "491": {
+      "has_number": true,
+      "rarest_df": 2,
+      "overlap": 0.3,
+      "length": 10
+    },
+    "501": {
+      "has_number": false,
+      "rarest_df": 26,
+      "overlap": 0.6,
+      "length": 5
+    },
+    "502": {
+      "has_number": false,
+      "rarest_df": 7,
+      "overlap": 0.1818,
+      "length": 11
+    },
+    "507": {
+      "has_number": true,
+      "rarest_df": 8,
+      "overlap": 0.5833,
+      "length": 12
+    },
+    "508": {
+      "has_number": true,
+      "rarest_df": 5,
+      "overlap": 0.3333,
+      "length": 9
+    },
+    "513": {
+      "has_number": false,
+      "rarest_df": 10,
+      "overlap": 0.7143,
+      "length": 7
+    },
+    "514": {
+      "has_number": true,
+      "rarest_df": 4,
+      "overlap": 0.3529,
+      "length": 17
+    },
+    "516": {
+      "has_number": false,
+      "rarest_df": 11,
+      "overlap": 0.9091,
+      "length": 11
+    },
+    "517": {
+      "has_number": false,
+      "rarest_df": 1,
+      "overlap": 0.6667,
+      "length": 6
+    },
+    "521": {
+      "has_number": true,
+      "rarest_df": 3,
+      "overlap": 0.6818,
+      "length": 22
+    },
+    "525": {
+      "has_number": false,
+      "rarest_df": 7,
+      "overlap": 0.6667,
+      "length": 12
+    },
+    "527": {
+      "has_number": false,
+      "rarest_df": 1,
+      "overlap": 0.4286,
+      "length": 14
+    },
+    "528": {
+      "has_number": false,
+      "rarest_df": 2,
+      "overlap": 0.7,
+      "length": 20
+    },
+    "532": {
+      "has_number": false,
+      "rarest_df": 1,
+      "overlap": 0.5,
+      "length": 6
+    },
+    "533": {
+      "has_number": false,
+      "rarest_df": 1,
+      "overlap": 0.5,
+      "length": 6
+    },
+    "535": {
+      "has_number": true,
+      "rarest_df": 99,
+      "overlap": 0.2857,
+      "length": 7
+    },
+    "536": {
+      "has_number": false,
+      "rarest_df": 1,
+      "overlap": 0.6667,
+      "length": 6
+    },
+    "539": {
+      "has_number": false,
+      "rarest_df": 10,
+      "overlap": 1.0,
+      "length": 4
+    },
+    "540": {
+      "has_number": false,
+      "rarest_df": 12,
+      "overlap": 0.3333,
+      "length": 6
+    },
+    "544": {
+      "has_number": true,
+      "rarest_df": 6,
+      "overlap": 0.2857,
+      "length": 7
+    },
+    "549": {
+      "has_number": true,
+      "rarest_df": 1,
+      "overlap": 1.0,
+      "length": 6
+    },
+    "551": {
+      "has_number": false,
+      "rarest_df": 39,
+      "overlap": 0.5,
+      "length": 12
+    },
+    "552": {
+      "has_number": true,
+      "rarest_df": 3,
+      "overlap": 0.6667,
+      "length": 12
+    },
+    "554": {
+      "has_number": true,
+      "rarest_df": 8,
+      "overlap": 0.5455,
+      "length": 11
+    },
+    "560": {
+      "has_number": true,
+      "rarest_df": 1,
+      "overlap": 0.5556,
+      "length": 9
+    },
+    "569": {
+      "has_number": false,
+      "rarest_df": 98,
+      "overlap": 0.8333,
+      "length": 6
+    },
+    "575": {
+      "has_number": false,
+      "rarest_df": 10,
+      "overlap": 0.3333,
+      "length": 9
+    },
+    "577": {
+      "has_number": false,
+      "rarest_df": 2,
+      "overlap": 0.2143,
+      "length": 14
+    },
+    "578": {
+      "has_number": true,
+      "rarest_df": 3,
+      "overlap": 0.2857,
+      "length": 7
+    },
+    "587": {
+      "has_number": true,
+      "rarest_df": 23,
+      "overlap": 0.3333,
+      "length": 18
+    },
+    "589": {
+      "has_number": false,
+      "rarest_df": 10,
+      "overlap": 0.9333,
+      "length": 15
+    },
+    "593": {
+      "has_number": true,
+      "rarest_df": 5,
+      "overlap": 0.625,
+      "length": 8
+    },
+    "597": {
+      "has_number": false,
+      "rarest_df": 45,
+      "overlap": 1.0,
+      "length": 5
+    },
+    "598": {
+      "has_number": false,
+      "rarest_df": 6,
+      "overlap": 0.3571,
+      "length": 14
+    },
+    "613": {
+      "has_number": true,
+      "rarest_df": 1,
+      "overlap": 0.8182,
+      "length": 11
+    },
+    "619": {
+      "has_number": false,
+      "rarest_df": 55,
+      "overlap": 0.4,
+      "length": 10
+    },
+    "623": {
+      "has_number": false,
+      "rarest_df": 46,
+      "overlap": 0.3,
+      "length": 10
+    },
+    "628": {
+      "has_number": true,
+      "rarest_df": 1,
+      "overlap": 0.5,
+      "length": 12
+    },
+    "636": {
+      "has_number": true,
+      "rarest_df": 1,
+      "overlap": 0.3846,
+      "length": 13
+    },
+    "637": {
+      "has_number": false,
+      "rarest_df": 8,
+      "overlap": 0.5556,
+      "length": 9
+    },
+    "641": {
+      "has_number": false,
+      "rarest_df": 9,
+      "overlap": 0.7143,
+      "length": 7
+    },
+    "644": {
+      "has_number": false,
+      "rarest_df": 89,
+      "overlap": 1.0,
+      "length": 6
+    },
+    "649": {
+      "has_number": false,
+      "rarest_df": 5,
+      "overlap": 0.2222,
+      "length": 9
+    },
+    "659": {
+      "has_number": false,
+      "rarest_df": 1,
+      "overlap": 0.4,
+      "length": 5
+    },
+    "660": {
+      "has_number": false,
+      "rarest_df": 1,
+      "overlap": 0.25,
+      "length": 4
+    },
+    "674": {
+      "has_number": false,
+      "rarest_df": 18,
+      "overlap": 0.7143,
+      "length": 7
+    },
+    "684": {
+      "has_number": false,
+      "rarest_df": 2,
+      "overlap": 0.5,
+      "length": 10
+    },
+    "690": {
+      "has_number": true,
+      "rarest_df": 1,
+      "overlap": 0.2143,
+      "length": 14
+    },
+    "691": {
+      "has_number": false,
+      "rarest_df": 11,
+      "overlap": 0.7273,
+      "length": 11
+    },
+    "692": {
+      "has_number": false,
+      "rarest_df": 13,
+      "overlap": 0.5,
+      "length": 8
+    },
+    "693": {
+      "has_number": false,
+      "rarest_df": 13,
+      "overlap": 0.625,
+      "length": 8
+    },
+    "700": {
+      "has_number": true,
+      "rarest_df": 1,
+      "overlap": 0.375,
+      "length": 8
+    },
+    "702": {
+      "has_number": true,
+      "rarest_df": 1,
+      "overlap": 0.375,
+      "length": 8
+    },
+    "715": {
+      "has_number": true,
+      "rarest_df": 21,
+      "overlap": 0.3636,
+      "length": 11
+    },
+    "716": {
+      "has_number": true,
+      "rarest_df": 12,
+      "overlap": 0.1429,
+      "length": 7
+    },
+    "718": {
+      "has_number": false,
+      "rarest_df": 38,
+      "overlap": 0.375,
+      "length": 8
+    },
+    "721": {
+      "has_number": false,
+      "rarest_df": 2,
+      "overlap": 0.8,
+      "length": 10
+    },
+    "723": {
+      "has_number": true,
+      "rarest_df": 1,
+      "overlap": 0.9091,
+      "length": 11
+    },
+    "727": {
+      "has_number": true,
+      "rarest_df": 5,
+      "overlap": 0.2222,
+      "length": 9
+    },
+    "728": {
+      "has_number": true,
+      "rarest_df": 5,
+      "overlap": 0.375,
+      "length": 8
+    },
+    "729": {
+      "has_number": true,
+      "rarest_df": 3,
+      "overlap": 0.375,
+      "length": 8
+    },
+    "742": {
+      "has_number": false,
+      "rarest_df": 4,
+      "overlap": 0.8571,
+      "length": 7
+    },
+    "743": {
+      "has_number": false,
+      "rarest_df": 4,
+      "overlap": 0.8,
+      "length": 5
+    },
+    "744": {
+      "has_number": false,
+      "rarest_df": 7,
+      "overlap": 0.5455,
+      "length": 11
+    },
+    "756": {
+      "has_number": false,
+      "rarest_df": 25,
+      "overlap": 0.3636,
+      "length": 11
+    },
+    "759": {
+      "has_number": false,
+      "rarest_df": 2,
+      "overlap": 0.7333,
+      "length": 15
+    },
+    "768": {
+      "has_number": false,
+      "rarest_df": 2,
+      "overlap": 0.0,
+      "length": 8
+    },
+    "770": {
+      "has_number": false,
+      "rarest_df": 1,
+      "overlap": 0.6667,
+      "length": 18
+    },
+    "775": {
+      "has_number": false,
+      "rarest_df": 2,
+      "overlap": 0.2308,
+      "length": 13
+    },
+    "781": {
+      "has_number": false,
+      "rarest_df": 10,
+      "overlap": 0.4,
+      "length": 10
+    },
+    "783": {
+      "has_number": false,
+      "rarest_df": 1,
+      "overlap": 0.2222,
+      "length": 9
+    },
+    "784": {
+      "has_number": false,
+      "rarest_df": 6,
+      "overlap": 0.6364,
+      "length": 11
+    },
+    "785": {
+      "has_number": false,
+      "rarest_df": 7,
+      "overlap": 0.5,
+      "length": 8
+    },
+    "793": {
+      "has_number": false,
+      "rarest_df": 2,
+      "overlap": 0.6667,
+      "length": 3
+    },
+    "800": {
+      "has_number": false,
+      "rarest_df": 18,
+      "overlap": 0.25,
+      "length": 12
+    },
+    "805": {
+      "has_number": false,
+      "rarest_df": 10,
+      "overlap": 1.0,
+      "length": 6
+    },
+    "808": {
+      "has_number": false,
+      "rarest_df": 4,
+      "overlap": 0.5714,
+      "length": 7
+    },
+    "811": {
+      "has_number": true,
+      "rarest_df": 1,
+      "overlap": 0.5,
+      "length": 12
+    },
+    "814": {
+      "has_number": true,
+      "rarest_df": 1,
+      "overlap": 0.5,
+      "length": 16
+    },
+    "820": {
+      "has_number": false,
+      "rarest_df": 48,
+      "overlap": 0.25,
+      "length": 8
+    },
+    "821": {
+      "has_number": false,
+      "rarest_df": 48,
+      "overlap": 0.25,
+      "length": 8
+    },
+    "823": {
+      "has_number": true,
+      "rarest_df": 1,
+      "overlap": 0.6667,
+      "length": 6
+    },
+    "830": {
+      "has_number": true,
+      "rarest_df": 1,
+      "overlap": 0.2308,
+      "length": 13
+    },
+    "831": {
+      "has_number": true,
+      "rarest_df": 6,
+      "overlap": 0.1111,
+      "length": 9
+    },
+    "832": {
+      "has_number": true,
+      "rarest_df": 1,
+      "overlap": 0.8333,
+      "length": 6
+    },
+    "834": {
+      "has_number": true,
+      "rarest_df": 4,
+      "overlap": 0.125,
+      "length": 8
+    },
+    "837": {
+      "has_number": true,
+      "rarest_df": 1,
+      "overlap": 0.6,
+      "length": 5
+    },
+    "839": {
+      "has_number": false,
+      "rarest_df": 2,
+      "overlap": 0.4545,
+      "length": 11
+    },
+    "845": {
+      "has_number": false,
+      "rarest_df": 1,
+      "overlap": 1.0,
+      "length": 6
+    },
+    "847": {
+      "has_number": false,
+      "rarest_df": 19,
+      "overlap": 0.5833,
+      "length": 12
+    },
+    "852": {
+      "has_number": false,
+      "rarest_df": 12,
+      "overlap": 0.4,
+      "length": 10
+    },
+    "859": {
+      "has_number": true,
+      "rarest_df": 5,
+      "overlap": 0.2,
+      "length": 5
+    },
+    "870": {
+      "has_number": false,
+      "rarest_df": 158,
+      "overlap": 0.0,
+      "length": 4
+    },
+    "873": {
+      "has_number": false,
+      "rarest_df": 27,
+      "overlap": 0.6,
+      "length": 5
+    },
+    "879": {
+      "has_number": false,
+      "rarest_df": 1,
+      "overlap": 0.625,
+      "length": 8
+    },
+    "880": {
+      "has_number": true,
+      "rarest_df": 1,
+      "overlap": 0.5,
+      "length": 6
+    },
+    "882": {
+      "has_number": false,
+      "rarest_df": 2,
+      "overlap": 0.6667,
+      "length": 9
+    },
+    "887": {
+      "has_number": false,
+      "rarest_df": 6,
+      "overlap": 0.4,
+      "length": 10
+    },
+    "903": {
+      "has_number": true,
+      "rarest_df": 13,
+      "overlap": 0.8333,
+      "length": 6
+    },
+    "904": {
+      "has_number": false,
+      "rarest_df": 1,
+      "overlap": 1.0,
+      "length": 16
+    },
+    "907": {
+      "has_number": true,
+      "rarest_df": 8,
+      "overlap": 0.75,
+      "length": 12
+    },
+    "911": {
+      "has_number": false,
+      "rarest_df": 25,
+      "overlap": 0.8,
+      "length": 10
+    },
+    "913": {
+      "has_number": false,
+      "rarest_df": 16,
+      "overlap": 0.0,
+      "length": 4
+    },
+    "914": {
+      "has_number": false,
+      "rarest_df": 16,
+      "overlap": 0.2,
+      "length": 5
+    },
+    "921": {
+      "has_number": false,
+      "rarest_df": 81,
+      "overlap": 0.875,
+      "length": 8
+    },
+    "922": {
+      "has_number": false,
+      "rarest_df": 9,
+      "overlap": 0.8571,
+      "length": 7
+    },
+    "936": {
+      "has_number": true,
+      "rarest_df": 4,
+      "overlap": 0.8,
+      "length": 5
+    },
+    "956": {
+      "has_number": true,
+      "rarest_df": 3,
+      "overlap": 0.4,
+      "length": 10
+    },
+    "957": {
+      "has_number": false,
+      "rarest_df": 9,
+      "overlap": 0.8,
+      "length": 5
+    },
+    "960": {
+      "has_number": false,
+      "rarest_df": 9,
+      "overlap": 0.6,
+      "length": 5
+    },
+    "967": {
+      "has_number": true,
+      "rarest_df": 8,
+      "overlap": 0.5,
+      "length": 8
+    },
+    "971": {
+      "has_number": true,
+      "rarest_df": 19,
+      "overlap": 0.875,
+      "length": 16
+    },
+    "975": {
+      "has_number": false,
+      "rarest_df": 16,
+      "overlap": 0.125,
+      "length": 8
+    },
+    "982": {
+      "has_number": false,
+      "rarest_df": 11,
+      "overlap": 0.5,
+      "length": 10
+    },
+    "985": {
+      "has_number": true,
+      "rarest_df": 1,
+      "overlap": 0.75,
+      "length": 8
+    },
+    "993": {
+      "has_number": false,
+      "rarest_df": 1,
+      "overlap": 0.3333,
+      "length": 6
+    },
+    "1012": {
+      "has_number": false,
+      "rarest_df": 2,
+      "overlap": 1.0,
+      "length": 8
+    },
+    "1014": {
+      "has_number": false,
+      "rarest_df": 1,
+      "overlap": 0.5,
+      "length": 6
+    },
+    "1019": {
+      "has_number": false,
+      "rarest_df": 4,
+      "overlap": 0.5,
+      "length": 8
+    },
+    "1020": {
+      "has_number": false,
+      "rarest_df": 2,
+      "overlap": 0.375,
+      "length": 16
+    },
+    "1021": {
+      "has_number": false,
+      "rarest_df": 2,
+      "overlap": 0.375,
+      "length": 16
+    },
+    "1024": {
+      "has_number": false,
+      "rarest_df": 9,
+      "overlap": 0.7,
+      "length": 10
+    },
+    "1029": {
+      "has_number": true,
+      "rarest_df": 6,
+      "overlap": 0.7333,
+      "length": 15
+    },
+    "1041": {
+      "has_number": true,
+      "rarest_df": 21,
+      "overlap": 0.6364,
+      "length": 11
+    },
+    "1049": {
+      "has_number": false,
+      "rarest_df": 4,
+      "overlap": 0.2857,
+      "length": 7
+    },
+    "1062": {
+      "has_number": false,
+      "rarest_df": 1,
+      "overlap": 0.8333,
+      "length": 6
+    },
+    "1086": {
+      "has_number": false,
+      "rarest_df": 1,
+      "overlap": 0.9167,
+      "length": 12
+    },
+    "1088": {
+      "has_number": true,
+      "rarest_df": 5,
+      "overlap": 0.3333,
+      "length": 6
+    },
+    "1089": {
+      "has_number": true,
+      "rarest_df": 3,
+      "overlap": 0.7273,
+      "length": 11
+    },
+    "1099": {
+      "has_number": false,
+      "rarest_df": 23,
+      "overlap": 0.75,
+      "length": 4
+    },
+    "1100": {
+      "has_number": false,
+      "rarest_df": 23,
+      "overlap": 0.75,
+      "length": 4
+    },
+    "1104": {
+      "has_number": false,
+      "rarest_df": 1,
+      "overlap": 0.9231,
+      "length": 13
+    },
+    "1107": {
+      "has_number": false,
+      "rarest_df": 13,
+      "overlap": 0.9,
+      "length": 10
+    },
+    "1110": {
+      "has_number": false,
+      "rarest_df": 14,
+      "overlap": 0.1667,
+      "length": 6
+    },
+    "1121": {
+      "has_number": false,
+      "rarest_df": 17,
+      "overlap": 0.6364,
+      "length": 11
+    },
+    "1130": {
+      "has_number": true,
+      "rarest_df": 1,
+      "overlap": 0.75,
+      "length": 16
+    },
+    "1132": {
+      "has_number": true,
+      "rarest_df": 7,
+      "overlap": 0.5,
+      "length": 10
+    },
+    "1137": {
+      "has_number": true,
+      "rarest_df": 1,
+      "overlap": 1.0,
+      "length": 4
+    },
+    "1140": {
+      "has_number": true,
+      "rarest_df": 18,
+      "overlap": 0.5,
+      "length": 8
+    },
+    "1144": {
+      "has_number": false,
+      "rarest_df": 1,
+      "overlap": 0.75,
+      "length": 12
+    },
+    "1146": {
+      "has_number": false,
+      "rarest_df": 1,
+      "overlap": 0.7778,
+      "length": 9
+    },
+    "1150": {
+      "has_number": true,
+      "rarest_df": 4,
+      "overlap": 0.5714,
+      "length": 7
+    },
+    "1163": {
+      "has_number": false,
+      "rarest_df": 1,
+      "overlap": 0.6667,
+      "length": 6
+    },
+    "1175": {
+      "has_number": true,
+      "rarest_df": 1,
+      "overlap": 0.1667,
+      "length": 6
+    },
+    "1179": {
+      "has_number": true,
+      "rarest_df": 1,
+      "overlap": 0.25,
+      "length": 8
+    },
+    "1180": {
+      "has_number": true,
+      "rarest_df": 5,
+      "overlap": 0.6667,
+      "length": 6
+    },
+    "1185": {
+      "has_number": true,
+      "rarest_df": 6,
+      "overlap": 0.8095,
+      "length": 21
+    },
+    "1187": {
+      "has_number": true,
+      "rarest_df": 3,
+      "overlap": 0.5,
+      "length": 14
+    },
+    "1191": {
+      "has_number": true,
+      "rarest_df": 10,
+      "overlap": 0.2222,
+      "length": 9
+    },
+    "1194": {
+      "has_number": true,
+      "rarest_df": 1,
+      "overlap": 0.3077,
+      "length": 13
+    },
+    "1196": {
+      "has_number": false,
+      "rarest_df": 8,
+      "overlap": 0.4286,
+      "length": 7
+    },
+    "1197": {
+      "has_number": false,
+      "rarest_df": 8,
+      "overlap": 0.375,
+      "length": 8
+    },
+    "1199": {
+      "has_number": false,
+      "rarest_df": 1,
+      "overlap": 0.0833,
+      "length": 12
+    },
+    "1200": {
+      "has_number": true,
+      "rarest_df": 44,
+      "overlap": 0.2857,
+      "length": 7
+    },
+    "1202": {
+      "has_number": false,
+      "rarest_df": 9,
+      "overlap": 0.5714,
+      "length": 7
+    },
+    "1204": {
+      "has_number": true,
+      "rarest_df": 1,
+      "overlap": 0.5556,
+      "length": 9
+    },
+    "1207": {
+      "has_number": false,
+      "rarest_df": 1,
+      "overlap": 0.5455,
+      "length": 11
+    },
+    "1213": {
+      "has_number": false,
+      "rarest_df": 18,
+      "overlap": 0.125,
+      "length": 8
+    },
+    "1216": {
+      "has_number": true,
+      "rarest_df": 1,
+      "overlap": 0.8571,
+      "length": 7
+    },
+    "1221": {
+      "has_number": false,
+      "rarest_df": 110,
+      "overlap": 0.2222,
+      "length": 9
+    },
+    "1225": {
+      "has_number": true,
+      "rarest_df": 1,
+      "overlap": 0.6,
+      "length": 5
+    },
+    "1226": {
+      "has_number": false,
+      "rarest_df": 1,
+      "overlap": 0.1818,
+      "length": 11
+    },
+    "1232": {
+      "has_number": true,
+      "rarest_df": 2,
+      "overlap": 0.6364,
+      "length": 11
+    },
+    "1241": {
+      "has_number": false,
+      "rarest_df": 29,
+      "overlap": 0.7143,
+      "length": 7
+    },
+    "1245": {
+      "has_number": false,
+      "rarest_df": 61,
+      "overlap": 0.2857,
+      "length": 7
+    },
+    "1259": {
+      "has_number": false,
+      "rarest_df": 10,
+      "overlap": 0.5714,
+      "length": 14
+    },
+    "1262": {
+      "has_number": true,
+      "rarest_df": 2,
+      "overlap": 0.625,
+      "length": 8
+    },
+    "1266": {
+      "has_number": false,
+      "rarest_df": 2,
+      "overlap": 0.7692,
+      "length": 13
+    },
+    "1270": {
+      "has_number": false,
+      "rarest_df": 7,
+      "overlap": 0.75,
+      "length": 8
+    },
+    "1271": {
+      "has_number": false,
+      "rarest_df": 1,
+      "overlap": 0.5833,
+      "length": 12
+    },
+    "1272": {
+      "has_number": false,
+      "rarest_df": 1,
+      "overlap": 0.25,
+      "length": 8
+    },
+    "1273": {
+      "has_number": true,
+      "rarest_df": 1,
+      "overlap": 0.8889,
+      "length": 9
+    },
+    "1274": {
+      "has_number": true,
+      "rarest_df": 7,
+      "overlap": 0.5625,
+      "length": 16
+    },
+    "1278": {
+      "has_number": false,
+      "rarest_df": 70,
+      "overlap": 0.3333,
+      "length": 12
+    },
+    "1279": {
+      "has_number": false,
+      "rarest_df": 8,
+      "overlap": 0.4444,
+      "length": 9
+    },
+    "1280": {
+      "has_number": false,
+      "rarest_df": 3,
+      "overlap": 0.0909,
+      "length": 11
+    },
+    "1281": {
+      "has_number": false,
+      "rarest_df": 3,
+      "overlap": 0.0,
+      "length": 7
+    },
+    "1282": {
+      "has_number": false,
+      "rarest_df": 1,
+      "overlap": 0.2,
+      "length": 10
+    },
+    "1290": {
+      "has_number": false,
+      "rarest_df": 12,
+      "overlap": 0.8571,
+      "length": 7
+    },
+    "1292": {
+      "has_number": true,
+      "rarest_df": 2,
+      "overlap": 0.5714,
+      "length": 7
+    },
+    "1298": {
+      "has_number": false,
+      "rarest_df": 1,
+      "overlap": 0.8889,
+      "length": 18
+    },
+    "1303": {
+      "has_number": false,
+      "rarest_df": 153,
+      "overlap": 0.2,
+      "length": 5
+    },
+    "1316": {
+      "has_number": false,
+      "rarest_df": 4,
+      "overlap": 0.375,
+      "length": 8
+    },
+    "1319": {
+      "has_number": false,
+      "rarest_df": 41,
+      "overlap": 0.5556,
+      "length": 9
+    },
+    "1320": {
+      "has_number": false,
+      "rarest_df": 6,
+      "overlap": 0.5,
+      "length": 12
+    },
+    "1332": {
+      "has_number": true,
+      "rarest_df": 17,
+      "overlap": 0.0833,
+      "length": 12
+    },
+    "1335": {
+      "has_number": false,
+      "rarest_df": 4,
+      "overlap": 0.7778,
+      "length": 9
+    },
+    "1336": {
+      "has_number": false,
+      "rarest_df": 4,
+      "overlap": 0.75,
+      "length": 8
+    },
+    "1337": {
+      "has_number": true,
+      "rarest_df": 1,
+      "overlap": 0.5556,
+      "length": 9
+    },
+    "1339": {
+      "has_number": false,
+      "rarest_df": 6,
+      "overlap": 0.8,
+      "length": 10
+    },
+    "1344": {
+      "has_number": true,
+      "rarest_df": 14,
+      "overlap": 0.3158,
+      "length": 19
+    },
+    "1352": {
+      "has_number": true,
+      "rarest_df": 1,
+      "overlap": 0.75,
+      "length": 8
+    },
+    "1359": {
+      "has_number": true,
+      "rarest_df": 3,
+      "overlap": 0.7857,
+      "length": 14
+    },
+    "1362": {
+      "has_number": false,
+      "rarest_df": 3,
+      "overlap": 0.5,
+      "length": 6
+    },
+    "1363": {
+      "has_number": false,
+      "rarest_df": 1,
+      "overlap": 0.4286,
+      "length": 7
+    },
+    "1368": {
+      "has_number": false,
+      "rarest_df": 60,
+      "overlap": 0.6667,
+      "length": 6
+    },
+    "1370": {
+      "has_number": false,
+      "rarest_df": 55,
+      "overlap": 0.6667,
+      "length": 6
+    },
+    "1379": {
+      "has_number": false,
+      "rarest_df": 91,
+      "overlap": 0.7273,
+      "length": 11
+    },
+    "1382": {
+      "has_number": false,
+      "rarest_df": 20,
+      "overlap": 0.4286,
+      "length": 7
+    },
+    "1385": {
+      "has_number": false,
+      "rarest_df": 2,
+      "overlap": 0.8333,
+      "length": 6
+    },
+    "1389": {
+      "has_number": true,
+      "rarest_df": 1,
+      "overlap": 0.5,
+      "length": 8
+    },
+    "1395": {
+      "has_number": true,
+      "rarest_df": 7,
+      "overlap": 0.0667,
+      "length": 15
+    }
+  }
+}

@@ -291,4 +291,39 @@ Next:        paper: method (fine-tuning subsection) and results; failure analysi
 
 ---
 
+### 2026-10-01 — Query-subset analysis: which retriever helps which kind of claim
+Commit:      7e84c34
+Config:      unchanged (analysis of saved runs; no retrieval)
+Command:     `python scripts/query_subsets.py` and
+             `python scripts/query_subsets.py --results results/dense_minilm_finetuned`
+Hardware:    n/a (CPU, seconds)
+
+Result:      nDCG@10 per group, main configuration (pretrained MiniLM):
+             group                          n   bm25   dense  fusion  dense-bm25 (p)   fusion-dense (p)
+             low word overlap (paraphrased) 156  0.441  0.515  0.526  +0.073 (0.022)   +0.011 (0.60)
+             high word overlap              144  0.889  0.857  0.909  -0.032 (0.13)    +0.052 (<0.0001)
+             contains a number              114  0.655  0.715  0.703  +0.060 (0.031)   -0.011 (0.59)
+             no number                      186  0.657  0.657  0.714  +0.000 (1.00)    +0.056 (0.0005)
+             rare term (rarest df <= 5)     163  0.721  0.721  0.757  -0.000 (1.00)    +0.035 (0.032)
+             common terms only              137  0.579  0.629  0.654  +0.050 (0.093)   +0.025 (0.22)
+             Fine-tuned MiniLM: dense beats BM25 in every group except high overlap
+             (-0.016, p = 0.42). Fusion vs dense: high overlap +0.040 (p = 0.0006), low overlap
+             -0.057 (p = 0.014). Overlap split at the median, 0.571 of the claim's terms.
+Latency:     n/a
+
+Observation: Word overlap with the evidence is what separates the retrievers. On paraphrased
+             claims the dense retriever is significantly better than BM25; on high-overlap claims
+             BM25 is at least as good, and that is where fusion gains over dense. With the
+             fine-tuned encoder fusion helps on high-overlap claims and hurts on paraphrased ones,
+             and the two effects cancel, which is why fusion adds nothing on average there. This
+             suggests weighting the retrievers per claim (future work).
+             The expected advantage of BM25 on claims containing numbers or codes is NOT found:
+             dense is better on them (+0.060, p = 0.031). Low-overlap claims are much harder for
+             every method (best 0.53 vs 0.92).
+             Caveat: many groups and tests (no multiple-comparison correction); "overlap" uses the
+             gold abstract, so it describes the claims and cannot be used by a retriever.
+Next:        figure for the overlap split; paper subsection "Which stage helps which question?".
+
+---
+
 <!-- add new entries above this line, newest last -->
