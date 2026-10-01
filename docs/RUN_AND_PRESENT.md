@@ -344,10 +344,10 @@ Commit after **each** row item, not once per day.
 
 | Date | Work, one commit each | Commit message idea |
 |---|---|---|
-| Fri 2 Oct | (1) Re-time the main ablation with the warm-up fix (≈13 min) and update the ms/q numbers in the paper table and README<br>(2) Label failure claims 1–10<br>(3) Label failure claims 11–20 | `Re-time main ablation`<br>`Failure analysis: claims 1-10 labelled`<br>`Failure analysis: claims 11-20 labelled` |
+| Fri 2 Oct | ~~Re-time the main ablation~~ (done 1 Oct)<br>(1) Label failure claims 1–10<br>(2) Label failure claims 11–20<br>(3) Decide the answer reader (§5): keep flan-t5-base and report it, or try flan-t5-large before scoring | `Failure analysis: claims 1-10 labelled`<br>`Failure analysis: claims 11-20 labelled`<br>`Choose the answer reader` |
 | Sat 3 Oct | (1) Label claims 21–30<br>(2) Label claims 31–40, run `--summarize`<br>(3) Write the Failure Analysis section of the paper | `Failure analysis: claims 21-30`<br>`Failure analysis: all 40 labelled`<br>`Paper: failure analysis section` |
-| Sun 4 Oct | (1) Write the answer-scoring rubric (`docs/ANSWER_RUBRIC.md`) **before** looking at answers<br>(2) Generate 50 answers, generative and extractive (§5) | `Answer scoring rubric`<br>`Generate 50 answers with both readers` |
-| Mon 5 Oct | (1) Score answers 1–25<br>(2) Score answers 26–50<br>(3) Answer-quality subsection in the paper | `Answer scoring: 25/50`<br>`Answer scoring: 50/50`<br>`Paper: answer quality` |
+| Sun 4 Oct | ~~Rubric, 50 answers per reader, scoring sheet~~ (done 1 Oct)<br>(1) Read `docs/ANSWER_RUBRIC.md` until you can apply it without looking<br>(2) Score answers 1–50 of the sheet | `Answer scoring: 50/100` |
+| Mon 5 Oct | (1) Score answers 51–100, run `python scripts/answer_sheet.py --summarize`<br>(2) Answer-quality subsection in the paper | `Answer scoring: 100/100`<br>`Paper: answer quality` |
 | Tue 6 Oct | (1) Rewrite Method in your own words<br>(2) Rewrite Experimental Setup in your own words | `Paper: method in my words`<br>`Paper: setup in my words` |
 | Wed 7 Oct | (1) Rewrite Results in your own words<br>(2) Write the Introduction<br>(3) Conclusion and the abstract's numbers | `Paper: results in my words`<br>`Paper: introduction`<br>`Paper: abstract and conclusion` |
 | Thu 8 Oct | (1) Slides 1–6<br>(2) Slides 7–12 | `Slides: problem and method`<br>`Slides: results and conclusions` |

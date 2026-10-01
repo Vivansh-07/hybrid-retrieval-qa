@@ -248,6 +248,12 @@ plus RAG/FiD and attribution (ALCE). **Three research gaps** this project addres
   paraphrased claims vs +0.016 on the rest; overlap_split figure; paper subsection + Limitations
   drafted; failure worksheet now shows texts and ranks (`results/failure_analysis.csv`, unlabelled,
   `--summarize` counts labels). Vivansh wants 2+ real commits per day: plan in RUN_AND_PRESENT §4.
+- **2026-10-01 (evening):** answer rubric (`docs/ANSWER_RUBRIC.md`, written before generating),
+  `scripts/answer_sheet.py` + `hybridqa/scoring.py` (shuffled sheet, hidden key, `--summarize`),
+  50 answers per reader generated (`results/answers.json`, `results/set_answer.mode=extractive/`):
+  49/50 flan-t5-base answers are citation-only, so blinding is partial. Main run re-timed with
+  warm-up (dense 22 ms, not 85); paper/README/figure updated. NEVER fake commit dates for green
+  squares; Vivansh's own labelling/scoring commits are the next contributions.
 
 ---
 
