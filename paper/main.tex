@@ -589,6 +589,41 @@ evaluation on the development claims after every epoch.
 %    significant (p = 0.13); against BM25, dense and fusion it is.
 %  - Manual answer annotation by a single annotator, N answers.
 %  - Latency measured on one machine, batch size 1, warm cache.
+% ---------------------------------------------------------------------------
+% DRAFT (2026-10-01) of the section, built from the notes above. REWRITE IN YOUR
+% OWN WORDS; add the answer-annotation and failure-analysis points once done.
+% ---------------------------------------------------------------------------
+\paragraph{One dataset.} All results come from SciFact: 300 English test claims
+about biomedical research and 5{,}183 abstracts. Whether the findings, in
+particular that fusion helps only when the two retrievers are of similar
+strength, hold on other domains or on longer documents is not established.
+
+\paragraph{Document-level judgements.} Relevance is judged per abstract, so we
+cannot tell whether the passage a retriever found is the one that holds the
+evidence. Because several passages share an abstract, the top 100 passages cover
+only about 50 abstracts, so our Recall@100 is recall within the top 100 passages
+and is not comparable across passage lengths; the @10 metrics are unaffected.
+
+\paragraph{Design choices left untested.} Fusion operates on passages, not
+documents: when BM25 and the dense retriever each rank a different passage of
+the same relevant abstract first, their evidence does not add up (claim 1259 in
+our test set is a concrete case). Fusion also weights the two retrievers equally
+for every claim, although the subset analysis shows that the better weighting
+depends on the claim.
+
+\paragraph{Training.} Only the dense encoder is fine-tuned, in a single run with
+one seed. Its positive passages are weak labels chosen by the pretrained model,
+and it sees only in-batch negatives; the rerankers and the reader are used
+without any training on SciFact. The fine-tuned retriever's gain over the
+original full pipeline is not significant ($p=0.13$), although its gains over
+each single retriever and over fusion are.
+
+\paragraph{Measurement.} Latency was measured on one laptop with one claim at a
+time and varied by up to a factor of two between identical runs, so it supports
+comparisons across orders of magnitude only. We ran many significance tests
+without correcting for multiple comparisons, and the subgroup analysis uses the
+word overlap with the gold abstract, which describes the claims but is not
+available to a retriever; its results are exploratory.
 
 % ===========================================================================
 \section{Conclusion}
