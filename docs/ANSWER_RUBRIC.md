@@ -13,9 +13,13 @@ is unclear, decide it with the closest rule and write the decision in `notes`.
 
 Both readers get the same 5 passages, from the full pipeline (fusion + reranking).
 
-**Scoring is blind.** `results/answer_scoring.csv` lists the 100 answers in a random
-order and does not say which reader wrote which; the key is in a separate file that
-`--summarize` uses afterwards. Don't open the key before you finish.
+**Scoring is blind as far as possible.** `results/answer_scoring.csv` lists the 100
+answers in a random order and does not say which reader wrote which; the key is in a
+separate file that `--summarize` uses afterwards. Don't open the key before you finish.
+Caveat, added after generating (1 Oct): the two readers write so differently that you can
+often tell them apart (49 of the 50 generative answers are only a citation such as `[3].`,
+while the extractive answers are text spans), so the blinding is only partial. The random
+order still stops you scoring one reader in a block. State this in the paper.
 
 ## The four criteria (0, 1 or 2 each)
 

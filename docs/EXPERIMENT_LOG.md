@@ -351,4 +351,32 @@ Next:        update the ms/q numbers in the paper, README and viva prep.
 
 ---
 
+### 2026-10-01 — 50 answers from each reader, and the blind scoring sheet
+Commit:      48cf649
+Config:      main configuration; answer.mode=generative (default) and answer.mode=extractive
+Command:     `python -m hybridqa.cli answer --limit 50`
+             `python -m hybridqa.cli answer --limit 50 --set answer.mode=extractive`
+             `python scripts/answer_sheet.py`
+Hardware:    NVIDIA GeForce RTX 3050 Laptop GPU (4 GB), PyTorch 2.6.0+cu126
+
+Result:      both readers get the same 5 passages (fusion + reranking) for the first 50 test
+             claims; the gold abstract is among them for 41 of the 50 claims (82 of 100 sheet rows).
+             automatic citation metrics vs the gold abstracts:
+               generative (flan-t5-base):        precision 0.60, recall 0.56
+               extractive (roberta-base-squad2): precision 0.70, recall 0.67
+             generative answers that are only a citation (e.g. "[3]."): 49 of 50;
+             "Not enough evidence": 0 for either reader.
+Latency:     not measured.
+
+Observation: flan-t5-base with this prompt almost never writes an answer, only a passage
+             number, so as configured the generative reader adds nothing but a citation; the
+             extractive reader always returns a span from the top passage. The automatic citation
+             numbers mostly reflect which passage is cited, not answer quality, which is why the
+             answers are scored by hand. Because the outputs look so different, the scoring can
+             only be partly blind (rubric updated).
+Next:        hand-score the sheet (docs/ANSWER_RUBRIC.md). Decision for the reader: keep and
+             report, or try google/flan-t5-large (RUN_AND_PRESENT §5) before scoring.
+
+---
+
 <!-- add new entries above this line, newest last -->
