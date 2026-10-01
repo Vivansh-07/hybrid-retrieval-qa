@@ -1,0 +1,13 @@
+# Line endings: text files are stored with LF and checked out natively.
+* text=auto
+
+# Binary files: never convert line endings. Without this, git can mistake a PDF for
+# text (its first bytes are plain ASCII) and corrupt it on a Windows checkout.
+*.pdf   binary
+*.png   binary
+*.jpg   binary
+*.docx  binary
+*.pptx  binary
+*.zip   binary
+*.npy   binary
+*.safetensors binary
