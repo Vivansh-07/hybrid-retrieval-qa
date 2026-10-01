@@ -2,7 +2,7 @@
   {
     "rrf_k": 10,
     "variant": "fusion",
-    "latency_ms_per_query": 129.77,
+    "latency_ms_per_query": 120.37,
     "Recall@1": 0.5676,
     "Precision@1": 0.5867,
     "nDCG@1": 0.5867,
@@ -28,7 +28,7 @@
   {
     "rrf_k": 30,
     "variant": "fusion",
-    "latency_ms_per_query": 124.48,
+    "latency_ms_per_query": 127.96,
     "Recall@1": 0.5609,
     "Precision@1": 0.58,
     "nDCG@1": 0.58,
@@ -54,7 +54,7 @@
   {
     "rrf_k": 60,
     "variant": "fusion",
-    "latency_ms_per_query": 127.25,
+    "latency_ms_per_query": 127.52,
     "Recall@1": 0.5609,
     "Precision@1": 0.58,
     "nDCG@1": 0.58,
@@ -80,7 +80,7 @@
   {
     "rrf_k": 100,
     "variant": "fusion",
-    "latency_ms_per_query": 123.35,
+    "latency_ms_per_query": 126.13,
     "Recall@1": 0.5609,
     "Precision@1": 0.58,
     "nDCG@1": 0.58,

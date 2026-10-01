@@ -326,4 +326,29 @@ Next:        figure for the overlap split; paper subsection "Which stage helps w
 
 ---
 
+### 2026-10-01 — Main ablation re-timed with the warm-up query
+Commit:      d8d9b67 (pipeline with the untimed warm-up query, added 2026-09-30)
+Config:      unchanged
+Command:     `python scripts/run_ablation.py --sweep-depth 10 25 50 100 --sweep-fusion-k 10 30 60 100`
+Hardware:    NVIDIA GeForce RTX 3050 Laptop GPU (4 GB), PyTorch 2.6.0+cu126
+
+Result:      every accuracy number and every p-value is identical to the 2026-09-28 run
+             (deterministic retrieval); only latency changed:
+             variant         ms/query before -> after the warm-up fix
+             bm25              61.6 ->  79.8
+             dense             84.8 ->  21.9
+             fusion           125.2 -> 119.3
+             fusion+rerank    395.4 -> 329.0
+             rerank depth N=10/25/50/100: 190 / 226 / 331 / 468 ms (before: 209 / 171 / 356 / 497)
+Latency:     see above. Total run 830 s.
+
+Observation: The old dense latency included loading the encoder into the first query: the
+             real cost is about 22 ms, a quarter of what the first run recorded. The depth sweep
+             is now monotonic (the old run had N=25 faster than N=10). BM25 varies between runs
+             (62-120 ms seen so far): it scores every passage in pure Python. These numbers
+             replace the old ones in the paper and README.
+Next:        update the ms/q numbers in the paper, README and viva prep.
+
+---
+
 <!-- add new entries above this line, newest last -->
