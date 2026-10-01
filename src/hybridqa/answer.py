@@ -30,6 +30,9 @@ class Answer:
             "answer": self.text,
             "citations": self.cited_chunk_ids,
             "supporting_doc_ids": sorted({c.split("#", 1)[0] for c in self.cited_chunk_ids}),
+            # every passage the reader was given, in order: [1] is the first. Needed to
+            # judge an abstention ("was the evidence even there?") when scoring by hand.
+            "passages": [cid for cid, _ in self.supporting],
         }
 
 
