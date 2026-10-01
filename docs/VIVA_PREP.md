@@ -161,6 +161,16 @@ being of similar strength. I also tried a reranker about 8x heavier (bge-reranke
 no better than the small one (p = 0.86) and no better than dense alone, at about 1.3 s per
 query. Two rerankers giving the same answer makes that finding robust.
 
+**So which retriever helps which kind of question?** (This is your research question.)
+I split the claims by how many of their words also appear in the evidence abstract. On
+paraphrased claims (low overlap) the dense retriever beats BM25 by 0.073 (p = 0.022); on
+high-overlap claims BM25 is at least as good, and that is where fusion gains (+0.052 over
+dense, p < 0.0001). Fine-tuning helps almost only the paraphrased claims (+0.106, against
++0.016 on the rest), because it teaches the encoder the paraphrases that word matching
+misses. One expectation failed: BM25 is NOT better on claims with numbers or codes; dense
+is (0.715 vs 0.655, p = 0.031). Caveat to say yourself: overlap uses the gold abstract, so
+it describes the claims; a retriever cannot compute it.
+
 **What would you do with more time / compute?**
 In order of expected value: (1) fine-tune the reranker in-domain too, since fine-tuning the
 bi-encoder gave the largest gain and two off-the-shelf rerankers did not help; (2) mine hard

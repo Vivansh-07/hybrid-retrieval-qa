@@ -497,10 +497,51 @@ claim. Measured against the original full pipeline (0.715), the fine-tuned dense
 retriever alone is higher by 0.026, but that difference is not significant
 ($p=0.13$).
 
-% \subsection{Which stage helps which question?}
-% TODO (after scripts for the query-subset analysis exist): split the claims by a
-% property you can compute (contains a numeral / rare term vs not; lexical overlap
-% with the gold abstract) and compare BM25 and dense on each subset.
+\subsection{Which retriever helps which claim?}
+
+\begin{figure*}[t]
+\centering
+\includegraphics[width=\textwidth]{figures/overlap_split.png}
+\caption{nDCG@10 on claims whose terms overlap little (left group in each panel)
+or much (right group) with their evidence abstract, split at the median overlap
+of 0.57, for the pretrained (left) and the fine-tuned (right) dense encoder.
+Dense retrieval wins on paraphrased claims; fusion gains on high-overlap claims.}
+\label{fig:overlap}
+\end{figure*}
+
+To see where the retrievers differ, we split the 300 test claims by properties
+computed from their text (\texttt{scripts/query\_subsets.py}). The property that
+separates the retrievers most is the word overlap between a claim and its
+evidence abstract: the share of the claim's terms, after BM25's tokenisation,
+that occur in the abstract. We split at the median of 0.57
+(Fig.~\ref{fig:overlap}). On the 156 low-overlap claims, whose evidence is
+phrased differently, the pretrained dense retriever beats BM25 by 0.073
+($p=0.022$). On the 144 high-overlap claims BM25 is at least as good (0.889
+against 0.857, $p=0.13$), and fusion gains 0.052 over the dense retriever
+($p<10^{-4}$). The average gain of fusion therefore comes from claims where the
+exact wording still matters. Paraphrased claims are also much harder: in the
+main configuration no method exceeds 0.53 on them, against 0.86 to 0.92 on the
+others.
+
+Two common expectations are not borne out. BM25 is not better on the 114 claims
+that contain a number or a code such as ``IL-6'': there the dense retriever is
+ahead (0.715 against 0.655, $p=0.031$), while on the remaining claims the two
+are tied. And although BM25 does far better on claims with a rare term, one that
+occurs in at most five abstracts (0.721, against 0.579 on claims with common
+terms only), even there it only ties with the dense retriever.
+
+The split also locates the effect of fine-tuning and explains why fusion stops
+helping once the encoder is fine-tuned. Fine-tuning raises dense retrieval by
+0.106 on the low-overlap claims ($p<10^{-4}$) but only by 0.016 on the
+high-overlap ones ($p=0.21$): it teaches the encoder exactly the paraphrases that
+word matching misses. With the fine-tuned encoder, fusion still gains on
+high-overlap claims ($+0.040$, $p=0.0006$) but loses on low-overlap ones
+($-0.057$, $p=0.014$), where BM25 mostly contributes wrong candidates, and the
+two effects cancel on average. Weighting the retrievers per claim instead of
+equally could keep the first gain without the second loss; we leave this to
+future work. Because the overlap is computed with the gold abstract, it
+describes the claims and is not available to a retriever, and with this many
+subgroup tests, $p$-values near 0.05 are indicative only.
 
 % \subsection{Answer quality}
 % TODO (after scoring the 50 answers by hand): table with correctness,
