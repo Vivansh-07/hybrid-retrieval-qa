@@ -1,0 +1,34 @@
+{
+  "scored": 100,
+  "total": 100,
+  "per_reader": {
+    "generative": {
+      "n": 50,
+      "no_content": 0,
+      "correctness": 0.84,
+      "completeness": 0.76,
+      "faithfulness": 1.16,
+      "citation_accuracy": 1.4
+    },
+    "extractive": {
+      "n": 50,
+      "no_content": 0,
+      "correctness": 0.48,
+      "completeness": 0.36,
+      "faithfulness": 2.0,
+      "citation_accuracy": 1.64
+    }
+  },
+  "automatic_citation_metrics": {
+    "generative": {
+      "citation_precision": 0.6,
+      "citation_recall": 0.5589999999999999,
+      "n_evaluated": 50.0
+    },
+    "extractive": {
+      "citation_precision": 0.7,
+      "citation_recall": 0.665,
+      "n_evaluated": 50.0
+    }
+  }
+}
