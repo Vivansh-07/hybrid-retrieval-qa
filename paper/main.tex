@@ -34,21 +34,23 @@ vivanshgarg05@gmail.com}
 % 150--200 words. Write this LAST, after the numbers are in.
 % Formula: problem -> why existing methods fall short -> what you built ->
 %          what you measured -> the single most surprising number -> what it means.
-Retrieval-augmented question answering over a specialised corpus depends on
-finding the right evidence, and no single retrieval method finds it reliably:
-lexical matching handles exact terminology but breaks under paraphrase, while
-dense retrieval handles paraphrase but loses rare identifiers. We present a
-multi-stage pipeline that runs BM25 and a dense bi-encoder independently, merges
-their ranked lists with Reciprocal Rank Fusion, and rescores the fused pool with
-a Transformer cross-encoder before answering. Evaluating on SciFact
-(\textsc{beir}), we isolate the contribution of each stage through a four-way
-ablation and report accuracy against latency and index cost.
-% TODO: fill in from results/metrics.json
-Fusion improves nDCG@10 over the stronger single retriever by \textbf{XX} points,
-and reranking a pool of $N{=}50$ candidates adds a further \textbf{YY} points at a
-cost of \textbf{ZZ}\,ms per query. A manual analysis of \textbf{NN} residual
-failures attributes them chiefly to terminology mismatch and to evidence that is
-absent from the corpus rather than mis-ranked.
+Retrieval-augmented question answering over scientific literature depends on
+finding the right evidence, yet lexical matching fails when a claim is phrased
+differently from its evidence, and dense retrieval trained on general text
+struggles with specialised vocabulary. We build a pipeline that runs BM25 and a
+dense bi-encoder independently, merges their rankings with Reciprocal Rank
+Fusion (RRF), reranks the fused passages with a cross-encoder and answers with
+citations, and we evaluate every stage separately on SciFact (300 claims, 5{,}183
+abstracts) with paired significance tests and latency. With a pretrained
+encoder, BM25 and dense retrieval are tied (nDCG@10 0.656 and 0.679) but succeed
+on different claims, and fusion beats both (0.710); the cross-encoder adds no
+significant accuracy (+0.006) while nearly tripling latency. Splitting the
+claims by their word overlap with the evidence shows where each retriever helps:
+dense retrieval on paraphrased claims, BM25 on claims that share the evidence's
+wording. Fine-tuning the encoder on SciFact's training claims raises dense
+retrieval to 0.742, and fusing it with BM25 at a weight chosen on held-out claims
+gives 0.759, significantly above the original pipeline. A failure analysis finds
+that 42\% of the hardest misses are claims whose gold abstract does not state them.
 \end{abstract}
 
 \begin{IEEEkeywords}
@@ -67,17 +69,46 @@ fusion, cross-encoder reranking, retrieval-augmented generation, question answer
 % P3  What this paper does: the pipeline, in one sentence per stage.
 % P4  Contributions, as an explicit list.
 
+Question answering over a specialised corpus such as the scientific literature
+must ground its answers in evidence and say where that evidence comes from.
+Retrieval-augmented generation~\cite{lewis2020rag} does so by retrieving passages
+first and answering from them. The reader, however, can only be as good as the
+retrieved evidence: if the relevant abstract is never retrieved, no reader can
+recover it.
+
+Two families of retrievers dominate. Lexical retrieval such as
+BM25~\cite{robertson2009bm25} matches exact terms, which suits gene and drug
+names, but misses evidence phrased differently: a claim about aspirin is not
+matched to an abstract that speaks only of COX inhibitors. Dense
+retrieval~\cite{karpukhin2020dpr,reimers2019sbert} matches meaning, but it is
+trained on general text and often loses to BM25 on specialised
+collections~\cite{thakur2021beir}. Hybrid systems combine the two and add a
+cross-encoder reranker~\cite{nogueira2019passage}, but they are usually
+evaluated as a whole, so it remains unclear which stage helps, for which
+questions, and at what cost.
+
+We study this question on SciFact~\cite{wadden2020scifact}. We build a pipeline
+of five stages (BM25, dense retrieval, rank fusion, cross-encoder reranking and
+a reader that cites its sources) and evaluate them in a controlled ablation in
+which only the retrieval strategy changes, with a paired significance test for
+every comparison and with latency and index cost. We then change one component
+at a time: passage length, fusion method and weights, encoder, reranker, and an
+encoder fine-tuned on SciFact's training claims.
+
 \noindent Our contributions are:
 \begin{enumerate}\itemsep2pt
-  \item A reproducible multi-stage retrieval pipeline (BM25 $+$ dense $\rightarrow$
-        RRF $\rightarrow$ cross-encoder $\rightarrow$ grounded answer) with a single
-        configuration file controlling every stage.
-  \item A controlled four-way ablation --- sparse, dense, fusion, fusion$+$reranking ---
-        over one fixed corpus, index and query set, isolating what each stage contributes.
-  \item A cost-aware evaluation that reports accuracy jointly with query latency,
-        index size and reranking depth, rather than accuracy alone.
-  \item A manual failure analysis over the residual errors, categorised into
-        terminology mismatch, query ambiguity, missing and conflicting evidence.
+  \item A reproducible pipeline, driven by one configuration file, whose results
+        are reproduced exactly from a fresh copy of the code.
+  \item A controlled ablation showing that fusion is the stage that helps when the
+        two retrievers are comparably strong, while cross-encoder reranking adds
+        latency but no significant accuracy, even with a twelve times larger reranker.
+  \item A query-subset analysis showing that the word overlap between a claim and
+        its evidence decides which retriever wins.
+  \item In-domain fine-tuning and fusion weights chosen on held-out claims, which
+        raise nDCG@10 from 0.715 to 0.759, a significant improvement.
+  \item A failure analysis and an answer-quality evaluation: 42\% of the hardest
+        misses are claims whose gold abstract does not support them, and the
+        generative reader trades faithfulness for usefulness.
 \end{enumerate}
 
 % ===========================================================================
@@ -108,12 +139,8 @@ and citation faithfulness remain open~\cite{gao2023enabling}.
 \label{sec:method}
 
 % ---------------------------------------------------------------------------
-% DRAFT (2026-09-30), written from the code and configs/scifact.yaml.
-% Every statement below describes what the implementation does. REWRITE IT IN
-% YOUR OWN WORDS and make sure you can explain each sentence: the examiner may
-% ask about any of them. Results do not belong here; they go in Section V.
-% Optional citations you may add if you can explain them in one sentence:
-% FAISS, MiniLM, Flan-T5 (not yet in references.bib).
+% Drafted with AI assistance (Claude). Read every sentence before submitting:
+% the examiner may ask about any of them.
 % ---------------------------------------------------------------------------
 The system is a pipeline of five stages. A query is sent to a sparse and a dense
 retriever independently; their ranked lists are fused; the fused list is reranked
@@ -238,8 +265,8 @@ construction.
 \label{sec:setup}
 
 % ---------------------------------------------------------------------------
-% DRAFT (2026-09-30), written from the code, the results/ files and measured
-% facts (dataset counts, model sizes, hardware). REWRITE IN YOUR OWN WORDS.
+% Drafted with AI assistance (Claude). Read every sentence before submitting:
+% the examiner may ask about any of them.
 % ---------------------------------------------------------------------------
 \paragraph{Dataset.} We use SciFact~\cite{wadden2020scifact} as distributed in
 BEIR~\cite{thakur2021beir}. The corpus holds 5{,}183 abstracts of scientific
@@ -341,10 +368,8 @@ multiple comparisons, so $p$-values close to 0.05 should be read with care.
 \label{sec:results}
 
 % ---------------------------------------------------------------------------
-% DRAFT (2026-09-30). Every number is taken from results/ (ablation.csv,
-% significance.json, comparison.json, sweep_*.json, finetune_*/history.json)
-% and docs/EXPERIMENT_LOG.md. REWRITE IN YOUR OWN WORDS, and re-check the
-% numbers if you re-run anything (e.g. after re-timing the main run).
+% Drafted with AI assistance (Claude). Read every sentence before submitting:
+% the examiner may ask about any of them.
 % ---------------------------------------------------------------------------
 We first report the four-way ablation in the main configuration, then how the
 reranking depth and the fusion settings affect it, then each configuration that
@@ -387,7 +412,7 @@ Table~\ref{tab:ablation} and Fig.~\ref{fig:ablation} show the ablation. BM25
 reaches an nDCG@10 of 0.656, close to the BM25 result reported for SciFact in
 BEIR~\cite{thakur2021beir} (0.665), which suggests that our passage split and
 evaluation behave as intended.
-% TODO: check the 0.665 against the BEIR paper's table before submitting.
+% Checked 2026-10-02 against Table 2 of the BEIR paper: BM25 on SciFact = 0.665.
 The pretrained dense retriever scores 0.679. Its advantage over BM25 is not
 significant ($+0.023$, $p=0.25$): per claim, dense is better on 73, BM25 on 60,
 and 167 are tied.
@@ -406,7 +431,10 @@ the recall within the top 100 passages from 0.882 (BM25) and 0.916 (dense) to
 Reranking the top 50 fused passages with the cross-encoder adds $+0.006$, which
 is not significant ($p=0.65$): the reranker improves 52 claims and worsens 46.
 Its largest change is at the first position (Recall@1 rises from 0.561 to
-0.577), but it almost triples the latency per claim (about 329 against 119~ms). In the
+0.577), but it almost triples the latency per claim (about 329 against 119~ms). BEIR reports that the same
+cross-encoder raises BM25 from 0.665 to 0.688 on SciFact when it reranks BM25's
+top 100 abstracts~\cite{thakur2021beir}: it has more to correct after a single
+lexical retriever than after fusion. In the
 main configuration, therefore, the stage that earns its place is fusion, not
 reranking.
 
@@ -711,8 +739,8 @@ conflicting evidence or to granularity.
 %  - Manual answer annotation by a single annotator, N answers.
 %  - Latency measured on one machine, batch size 1, warm cache.
 % ---------------------------------------------------------------------------
-% DRAFT (2026-10-01) of the section, built from the notes above. REWRITE IN YOUR
-% OWN WORDS; add the answer-annotation and failure-analysis points once done.
+% Drafted with AI assistance (Claude). Read every sentence before submitting:
+% the examiner may ask about any of them.
 % ---------------------------------------------------------------------------
 \paragraph{One dataset.} All results come from SciFact: 300 English test claims
 about biomedical research and 5{,}183 abstracts. Whether the findings, in
@@ -753,15 +781,32 @@ definitions, without a second annotator; the answer scoring is not blind.
 \section{Conclusion}
 \label{sec:conclusion}
 
-% Three or four sentences. What you built, the one number that matters,
-% and the next thing you would try.
+We built a hybrid retrieval pipeline for scientific claims and measured what
+each stage contributes. Fusing BM25 with dense retrieval pays off when the two
+retrievers are comparably strong, because they succeed on different claims;
+cross-encoder reranking added latency but no significant accuracy in any
+configuration we tried. The largest gain came from fine-tuning the dense encoder
+on in-domain training claims, which, fused with BM25 at a weight chosen on
+held-out claims, reached an nDCG@10 of 0.759 against 0.715 for the original
+pipeline. Natural next steps are fusion weights chosen per claim, a reranker
+trained on scientific text, and a reader that abstains when the evidence is
+missing.
 
 % ===========================================================================
 \section*{Reproducibility}
 Code, configuration and results:
 \url{https://github.com/Vivansh-07/hybrid-retrieval-qa}.
 All experiments run from a single configuration file; every number in this paper
-is regenerated by \texttt{python scripts/run\_ablation.py}.
+comes from the files in \texttt{results/}, which are produced by the scripts
+listed in the repository's README, and every run is recorded in its experiment
+log. A fresh clone reproduces the retrieval results exactly.
+
+\section*{Acknowledgment}
+% TODO: thank your supervisor / course instructor here if appropriate.
+AI assistance (Claude, Anthropic) was used to write and debug code, run and
+analyse experiments, assign the failure categories and answer scores
+(Sections~\ref{sec:results} and~\ref{sec:failures}), and draft the text. All
+results come from the code and logs in the repository.
 
 \bibliographystyle{IEEEtran}
 \bibliography{references}
