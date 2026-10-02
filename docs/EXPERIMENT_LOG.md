@@ -541,4 +541,32 @@ Next:        answer scoring.
 
 ---
 
+### 2026-10-02 — Answer scoring of 100 answers (AI-assisted)
+Commit:      21016aa
+Config:      main configuration; generative (flan-t5-base, explain_then_cite) and extractive
+             (roberta-base-squad2) readers on the first 50 test claims
+Command:     scores written into results/answer_scoring.csv (docs/ANSWER_RUBRIC.md), then
+             `python scripts/answer_sheet.py --summarize`
+Hardware:    n/a
+
+Result:      mean 0-2 scores        generative   extractive
+             correctness               0.84         0.48
+             completeness              0.76         0.36
+             faithfulness              1.16         2.00
+             citation accuracy         1.40         1.64
+             fully correct (2)         17/50        10/50
+             unsupported content (F=0) 17/50         0/50
+             No reader abstained on the 9 claims whose gold abstract was not among the passages.
+Latency:     n/a
+
+Observation: Scored by the AI assistant (Claude), at Vivansh's request; not blind (the assistant
+             generated the answers) and no second annotator. Conventions are listed in the rubric.
+             Clear trade-off: the generative reader answers more often and more usefully but
+             invents content in a third of its answers (CXCR2 vs CX3CR1, FUS vs ND3/ND6, albendazole
+             as a myeloma drug); the extractive reader is always faithful but mostly returns
+             fragments. Neither knows when to abstain.
+Next:        paper answer-quality subsection (done in the same commit series).
+
+---
+
 <!-- add new entries above this line, newest last -->

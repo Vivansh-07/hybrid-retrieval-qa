@@ -220,16 +220,18 @@ removes a passage from it.
 
 \subsection{Stage 5: grounded answering}
 The five highest-ranked passages are numbered \texttt{[1]}--\texttt{[5]} and
-given to a sequence-to-sequence reader (\texttt{flan-t5-base}) with the
-instruction to answer using only these passages, to cite each statement with the
-passage number in square brackets, and to reply ``Not enough evidence'' if the
-passages do not contain the answer. Decoding is greedy with at most 128 new
-tokens, so answers are reproducible. Bracketed numbers in the output are mapped
-back to the cited passages and their source documents; if the output contains no
-citation, the top passage is recorded as the source. As an alternative reader,
-an extractive model (\texttt{roberta-base-squad2}) selects an answer span from
-the top passage, which makes the citation exact by construction.
-% TODO: once the answer experiments are run, keep only the reader(s) you report.
+given to a sequence-to-sequence reader (\texttt{flan-t5-base}), which is asked
+to explain in one sentence whether they support the claim. Decoding is greedy
+with at most 128 new tokens, so answers are reproducible. The citation is then
+attached afterwards: the sentence is credited to the passage with which it
+shares the most terms (post-hoc attribution), and that passage is mapped back
+to its source document. We chose this prompt on 20 training claims. The obvious
+alternative, asking the model to answer and cite inline, fails on claims: the
+model then replies with a passage number alone (``[3].'') for 49 of the first 50
+test claims, and the larger \texttt{flan-t5-large} still does so for 47. As a
+second reader, an extractive model (\texttt{roberta-base-squad2}) copies an
+answer span from the top passage, which makes its citation exact by
+construction.
 
 % ===========================================================================
 \section{Experimental Setup}
@@ -272,7 +274,6 @@ Reader            & \texttt{flan-t5-base}           & 248M \\
 Reader, extractive& \texttt{roberta-base-squad2}    & 124M \\
 \bottomrule
 \end{tabular}
-% TODO: after the answer experiments, keep only the reader(s) you report.
 \end{table}
 
 \paragraph{Configurations.} The main configuration is evaluated in all four
@@ -315,10 +316,14 @@ passages come from the same abstract, the top 100 passages cover only about 50
 distinct abstracts, so the Recall@100 we report is recall within the top 100
 passages; it is not comparable between runs with different passage lengths.
 The metrics are implemented from their definitions and unit-tested against
-hand-computed values. Generated answers are scored on correctness, completeness,
-faithfulness and citation accuracy.
-% TODO: state the manual annotation protocol: how many answers, who annotated,
-% what scale (e.g. 0-2), and the rubric written before scoring.
+hand-computed values. The answers of both readers for the first 50 test claims
+(100 answers) are scored from 0 to 2 on correctness, completeness, faithfulness
+(is every statement supported by the cited passage?) and citation accuracy,
+with a rubric written before any answer was generated
+(\texttt{docs/ANSWER\_RUBRIC.md}). The answers are presented in random order
+without the reader's name. The scores were assigned by an AI assistant (Claude)
+following that rubric; as the same assistant produced the answers, the scoring
+is not blind, and no second annotator was used.
 
 \paragraph{Significance.} Every difference we report is tested with a
 two-sided paired bootstrap over per-claim nDCG@10: the 300 claims are resampled
@@ -569,9 +574,42 @@ future work. Because the overlap is computed with the gold abstract, it
 describes the claims and is not available to a retriever, and with this many
 subgroup tests, $p$-values near 0.05 are indicative only.
 
-% \subsection{Answer quality}
-% TODO (after scoring the 50 answers by hand): table with correctness,
-% completeness, faithfulness, citation precision/recall; n annotated; the rubric.
+\subsection{Answer quality}
+
+\begin{table}[t]
+\centering\footnotesize
+\caption{Answer quality for the first 50 test claims, mean of 0--2 scores
+(Section~\ref{sec:setup}); passages from the full pipeline of the main
+configuration.}
+\label{tab:answers}
+\begin{tabular}{@{}lcc@{}}
+\toprule
+ & Generative & Extractive \\
+\midrule
+Correctness          & \textbf{0.84} & 0.48 \\
+Completeness         & \textbf{0.76} & 0.36 \\
+Faithfulness         & 1.16 & \textbf{2.00} \\
+Citation accuracy    & 1.40 & \textbf{1.64} \\
+\midrule
+Fully correct (score 2)          & 17 / 50 & 10 / 50 \\
+With unsupported content (faithfulness 0) & 17 / 50 & 0 / 50 \\
+\bottomrule
+\end{tabular}
+% Numbers: results/answer_quality.json, results/answer_scoring.csv.
+\end{table}
+
+Table~\ref{tab:answers} shows a clear trade-off between the two readers. The
+generative reader is more often right and more useful (correctness 0.84 against
+0.48; fully correct on 17 claims against 10), but a third of its answers state
+something the cited passage does not say: it attributes a CXCR2 finding to
+CX3CR1, swaps one protein for another, or calls albendazole ``an alkylating
+agent used for multiple myeloma''. The extractive reader never says anything
+unsupported, because it copies text, but most of its answers are fragments such
+as ``immunostaining'' or ``CHK2'' that do not answer the claim. Neither reader
+abstains: for the 9 claims whose gold abstract was not among the five passages,
+both returned an answer rather than ``Not enough evidence''. Answer quality is
+therefore limited first by retrieval and then by the reader's faithfulness,
+which is why we report it separately from retrieval.
 
 \subsection{Cost}
 All costs were measured on the laptop described in Section~\ref{sec:setup} and
@@ -707,7 +745,9 @@ time and varied by up to a factor of two between identical runs, so it supports
 comparisons across orders of magnitude only. We ran many significance tests
 without correcting for multiple comparisons, and the subgroup analysis uses the
 word overlap with the gold abstract, which describes the claims but is not
-available to a retriever; its results are exploratory.
+available to a retriever; its results are exploratory. The failure categories
+and the answer scores were assigned by an AI assistant following fixed
+definitions, without a second annotator; the answer scoring is not blind.
 
 % ===========================================================================
 \section{Conclusion}

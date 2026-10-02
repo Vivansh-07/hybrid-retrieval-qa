@@ -83,3 +83,11 @@ and the **cited passage** text, not against your own knowledge.
 4. `python scripts/answer_sheet.py --summarize` checks every score, joins the hidden key,
    and writes `results/answer_quality.json`: the mean of each criterion per reader.
 5. Report: n = 100 answers (50 per reader), one annotator (you), this rubric, 0–2 scale.
+
+**What actually happened (2 Oct):** at Vivansh's request, all 100 answers were scored by
+the AI assistant (Claude) with this rubric. The assistant had generated the answers, so
+the scoring is not blind; scoring conventions used: a span copied verbatim counts as
+faithful; citation accuracy is judged against the claim (2 = the cited passage holds
+evidence about the claim consistent with the answer, 1 = same topic without it or
+contradicting the answer, 0 = unrelated); restating the claim earns correctness 2 only
+if the gold abstract agrees. Results: `results/answer_quality.json`.
