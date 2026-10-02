@@ -276,7 +276,7 @@ Reader, extractive& \texttt{roberta-base-squad2}    & 124M \\
 variants of the ablation: BM25 alone, dense alone, fusion, and fusion with
 reranking. Every further configuration changes exactly one component of it:
 whole abstracts instead of three-sentence passages; score fusion instead of RRF;
-the BGE-small encoder instead of MiniLM; the BGE reranker instead of the MS~MARCO
+fusion of documents instead of passages; the BGE-small encoder instead of MiniLM; the BGE reranker instead of the MS~MARCO
 cross-encoder (on top of BGE-small); and the fine-tuned MiniLM encoder. We also
 vary the reranking depth $N\in\{10,25,50,100\}$ and the RRF constant
 $k\in\{10,30,60,100\}$ in the main configuration.
@@ -423,6 +423,16 @@ min-max score fusion gives 0.717 against 0.710 ($p=0.27$). The two are tied on
 this data, so we keep RRF for its practical advantages, not for accuracy: it
 needs no score normalisation and no labelled data to tune.
 
+Fusion operates on passages, so when the two retrievers rank different passages
+of the same abstract first, their votes do not add up. Fusing documents instead,
+each represented by its best-ranked passage, does not help: nDCG@10 falls
+slightly with the pretrained encoder (0.706 against 0.710, $p=0.46$) and with
+the fine-tuned one (0.723 against 0.731, $p=0.12$), and with reranking on the
+fine-tuned encoder the drop is significant (0.709 against 0.725, $p=0.02$). A
+likely reason is that at passage level an abstract has several chances to rank
+high, one per passage, whereas at document level only one passage per abstract
+reaches the reranker.
+
 \subsection{Passage length}
 With whole abstracts instead of three-sentence passages
 (Table~\ref{tab:configs}), BM25 is unchanged ($+0.002$, $p=0.82$), but the two
@@ -451,6 +461,7 @@ Configuration & BM25 & Dense & Fusion & $+$Rerank \\
 Main (MiniLM, zero-shot)    & 0.656 & 0.679 & 0.710 & 0.715 \\
 Whole abstracts             & 0.658 & 0.648$^{*}$ & 0.703 & 0.687$^{*}$ \\
 Score fusion instead of RRF & --    & --    & 0.717 & --    \\
+Document-level fusion       & --    & --    & 0.706 & 0.704 \\
 BGE-small encoder           & 0.656 & 0.723$^{*}$ & 0.721 & 0.712 \\
 \quad with BGE reranker     & --    & --    & --    & 0.714 \\
 Fine-tuned MiniLM           & 0.656 & \textbf{0.742}$^{*}$ & 0.731$^{*}$ & 0.725 \\
@@ -601,12 +612,13 @@ evidence. Because several passages share an abstract, the top 100 passages cover
 only about 50 abstracts, so our Recall@100 is recall within the top 100 passages
 and is not comparable across passage lengths; the @10 metrics are unaffected.
 
-\paragraph{Design choices left untested.} Fusion operates on passages, not
-documents: when BM25 and the dense retriever each rank a different passage of
-the same relevant abstract first, their evidence does not add up (claim 1259 in
-our test set is a concrete case). Fusion also weights the two retrievers equally
-for every claim, although the subset analysis shows that the better weighting
-depends on the claim.
+\paragraph{Fusion design.} Fusion operates on passages: when BM25 and the dense
+retriever each rank a different passage of the same relevant abstract first,
+their evidence does not add up (claim 1259 in our test set is a concrete case).
+Fusing documents instead did not help on average (Section~\ref{sec:results}), so
+such cases remain. Fusion also weights the two retrievers equally for every
+claim, although the subset analysis shows that the better weighting depends on
+the claim; weights chosen per claim are untested.
 
 \paragraph{Training.} Only the dense encoder is fine-tuned, in a single run with
 one seed. Its positive passages are weak labels chosen by the pretrained model,
