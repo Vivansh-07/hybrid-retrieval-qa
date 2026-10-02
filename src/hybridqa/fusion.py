@@ -68,6 +68,8 @@ def normalized_score_fusion(
 
 def fuse(runs: Sequence[Run], cfg) -> Run:
     """Config-driven dispatch."""
+    if cfg.get_path("fusion.level", "passage") == "document":
+        return fuse_documents(runs, cfg)
     method = cfg.get_path("fusion.method", "rrf")
     weights = cfg.get_path("fusion.weights")
     top_k = cfg.get_path("fusion.top_k", 100)
@@ -76,3 +78,31 @@ def fuse(runs: Sequence[Run], cfg) -> Run:
     if method in {"nsf", "normalized", "convex"}:
         return normalized_score_fusion(runs, weights, top_k)
     raise ValueError(f"unknown fusion method: {method}")
+
+
+def fuse_documents(runs: Sequence[Run], cfg) -> Run:
+    """Fuse documents instead of passages.
+
+    At passage level, when BM25 ranks passage #1 of a paper first and the dense
+    retriever ranks passage #4 of the same paper first, RRF sees two different items
+    and their votes do not add up. Here each list keeps only the best-ranked passage of
+    every document, the lists are fused by DOCUMENT id, and each fused document is then
+    represented by its best-ranked passage in either list, so the reranker and the reader
+    still receive a passage.
+    """
+    doc_runs: List[Run] = []
+    best: Dict[str, Tuple[int, str]] = {}  # doc_id -> (best rank in any list, passage id)
+    for run in runs:
+        seen, doc_run = set(), []
+        for rank, (chunk_id, score) in enumerate(run):
+            doc_id = chunk_id.split("#", 1)[0]
+            if doc_id in seen:
+                continue  # a lower-ranked passage of a document already in this list
+            seen.add(doc_id)
+            doc_run.append((doc_id, score))
+            if doc_id not in best or rank < best[doc_id][0]:
+                best[doc_id] = (rank, chunk_id)
+        doc_runs.append(doc_run)
+
+    passage_cfg = cfg.override("fusion.level", "passage")  # same method, k and weights, on documents
+    return [(best[doc_id][1], score) for doc_id, score in fuse(doc_runs, passage_cfg)]

@@ -82,3 +82,21 @@ def test_chunk_to_doc_dedupes_and_preserves_order():
 def test_indexable_prepends_title():
     c = chunk_document("d", "My Title", "Body text here.", window=3)[0]
     assert c.indexable.startswith("My Title.")
+
+
+def test_document_level_fusion_adds_up_votes_for_different_passages_of_one_paper():
+    # The case of claim 1259: both retrievers rank the gold paper A first, but through
+    # different passages; paper B has the same passage at rank 2 in both lists.
+    from hybridqa.config import load_config
+    from hybridqa.fusion import fuse
+
+    bm25 = [("A#1", 9.0), ("B#0", 8.0), ("A#6", 7.0)]
+    dense = [("A#4", 0.9), ("B#0", 0.8), ("C#2", 0.7)]
+    cfg = load_config()
+
+    passage_level = [cid for cid, _ in fuse([bm25, dense], cfg)]
+    assert passage_level[0] == "B#0"          # the split votes let B overtake A
+
+    document_level = [cid for cid, _ in fuse([bm25, dense], cfg.override("fusion.level", "document"))]
+    assert document_level[0] == "A#1"         # A wins, shown by its best-ranked passage
+    assert [c.split("#")[0] for c in document_level] == ["A", "B", "C"]   # one entry per paper

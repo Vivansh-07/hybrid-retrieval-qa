@@ -32,6 +32,7 @@ dense:
 
 fusion:
   method: rrf
+  level: passage               # passage | document (fuse per paper, then use its best passage)
   k: 60                        # RRF smoothing constant (Cormack et al., 2009)
   weights: [1.0, 1.0]          # [sparse, dense]
   top_k: 100
