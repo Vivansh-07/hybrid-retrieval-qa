@@ -593,6 +593,63 @@ evaluation on the development claims after every epoch.
 % Distribution over the six categories, then 2--3 verbatim examples with the query,
 % the gold passage and what was retrieved instead. Concrete examples are what an
 % examiner remembers.
+% Numbers: results/failure_analysis.csv and results/failure_summary.json.
+To see what still goes wrong, we examined the 40 test claims on which the full
+pipeline of the main configuration fails most clearly: those with no relevant
+abstract in its top ten, weighted towards claims where the reranker lost an
+abstract that fusion had found and claims on which BM25 and the dense retriever
+disagree (\texttt{scripts/failure\_analysis.py}). For each claim we read the
+gold abstract, the rank every variant gave it and the three abstracts ranked
+first, and assigned one of six categories fixed in advance: terminology
+mismatch, ambiguous claim, missing evidence, conflicting evidence, granularity
+(right abstract, wrong passage) and reranker error. The labels were assigned by
+an AI assistant (Claude) following these definitions and have not been
+validated by a second annotator.
+
+\begin{table}[t]
+\centering\footnotesize
+\caption{Causes of failure on the 40 hardest test claims (main configuration).}
+\label{tab:failures}
+\begin{tabular}{@{}lr@{}}
+\toprule
+Category & Claims \\
+\midrule
+Missing evidence in the gold abstract & 17 (42\%) \\
+Terminology mismatch                  & 11 (28\%) \\
+Reranker error                        &  8 (20\%) \\
+Ambiguous claim                       &  4 (10\%) \\
+Conflicting evidence, granularity     &  0 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Table~\ref{tab:failures} shows the result. The largest group is not a retrieval
+error at all: for 17 claims the gold abstract does not state what the claim
+says. Three pairs of contradictory claims share a single gold abstract (for
+example ``PPAR-RXRs are inhibited by PPAR ligands'' and ``PPAR-RXRs can be
+activated by PPAR ligands''), and that abstract never mentions PPAR; claim 437,
+about myelodysplastic syndrome, is paired with an abstract on glioma models.
+With document-level judgements, such claims cap every retriever's score.
+
+Terminology mismatch accounts for 11 claims, and these have little word
+overlap with their evidence (median 0.25 of the claim's terms). The gold
+abstract for ``Aspirin inhibits the production of PGE2'' speaks only of COX
+inhibitors, so all three retrievers miss it. One claim reveals a corrupted
+abbreviation: ``SFM'' in a claim about Gabonese children is expanded as
+Schimmelpenning-Feuerstein-Mims syndrome, while its gold abstract is about
+children with malaria, where SFM most likely stands for severe falciparum
+malaria. Claim 535 shows how equal-weight fusion can hurt: the dense retriever
+ranks its gold abstract first, BM25 misses it because of different wording, and
+fusion lowers it to eleventh.
+
+The 8 reranker errors are cases where fusion had the gold abstract in its top
+ten and the cross-encoder pushed it out. For ``Ivermectin is used to treat
+onchocerciasis'', BM25 ranks the gold abstract first and fusion third, but the
+reranker drops it to seventeenth: the disease is only mentioned in passing in a
+broad policy abstract, and the reranker prefers unrelated abstracts about drug
+treatments. Errors of this kind are consistent with the reranker's lack of
+overall gain (Section~\ref{sec:results}). No failure was attributed to
+conflicting evidence or to granularity.
 
 % ===========================================================================
 \section{Limitations}

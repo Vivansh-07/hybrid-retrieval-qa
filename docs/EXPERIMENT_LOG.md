@@ -516,4 +516,29 @@ Next:        report it in the paper, README and viva prep.
 
 ---
 
+### 2026-10-02 — Failure analysis of the 40 hardest claims (AI-assisted labelling)
+Commit:      1cece24
+Config:      main configuration (pretrained MiniLM, equal-weight RRF, MS MARCO reranker)
+Command:     `python scripts/failure_analysis.py --top-n 40` (worksheet, 1 Oct), labels written
+             into results/failure_analysis.csv, then `python scripts/failure_analysis.py --summarize`
+Hardware:    n/a
+
+Result:      missing_evidence 17 (42%), terminology_mismatch 11 (28%), reranker_error 8 (20%),
+             ambiguous_query 4 (10%), conflicting_evidence 0, granularity 0.
+             8 of the 10 rows flagged reranker_regression were judged reranker errors.
+             Median word overlap of the terminology_mismatch claims: 0.25.
+Latency:     n/a
+
+Observation: Labels were assigned by the AI assistant (Claude) from the worksheet and the full
+             gold abstracts, using the fixed category definitions; Vivansh asked for this. They
+             have not been reviewed by a person: review them before the viva, and say who labelled
+             them in the paper (done in the Failure Analysis section).
+             The largest group is not a retrieval error: the gold abstract does not state the
+             claim. Three contradictory claim pairs (820/821, 830/831, 913/914) share one gold
+             abstract each, and claim 437 (MDS) is paired with a glioma abstract. Claim 690 expands
+             "SFM" (most likely severe falciparum malaria) as an unrelated syndrome.
+Next:        answer scoring.
+
+---
+
 <!-- add new entries above this line, newest last -->
