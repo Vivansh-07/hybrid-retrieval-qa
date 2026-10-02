@@ -248,6 +248,13 @@ plus RAG/FiD and attribution (ALCE). **Three research gaps** this project addres
   paraphrased claims vs +0.016 on the rest; overlap_split figure; paper subsection + Limitations
   drafted; failure worksheet now shows texts and ranks (`results/failure_analysis.csv`, unlabelled,
   `--summarize` counts labels). Vivansh wants 2+ real commits per day: plan in RUN_AND_PRESENT §4.
+- **2026-10-02:** main ablation re-timed (dense 22 ms, not 85; accuracy identical); answer rubric
+  (docs/ANSWER_RUBRIC.md) + blind sheet (`scripts/answer_sheet.py`, `results/answer_scoring.csv`,
+  unscored); document-level fusion tested: does not help (fine-tuned + rerank significantly worse);
+  flan-t5-large (bfloat16, `answer.dtype`) still citation-only 47/50; prompt chosen on TRAIN claims:
+  new default `answer.prompt_style: explain_then_cite` (post-hoc attribution) gives real answers 50/50
+  on test claims (old ones in results/answers_cite_inline/). 43 tests pass.
+  Waiting on Vivansh: failure labels (40) and answer scores (100).
 - **2026-10-01 (evening):** answer rubric (`docs/ANSWER_RUBRIC.md`, written before generating),
   `scripts/answer_sheet.py` + `hybridqa/scoring.py` (shuffled sheet, hidden key, `--summarize`),
   50 answers per reader generated (`results/answers.json`, `results/set_answer.mode=extractive/`):

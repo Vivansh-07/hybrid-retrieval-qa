@@ -8,12 +8,12 @@
     {
       "query_id": "1",
       "query": "0-dimensional biomaterials show inductive properties.",
-      "answer": "[3].",
+      "answer": "Our results demonstrate that a 0-dimensional biomaterial can be used to model the endocytic properties of a chemokine ligand. [5]",
       "citations": [
-        "4346436#1"
+        "10906636#2"
       ],
       "supporting_doc_ids": [
-        "4346436"
+        "10906636"
       ],
       "passages": [
         "13231899#1",
@@ -24,19 +24,19 @@
       ],
       "signals": {
         "has_citation": 1.0,
-        "lexical_overlap": 0.0,
+        "lexical_overlap": 0.36363636363636365,
         "abstained": 0.0
       }
     },
     {
       "query_id": "3",
       "query": "1,000 genomes project enables mapping of genetic sequence variation consisting of rare variants with larger penetrance effects than common variants.",
-      "answer": "[4].",
+      "answer": "We propose as an alternative explanation that variants much less common than the associated one may create \"synthetic associations\" by occurring, stochastically, more often in association with one of the alleles at the common site versus the other allele. [1]",
       "citations": [
-        "19058822#0"
+        "14717500#0"
       ],
       "supporting_doc_ids": [
-        "19058822"
+        "14717500"
       ],
       "passages": [
         "14717500#0",
@@ -47,19 +47,19 @@
       ],
       "signals": {
         "has_citation": 1.0,
-        "lexical_overlap": 0.0,
+        "lexical_overlap": 1.0,
         "abstained": 0.0
       }
     },
     {
       "query_id": "5",
       "query": "1/2000 in UK have abnormal PrP positivity.",
-      "answer": "[4]).",
+      "answer": "BMI-related risk factors (prostate 098, 095-100; premenopausal breast cancer 089, 086-092) [5]",
       "citations": [
-        "18617259#1"
+        "4828631#3"
       ],
       "supporting_doc_ids": [
-        "18617259"
+        "4828631"
       ],
       "passages": [
         "13734012#1",
@@ -70,19 +70,19 @@
       ],
       "signals": {
         "has_citation": 1.0,
-        "lexical_overlap": 0.0,
+        "lexical_overlap": 0.7142857142857143,
         "abstained": 0.0
       }
     },
     {
       "query_id": "13",
       "query": "5% of perinatal mortality is due to low birth weight.",
-      "answer": "[1].",
+      "answer": "The perinatal mortality rate in women with T1DM is 5% of the overall mortality rate. [4]",
       "citations": [
-        "28633594#4"
+        "35714909#3"
       ],
       "supporting_doc_ids": [
-        "28633594"
+        "35714909"
       ],
       "passages": [
         "28633594#4",
@@ -93,14 +93,14 @@
       ],
       "signals": {
         "has_citation": 1.0,
-        "lexical_overlap": 0.0,
+        "lexical_overlap": 0.6666666666666666,
         "abstained": 0.0
       }
     },
     {
       "query_id": "36",
       "query": "A deficiency of vitamin B12 increases blood levels of homocysteine.",
-      "answer": "[5].",
+      "answer": "A deficiency of vitamin B12 increases blood levels of homocysteine. [5]",
       "citations": [
         "42441846#0"
       ],
@@ -116,16 +116,16 @@
       ],
       "signals": {
         "has_citation": 1.0,
-        "lexical_overlap": 0.0,
+        "lexical_overlap": 0.5,
         "abstained": 0.0
       }
     },
     {
       "query_id": "42",
       "query": "A high microerythrocyte count raises vulnerability to severe anemia in homozygous alpha (+)- thalassemia trait subjects.",
-      "answer": "[4].",
+      "answer": "Increased Microerythrocyte Count in Homozygous +-Thalassaemia Contributes to Protection against Severe Malarial Anaemia [1]",
       "citations": [
-        "18174210#0"
+        "18174210#3"
       ],
       "supporting_doc_ids": [
         "18174210"
@@ -139,14 +139,14 @@
       ],
       "signals": {
         "has_citation": 1.0,
-        "lexical_overlap": 0.0,
+        "lexical_overlap": 1.0,
         "abstained": 0.0
       }
     },
     {
       "query_id": "48",
       "query": "A total of 1,000 people in the UK are asymptomatic carriers of vCJD infection.",
-      "answer": "[4].",
+      "answer": "A case of vCJD in a patient who died from a non-neurological disorder 5 years after receiving a blood transfusion from a donor who subsequently developed vCJD. [4]",
       "citations": [
         "18617259#0"
       ],
@@ -162,14 +162,14 @@
       ],
       "signals": {
         "has_citation": 1.0,
-        "lexical_overlap": 0.0,
+        "lexical_overlap": 1.0,
         "abstained": 0.0
       }
     },
     {
       "query_id": "49",
       "query": "ADAR1 binds to Dicer to cleave pre-miRNA.",
-      "answer": "[1].",
+      "answer": "ADAR1 forms a complex with Dicer to promote microRNA processing and RNA-induced gene silencing. [1]",
       "citations": [
         "5953485#1"
       ],
@@ -185,14 +185,14 @@
       ],
       "signals": {
         "has_citation": 1.0,
-        "lexical_overlap": 0.0,
+        "lexical_overlap": 1.0,
         "abstained": 0.0
       }
     },
     {
       "query_id": "50",
       "query": "AIRE is expressed in some skin tumors.",
-      "answer": "[1].",
+      "answer": "AIRE is expressed in skin tumor keratinocytes in a K17-dependent manner and is required for timely onset of Gli2-induced skin tumorigenesis in mice. [1]",
       "citations": [
         "12580014#0"
       ],
@@ -208,19 +208,19 @@
       ],
       "signals": {
         "has_citation": 1.0,
-        "lexical_overlap": 0.0,
+        "lexical_overlap": 1.0,
         "abstained": 0.0
       }
     },
     {
       "query_id": "51",
       "query": "ALDH1 expression is associated with better breast cancer outcomes.",
-      "answer": "[1].",
+      "answer": "ALDH1 expression correlates with poor prognosis in breast cancer and merkel cell carcinoma. [2]",
       "citations": [
-        "8963413#1"
+        "45638119#2"
       ],
       "supporting_doc_ids": [
-        "8963413"
+        "45638119"
       ],
       "passages": [
         "8963413#1",
@@ -231,19 +231,19 @@
       ],
       "signals": {
         "has_citation": 1.0,
-        "lexical_overlap": 0.0,
+        "lexical_overlap": 0.6363636363636364,
         "abstained": 0.0
       }
     },
     {
       "query_id": "53",
       "query": "ALDH1 expression is associated with poorer prognosis in breast cancer.",
-      "answer": "[1].",
+      "answer": "ALDH1 expression is associated with poor prognosis in breast cancer. [5]",
       "citations": [
-        "45638119#2"
+        "15113221#1"
       ],
       "supporting_doc_ids": [
-        "45638119"
+        "15113221"
       ],
       "passages": [
         "45638119#2",
@@ -254,19 +254,19 @@
       ],
       "signals": {
         "has_citation": 1.0,
-        "lexical_overlap": 0.0,
+        "lexical_overlap": 0.875,
         "abstained": 0.0
       }
     },
     {
       "query_id": "54",
       "query": "AMP-activated protein kinase (AMPK) activation increases inflammation-related fibrosis in the lungs.",
-      "answer": "[4].",
+      "answer": "Our results demonstrate that AMPK activation may be a viable therapeutic strategy to improve NAFLD. [5]",
       "citations": [
-        "3973445#3"
+        "3419709#1"
       ],
       "supporting_doc_ids": [
-        "3973445"
+        "3419709"
       ],
       "passages": [
         "3973445#2",
@@ -277,14 +277,14 @@
       ],
       "signals": {
         "has_citation": 1.0,
-        "lexical_overlap": 0.0,
+        "lexical_overlap": 0.7,
         "abstained": 0.0
       }
     },
     {
       "query_id": "56",
       "query": "APOE4 expression in iPSC-derived neurons increases AlphaBeta production and tau phosphorylation causing GABA neuron degeneration.",
-      "answer": "[1].",
+      "answer": "PP2A down-regulation in iPSC-derived neurons increases tau phosphorylation and tau phosphorylation, causing GABAergic neuron degeneration. [1]",
       "citations": [
         "4709641#0"
       ],
@@ -300,16 +300,16 @@
       ],
       "signals": {
         "has_citation": 1.0,
-        "lexical_overlap": 0.0,
+        "lexical_overlap": 0.6363636363636364,
         "abstained": 0.0
       }
     },
     {
       "query_id": "57",
       "query": "APOE4 expression in iPSC-derived neurons increases AlphaBeta production and tau phosphorylation, delaying GABA neuron degeneration.",
-      "answer": "[3].",
+      "answer": "ApoE4 expression in iPSC-derived neurons increases tau production and tau phosphorylation, delaying GABA neuron degeneration. [1]",
       "citations": [
-        "4709641#2"
+        "4709641#0"
       ],
       "supporting_doc_ids": [
         "4709641"
@@ -323,19 +323,19 @@
       ],
       "signals": {
         "has_citation": 1.0,
-        "lexical_overlap": 0.0,
+        "lexical_overlap": 0.6666666666666666,
         "abstained": 0.0
       }
     },
     {
       "query_id": "70",
       "query": "Activation of PPM1D suppresses p53 function.",
-      "answer": "[3].",
+      "answer": "PPM1D suppresses p53 function by suppressing the activation of Akt and Akt-mediated MDM2 phosphorylation. [2]",
       "citations": [
-        "31624828#0"
+        "21307488#0"
       ],
       "supporting_doc_ids": [
-        "31624828"
+        "21307488"
       ],
       "passages": [
         "5956380#2",
@@ -346,16 +346,16 @@
       ],
       "signals": {
         "has_citation": 1.0,
-        "lexical_overlap": 0.0,
+        "lexical_overlap": 0.6666666666666666,
         "abstained": 0.0
       }
     },
     {
       "query_id": "72",
       "query": "Activator-inhibitor pairs are provided dorsally by Admpchordin.",
-      "answer": "[1].",
+      "answer": "Admpchordin is a cellular signaling center that provides a molecular mechanism for embryonic self-regulation. [3]",
       "citations": [
-        "6076903#3"
+        "6076903#4"
       ],
       "supporting_doc_ids": [
         "6076903"
@@ -369,16 +369,16 @@
       ],
       "signals": {
         "has_citation": 1.0,
-        "lexical_overlap": 0.0,
+        "lexical_overlap": 0.6363636363636364,
         "abstained": 0.0
       }
     },
     {
       "query_id": "75",
       "query": "Active H. pylori urease has a polymeric structure that compromises two subunits, UreA and UreB.",
-      "answer": "[4].",
+      "answer": "The proton-gated urea channel of Helicobacter pylori is a polymeric structure that compromises two subunits, UreA and UreB. [3]",
       "citations": [
-        "4387784#2"
+        "4387784#4"
       ],
       "supporting_doc_ids": [
         "4387784"
@@ -392,19 +392,19 @@
       ],
       "signals": {
         "has_citation": 1.0,
-        "lexical_overlap": 0.0,
+        "lexical_overlap": 0.6666666666666666,
         "abstained": 0.0
       }
     },
     {
       "query_id": "94",
       "query": "Albendazole is used to treat lymphatic filariasis.",
-      "answer": "[3].",
+      "answer": "Albendazole is an alkylating agent commonly used to treat multiple myeloma. [4]",
       "citations": [
-        "39424916#4"
+        "20610557#0"
       ],
       "supporting_doc_ids": [
-        "39424916"
+        "20610557"
       ],
       "passages": [
         "20428155#1",
@@ -415,19 +415,19 @@
       ],
       "signals": {
         "has_citation": 1.0,
-        "lexical_overlap": 0.0,
+        "lexical_overlap": 0.875,
         "abstained": 0.0
       }
     },
     {
       "query_id": "99",
       "query": "Alizarin forms hydrogen bonds with residues involved in PGAM1 substrate binding.",
-      "answer": "[4].",
+      "answer": "Y26 phosphorylation enhances PGAM1 activation through release of inhibitory E19 that blocks the active site, stabilising cofactor 2,3-bisphosphoglycerate binding and H11 phosphorylation. [1]",
       "citations": [
-        "30208015#3"
+        "18810195#1"
       ],
       "supporting_doc_ids": [
-        "30208015"
+        "18810195"
       ],
       "passages": [
         "18810195#1",
@@ -438,14 +438,14 @@
       ],
       "signals": {
         "has_citation": 1.0,
-        "lexical_overlap": 0.0,
+        "lexical_overlap": 1.0,
         "abstained": 0.0
       }
     },
     {
       "query_id": "100",
       "query": "All hematopoietic stem cells segregate their chromosomes randomly.",
-      "answer": "[1].",
+      "answer": "Haematopoietic stem cells do not asymmetrically segregate chromosomes or retain BrdU. [1]",
       "citations": [
         "4381486#3"
       ],
@@ -461,14 +461,14 @@
       ],
       "signals": {
         "has_citation": 1.0,
-        "lexical_overlap": 0.0,
+        "lexical_overlap": 1.0,
         "abstained": 0.0
       }
     },
     {
       "query_id": "113",
       "query": "Angiotensin converting enzyme inhibitors are associated with increased risk for functional renal insufficiency.",
-      "answer": "[1].",
+      "answer": "The risk of functional renal insufficiency is increased by the use of ACE inhibitors. [1]",
       "citations": [
         "6157837#1"
       ],
@@ -484,16 +484,16 @@
       ],
       "signals": {
         "has_citation": 1.0,
-        "lexical_overlap": 0.0,
+        "lexical_overlap": 0.5,
         "abstained": 0.0
       }
     },
     {
       "query_id": "115",
       "query": "Anthrax spores can be disposed of easily after they are dispersed.",
-      "answer": "[4].",
+      "answer": "Bacillus anthracis spores used in a recent terrorist incident reaerosolized under common office activities. These findings have important implications for appropriate respiratory protection, remediation, and reoccupancy of contaminated office environments. [1]",
       "citations": [
-        "33872649#0"
+        "33872649#3"
       ],
       "supporting_doc_ids": [
         "33872649"
@@ -507,14 +507,14 @@
       ],
       "signals": {
         "has_citation": 1.0,
-        "lexical_overlap": 0.0,
+        "lexical_overlap": 1.0,
         "abstained": 0.0
       }
     },
     {
       "query_id": "118",
       "query": "Antibiotic induced alterations in the gut microbiome reduce resistance against Clostridium difficile",
-      "answer": "[1]",
+      "answer": "Antibiotic-induced changes in the gut microbiome and metabolome increase susceptibility to Clostridium difficile infection. [1]",
       "citations": [
         "6372244#0"
       ],
@@ -530,14 +530,14 @@
       ],
       "signals": {
         "has_citation": 1.0,
-        "lexical_overlap": 0.0,
+        "lexical_overlap": 1.0,
         "abstained": 0.0
       }
     },
     {
       "query_id": "124",
       "query": "Antiretroviral therapy reduces rates of tuberculosis across a broad range of CD4 strata.",
-      "answer": "[8.5 and 26.3 cases per 100 person-years, respectively (incidence-rate ratio, 0.32; 95% CI, 0.07 to 1.13; P=0.06). The incidence rates of the immune reconstitution inflammatory syndrome (IRIS) were 20.1 and 7.7 cases per 100 person-years, respectively (incidence-rate ratio, 2.62; 95% CI, 1.48 to 4.82; P=0.001). Adverse events requiring a switching of antiretroviral drugs occurred in 10 patients in the earlier-ART group and 1 patient in the later",
+      "answer": "Antiretroviral therapy is strongly associated with a reduction in the incidence of tuberculosis across all CD4 count strata. Earlier initiation of antiretroviral therapy may be a key component of global and national strategies to control the HIV-associated tuberculosis syndemic. [1]",
       "citations": [
         "4883040#5"
       ],
@@ -553,14 +553,14 @@
       ],
       "signals": {
         "has_citation": 1.0,
-        "lexical_overlap": 0.15384615384615385,
+        "lexical_overlap": 1.0,
         "abstained": 0.0
       }
     },
     {
       "query_id": "127",
       "query": "Arginine 90 in p150n is important for interaction with EB1.",
-      "answer": "[1].",
+      "answer": "Our data suggest that the CLIP-170/dynactin interaction can target dynactin complex to microtubule plus ends, although dynactin likely also targets MT plus ends directly via the microtubule binding motif of the p150(Glued) subunit. We find that CLIP-170 mutants alter p150(Glued) localization without affecting EB1, indicating that EB1 can target microtubule plus ends independently of dynactin. [1]",
       "citations": [
         "35231675#4"
       ],
@@ -576,19 +576,19 @@
       ],
       "signals": {
         "has_citation": 1.0,
-        "lexical_overlap": 0.0,
+        "lexical_overlap": 1.0,
         "abstained": 0.0
       }
     },
     {
       "query_id": "128",
       "query": "Arterioles have a larger lumen diameter than venules.",
-      "answer": "[6].",
+      "answer": "Endothelium-dependent vasodilation of the adipose microvasculature is severely impaired in visceral arterioles compared to the subcutaneous depot. [5]",
       "citations": [
-        "1122279#1"
+        "79447#1"
       ],
       "supporting_doc_ids": [
-        "1122279"
+        "79447"
       ],
       "passages": [
         "1122279#1",
@@ -599,16 +599,16 @@
       ],
       "signals": {
         "has_citation": 1.0,
-        "lexical_overlap": 0.0,
+        "lexical_overlap": 1.0,
         "abstained": 0.0
       }
     },
     {
       "query_id": "129",
       "query": "Articles published in open access format are less likely to be cited than traditional journals.",
-      "answer": "[3]",
+      "answer": "Open access increases the citation rate of non-OA articles. [2]",
       "citations": [
-        "27768226#5"
+        "27768226#1"
       ],
       "supporting_doc_ids": [
         "27768226"
@@ -622,14 +622,14 @@
       ],
       "signals": {
         "has_citation": 1.0,
-        "lexical_overlap": 0.0,
+        "lexical_overlap": 1.0,
         "abstained": 0.0
       }
     },
     {
       "query_id": "130",
       "query": "Articles published in open access format are more likely to be cited than traditional journals.",
-      "answer": "[1]",
+      "answer": "Open access increases the citation rate of OA articles. [1]",
       "citations": [
         "27768226#1"
       ],
@@ -645,14 +645,14 @@
       ],
       "signals": {
         "has_citation": 1.0,
-        "lexical_overlap": 0.0,
+        "lexical_overlap": 1.0,
         "abstained": 0.0
       }
     },
     {
       "query_id": "132",
       "query": "Aspirin inhibits the production of PGE2.",
-      "answer": "[1].",
+      "answer": "Aspirin inhibits the production of prostaglandin E2 by inhibiting the production of mPGES. [1]",
       "citations": [
         "2443495#1"
       ],
@@ -668,16 +668,16 @@
       ],
       "signals": {
         "has_citation": 1.0,
-        "lexical_overlap": 0.0,
+        "lexical_overlap": 0.3333333333333333,
         "abstained": 0.0
       }
     },
     {
       "query_id": "133",
       "query": "Assembly of invadopodia is triggered by focal generation of phosphatidylinositol-3,4-biphosphate and the activation of the nonreceptor tyrosine kinase Src.",
-      "answer": "[4].",
+      "answer": "Cortactin regulates cofilin and N-WASp activities to control the stages of invadopodium assembly and maturation. [2]",
       "citations": [
-        "12640810#0"
+        "12640810#1"
       ],
       "supporting_doc_ids": [
         "12640810"
@@ -691,16 +691,16 @@
       ],
       "signals": {
         "has_citation": 1.0,
-        "lexical_overlap": 0.0,
+        "lexical_overlap": 1.0,
         "abstained": 0.0
       }
     },
     {
       "query_id": "137",
       "query": "Asymptomatic visual impairment screening in elderly populations does not lead to improved vision.",
-      "answer": "[1]",
+      "answer": "Visual impairment in this age group can usually be reduced with treatment. It is unclear why no benefit was seen. Further work is needed to clarify what interventions are appropriate for older people with unreported impairment of vision. [4]",
       "citations": [
-        "26016929#4"
+        "26016929#5"
       ],
       "supporting_doc_ids": [
         "26016929"
@@ -714,14 +714,14 @@
       ],
       "signals": {
         "has_citation": 1.0,
-        "lexical_overlap": 0.0,
+        "lexical_overlap": 1.0,
         "abstained": 0.0
       }
     },
     {
       "query_id": "141",
       "query": "Auditory entrainment is strengthened when people see congruent visual and auditory information.",
-      "answer": "[1].",
+      "answer": "Congruent visual speech enhances cortical entrainment to continuous auditory speech in noise-free conditions. [1]",
       "citations": [
         "14437255#0"
       ],
@@ -737,16 +737,16 @@
       ],
       "signals": {
         "has_citation": 1.0,
-        "lexical_overlap": 0.0,
+        "lexical_overlap": 1.0,
         "abstained": 0.0
       }
     },
     {
       "query_id": "142",
       "query": "Autologous transplantation of mesenchymal stem cells causes a higher rate of opportunistic infections than induction therapy with anti-interleukin-2 receptor antibodies.",
-      "answer": "[4].",
+      "answer": "Acute rejection and renal function are associated with autologous MSCs. [1]",
       "citations": [
-        "10582939#2"
+        "10582939#6"
       ],
       "supporting_doc_ids": [
         "10582939"
@@ -760,16 +760,16 @@
       ],
       "signals": {
         "has_citation": 1.0,
-        "lexical_overlap": 0.0,
+        "lexical_overlap": 0.875,
         "abstained": 0.0
       }
     },
     {
       "query_id": "143",
       "query": "Autologous transplantation of mesenchymal stem cells causes fewer opportunistic infections than induction therapy with anti-interleukin-2 receptor antibodies.",
-      "answer": "[4].",
+      "answer": "Autologous mesenchymal stem cells in living-related kidney transplants: a randomized controlled trial. [1]",
       "citations": [
-        "10582939#2"
+        "10582939#6"
       ],
       "supporting_doc_ids": [
         "10582939"
@@ -783,16 +783,16 @@
       ],
       "signals": {
         "has_citation": 1.0,
-        "lexical_overlap": 0.0,
+        "lexical_overlap": 1.0,
         "abstained": 0.0
       }
     },
     {
       "query_id": "146",
       "query": "Autologous transplantation of mesenchymal stem cells has lower rates of rejection than induction therapy with anti-interleukin-2 receptor antibodies.",
-      "answer": "[5].",
+      "answer": "Autologous mesenchymal stem cells in living-related kidney transplants: a randomized controlled trial. [1]",
       "citations": [
-        "10582939#4"
+        "10582939#6"
       ],
       "supporting_doc_ids": [
         "10582939"
@@ -806,14 +806,14 @@
       ],
       "signals": {
         "has_citation": 1.0,
-        "lexical_overlap": 0.0,
+        "lexical_overlap": 1.0,
         "abstained": 0.0
       }
     },
     {
       "query_id": "148",
       "query": "Autophagy declines in aged organisms.",
-      "answer": "[1].",
+      "answer": "Our results demonstrate that CMA activity declines in aged rodents. [1]",
       "citations": [
         "1084345#0"
       ],
@@ -829,14 +829,14 @@
       ],
       "signals": {
         "has_citation": 1.0,
-        "lexical_overlap": 0.0,
+        "lexical_overlap": 0.7142857142857143,
         "abstained": 0.0
       }
     },
     {
       "query_id": "163",
       "query": "Bariatric surgery has a positive impact on mental health.",
-      "answer": "[1].",
+      "answer": "Bariatric surgery has a positive impact on mental health. [1]",
       "citations": [
         "18872233#4"
       ],
@@ -852,19 +852,19 @@
       ],
       "signals": {
         "has_citation": 1.0,
-        "lexical_overlap": 0.0,
+        "lexical_overlap": 0.6666666666666666,
         "abstained": 0.0
       }
     },
     {
       "query_id": "171",
       "query": "Basophils counteract disease development in patients with systemic lupus erythematosus (SLE).",
-      "answer": "[4].",
+      "answer": "PD-1 is a ligand that is a major regulator of innate and adaptive immunity and is a major regulator of the development of organ damage in systemic autoimmune diseases. [3]",
       "citations": [
-        "28015516#0"
+        "28149602#0"
       ],
       "supporting_doc_ids": [
-        "28015516"
+        "28149602"
       ],
       "passages": [
         "12670680#0",
@@ -875,14 +875,14 @@
       ],
       "signals": {
         "has_citation": 1.0,
-        "lexical_overlap": 0.0,
+        "lexical_overlap": 0.7692307692307693,
         "abstained": 0.0
       }
     },
     {
       "query_id": "179",
       "query": "Birth-weight is positively associated with breast cancer.",
-      "answer": "[1].",
+      "answer": "Birth weight is positively associated with breast cancer risk in studies based on birth records (pooled relative risk [RR] per one standard deviation [SD] [= 0.5 kg] increment in birth weight: 1.06; 95% confidence interval [CI] 1.02-1.09) and parental recall when the participants were children (1.02; 95% CI 0.99-1.05), but not in those based on adult self-reports, or maternal recall during the woman's adulthood (0.98; 95% CI 0.95-1.01) (p for heterogeneity between data sources = [1]",
       "citations": [
         "16322674#2"
       ],
@@ -898,19 +898,19 @@
       ],
       "signals": {
         "has_citation": 1.0,
-        "lexical_overlap": 0.0,
+        "lexical_overlap": 1.0,
         "abstained": 0.0
       }
     },
     {
       "query_id": "180",
       "query": "Blocking the interaction between TDP-43 and respiratory complex I proteins ND3 and ND6 leads to increased TDP-43-induced neuronal loss.",
-      "answer": "[1].",
+      "answer": "Our results establish that TDP-43 and respiratory complex I proteins ND3 and ND6 function together in a common genetic pathway in neurons. [5]",
       "citations": [
-        "16966326#2"
+        "9217800#3"
       ],
       "supporting_doc_ids": [
-        "16966326"
+        "9217800"
       ],
       "passages": [
         "16966326#2",
@@ -921,16 +921,16 @@
       ],
       "signals": {
         "has_citation": 1.0,
-        "lexical_overlap": 0.0,
+        "lexical_overlap": 0.9166666666666666,
         "abstained": 0.0
       }
     },
     {
       "query_id": "183",
       "query": "Bone marrow cells contribute to adult macrophage compartments.",
-      "answer": "[4].",
+      "answer": "Bone marrow cells are the main source of bone and adipocytes in adult bone marrow. [2]",
       "citations": [
-        "10078024#2"
+        "10078024#3"
       ],
       "supporting_doc_ids": [
         "10078024"
@@ -944,19 +944,19 @@
       ],
       "signals": {
         "has_citation": 1.0,
-        "lexical_overlap": 0.0,
+        "lexical_overlap": 1.0,
         "abstained": 0.0
       }
     },
     {
       "query_id": "185",
       "query": "Breast cancer development is determined exclusively by genetic factors.",
-      "answer": "[1].",
+      "answer": "Genetic susceptibility polymorphisms are not associated with breast cancer development. [5]",
       "citations": [
-        "21874312#0"
+        "18340282#0"
       ],
       "supporting_doc_ids": [
-        "21874312"
+        "18340282"
       ],
       "passages": [
         "21874312#0",
@@ -967,19 +967,19 @@
       ],
       "signals": {
         "has_citation": 1.0,
-        "lexical_overlap": 0.0,
+        "lexical_overlap": 0.75,
         "abstained": 0.0
       }
     },
     {
       "query_id": "198",
       "query": "CCL19 is absent within dLNs.",
-      "answer": "[4].",
+      "answer": "CCL19 is absent within dLNs. [1]",
       "citations": [
-        "10189634#4"
+        "13778710#3"
       ],
       "supporting_doc_ids": [
-        "10189634"
+        "13778710"
       ],
       "passages": [
         "13778710#3",
@@ -997,7 +997,7 @@
     {
       "query_id": "208",
       "query": "CHEK2 is not associated with breast cancer.",
-      "answer": "[1].",
+      "answer": "We found no convincing association between any common CHEK2 haplotype and breast cancer risk. [1]",
       "citations": [
         "13519661#3"
       ],
@@ -1013,14 +1013,14 @@
       ],
       "signals": {
         "has_citation": 1.0,
-        "lexical_overlap": 0.0,
+        "lexical_overlap": 1.0,
         "abstained": 0.0
       }
     },
     {
       "query_id": "212",
       "query": "CR is associated with higher methylation age.",
-      "answer": "[1].",
+      "answer": "CR is associated with higher methylation age. [1]",
       "citations": [
         "7808055#2"
       ],
@@ -1036,14 +1036,14 @@
       ],
       "signals": {
         "has_citation": 1.0,
-        "lexical_overlap": 0.0,
+        "lexical_overlap": 0.75,
         "abstained": 0.0
       }
     },
     {
       "query_id": "213",
       "query": "CRP is not predictive of postoperative mortality following Coronary Artery Bypass Graft (CABG) surgery.",
-      "answer": "[4].",
+      "answer": "Preoperative CRP levels are not predictive of postoperative mortality following CABG surgery. [4]",
       "citations": [
         "20887554#5"
       ],
@@ -1059,16 +1059,16 @@
       ],
       "signals": {
         "has_citation": 1.0,
-        "lexical_overlap": 0.0,
+        "lexical_overlap": 0.5,
         "abstained": 0.0
       }
     },
     {
       "query_id": "216",
       "query": "CX3CR1 on the Th2 cells impairs T cell survival",
-      "answer": "[4].",
+      "answer": "CX3CR1 is required for airway inflammation by promoting T helper cell survival and maintenance in inflamed lung. [1]",
       "citations": [
-        "21366394#0"
+        "21366394#2"
       ],
       "supporting_doc_ids": [
         "21366394"
@@ -1082,14 +1082,14 @@
       ],
       "signals": {
         "has_citation": 1.0,
-        "lexical_overlap": 0.0,
+        "lexical_overlap": 1.0,
         "abstained": 0.0
       }
     },
     {
       "query_id": "217",
       "query": "CX3CR1 on the Th2 cells promotes T cell survival",
-      "answer": "[1].",
+      "answer": "CX3CR1 signaling promotes T helper cell survival and maintenance in inflamed lung. [1]",
       "citations": [
         "21366394#2"
       ],
@@ -1105,19 +1105,19 @@
       ],
       "signals": {
         "has_citation": 1.0,
-        "lexical_overlap": 0.0,
+        "lexical_overlap": 0.875,
         "abstained": 0.0
       }
     },
     {
       "query_id": "218",
       "query": "CX3CR1 on the Th2 cells promotes airway inflammation.",
-      "answer": "[1].",
+      "answer": "CX3CR1 is a GPCR receptor that mediates NADPH oxidase\u2013independent neutrophil extracellular trap formation in cystic fibrosis lung disease. [5]",
       "citations": [
-        "21366394#2"
+        "1800734#3"
       ],
       "supporting_doc_ids": [
-        "21366394"
+        "1800734"
       ],
       "passages": [
         "21366394#2",
@@ -1128,19 +1128,19 @@
       ],
       "signals": {
         "has_citation": 1.0,
-        "lexical_overlap": 0.0,
+        "lexical_overlap": 1.0,
         "abstained": 0.0
       }
     },
     {
       "query_id": "219",
       "query": "CX3CR1 on the Th2 cells suppresses airway inflammation.",
-      "answer": "[1].",
+      "answer": "CX3CR1 is a GPCR receptor that mediates NADPH oxidase\u2013independent neutrophil extracellular trap formation in cystic fibrosis lung disease. [5]",
       "citations": [
-        "21366394#2"
+        "1800734#3"
       ],
       "supporting_doc_ids": [
-        "21366394"
+        "1800734"
       ],
       "passages": [
         "21366394#2",
@@ -1151,7 +1151,7 @@
       ],
       "signals": {
         "has_citation": 1.0,
-        "lexical_overlap": 0.0,
+        "lexical_overlap": 1.0,
         "abstained": 0.0
       }
     }

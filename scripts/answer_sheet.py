@@ -21,6 +21,7 @@ import argparse
 import csv
 import json
 import random
+import re
 import sys
 from pathlib import Path
 
@@ -62,7 +63,9 @@ def build(args) -> None:
                 "reader": reader,
                 "query_id": rec["query_id"],
                 "claim": rec["query"],
-                "answer": rec["answer"],
+                # the trailing "[n]" would give the generative reader away; the cited
+                # passage is shown in its own column for both readers instead
+                "answer": re.sub(r"(\s*\[\d+\])+\s*$", "", rec["answer"]),
                 "correctness": "", "completeness": "", "faithfulness": "", "citation_accuracy": "", "notes": "",
                 "gold_in_passages": "yes" if given_docs & set(gold) else "no",
                 "gold_title": (corpus.get(first_gold, {}).get("title") or "").strip(),

@@ -426,4 +426,35 @@ Next:        rewrite the prompt for claims, choosing it on TRAINING claims, not 
 
 ---
 
+### 2026-10-02 — Reader prompt chosen on training claims; explain-then-cite on test claims
+Commit:      32fb6ce
+Config:      changed: answer.prompt_style=explain_then_cite (new default); flan-t5-base, float32
+Command:     prompt development: a scratch script on 20 TRAINING claims (random seed 7), with
+             fusion + reranking passages, flan-t5-base and flan-t5-large (bfloat16);
+             then `python -m hybridqa.cli answer --limit 50` and `python scripts/answer_sheet.py`
+Hardware:    NVIDIA GeForce RTX 3050 Laptop GPU (4 GB), PyTorch 2.6.0+cu126
+
+Result:      training claims with a real answer (>= 4 words besides citations), out of 20:
+             prompt                                         base    large
+             current: answer + cite inline                    0       1
+             "is the claim supported or refuted?"             1       2    (one word)
+             "what do the passages report about the claim?"  20      16    (mostly titles)
+             "explain in one sentence whether they support"  19       0    (large: "Yes"/"No")
+             chosen: "explain" with flan-t5-base, citation attached afterwards to the passage
+             sharing the most terms with the sentence.
+             test claims (first 50): real answers 50/50 (was 1/50); cited passage position
+             1: 27, 2: 5, 3: 3, 4: 5, 5: 10; automatic citation precision 0.60, recall 0.56.
+             The old citation-only answers are kept in results/answers_cite_inline/.
+Latency:     not measured.
+
+Observation: The reader's failure was the prompt, not the model: asked to explain, flan-t5-base
+             writes a sentence for every claim. Quality varies by eye (some sentences restate
+             the claim or miss), which the hand scoring will measure. The prompt was chosen on
+             training claims only. The scoring sheet was rebuilt (it had no scores yet): both
+             readers now return text and the trailing [n] is dropped, so blinding is better,
+             though still partial.
+Next:        hand-score results/answer_scoring.csv with docs/ANSWER_RUBRIC.md.
+
+---
+
 <!-- add new entries above this line, newest last -->
