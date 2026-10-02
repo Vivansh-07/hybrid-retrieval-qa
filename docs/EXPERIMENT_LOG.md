@@ -404,4 +404,26 @@ Next:        flan-t5-large reader.
 
 ---
 
+### 2026-10-02 — A larger reader: flan-t5-large (bfloat16)
+Commit:      5e4e1aa (answer.dtype)
+Config:      changed: answer.generative_model=google/flan-t5-large, answer.dtype=bfloat16
+Command:     `python -m hybridqa.cli answer --limit 50 --set answer.generative_model=google/flan-t5-large --set answer.dtype=bfloat16 --out results/answers_flan_t5_large`
+Hardware:    NVIDIA GeForce RTX 3050 Laptop GPU (4 GB); model download 3.1 GB to data/hf_cache (D:)
+
+Result:      first 50 test claims, same passages as before
+             reader                    citation-only answers   automatic citation precision / recall
+             flan-t5-base  (float32)        49 / 50             0.60 / 0.56
+             flan-t5-large (bfloat16)       47 / 50             0.70 / 0.65
+             extractive (roberta-squad2)     0 / 50             0.70 / 0.67
+Latency:     not measured.
+
+Observation: Three times the parameters do not fix the reader: it still answers with a passage
+             number. The cause is the task framing, not the model size: SciFact queries are claims,
+             not questions, and the prompt ("Answer the question ... cite every claim with [2]")
+             invites the model to pick a passage like a multiple-choice answer. The larger model
+             does pick a gold passage more often (precision 0.70 vs 0.60).
+Next:        rewrite the prompt for claims, choosing it on TRAINING claims, not test claims.
+
+---
+
 <!-- add new entries above this line, newest last -->
