@@ -255,6 +255,11 @@ plus RAG/FiD and attribution (ALCE). **Three research gaps** this project addres
   new default `answer.prompt_style: explain_then_cite` (post-hoc attribution) gives real answers 50/50
   on test claims (old ones in results/answers_cite_inline/). 43 tests pass.
   Waiting on Vivansh: failure labels (40) and answer scores (100).
+- **2026-10-02 (afternoon):** fresh-clone reproducibility verified; demo warms up at startup
+  (first question ~4.5 s); control-character test; `data.dev_split` shared; `scripts/tune_fusion.py`:
+  BM25 weight 0.3 chosen on the 120 dev claims; **best system = fine-tuned MiniLM + BM25 at 0.3:
+  nDCG@10 0.759, R@10 0.905, +0.043 over the original pipeline (p = 0.003)**
+  (`results/dense_minilm_finetuned__fusion_weighted/`). Paper, README, viva prep updated.
 - **2026-10-01 (evening):** answer rubric (`docs/ANSWER_RUBRIC.md`, written before generating),
   `scripts/answer_sheet.py` + `hybridqa/scoring.py` (shuffled sheet, hidden key, `--summarize`),
   50 answers per reader generated (`results/answers.json`, `results/set_answer.mode=extractive/`):

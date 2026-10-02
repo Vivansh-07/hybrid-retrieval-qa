@@ -172,6 +172,14 @@ misses. One expectation failed: BM25 is NOT better on claims with numbers or cod
 is (0.715 vs 0.655, p = 0.031). Caveat to say yourself: overlap uses the gold abstract, so
 it describes the claims; a retriever cannot compute it.
 
+**How did you choose the fusion weight without cheating?**
+On the 120 development claims of the training split that fine-tuning had held out. I
+tried BM25 weights from 0 to 2 (dense fixed at 1), picked the best by nDCG@10 (0.3 for
+both encoders), and only then ran the test claims, once. Weight 0 reproduced the
+dense-only dev score from fine-tuning exactly, which shows it was the same split. Why it
+works: once dense is much stronger, an equal BM25 vote pulls good results down on
+paraphrased claims; a smaller vote keeps BM25's help on exact-wording claims.
+
 **What would you do with more time / compute?**
 In order of expected value: (1) fine-tune the reranker in-domain too, since fine-tuning the
 bi-encoder gave the largest gain and two off-the-shelf rerankers did not help; (2) mine hard
@@ -218,4 +226,6 @@ defend is worse than code you do not have.
 - Know your headline numbers cold. Zero-shot pipeline: full system 0.715 nDCG@10; fusion
   gives +0.031 over dense (p = 0.019) and +0.053 over BM25 (p < 0.0001); the reranker adds
   about +210 ms/query for a gain over fusion that is not significant (p = 0.65).
-  Fine-tuned: dense 0.679 → 0.742 (p < 0.0001), the best result, at no extra query cost.
+  Fine-tuned: dense 0.679 → 0.742 (p < 0.0001), at no extra query cost.
+  Best system: fine-tuned dense + BM25 at weight 0.3 (chosen on dev claims): 0.759 nDCG@10,
+  Recall@10 0.905; +0.043 over the original pipeline (p = 0.003).

@@ -103,6 +103,11 @@ contrastive loss, 689 training claims, 120 dev claims for early stopping, no tes
 
 Fine-tuning is the largest gain of any change tried, at no extra query cost. The 6-layer
 fine-tuned model is statistically level with the larger off-the-shelf BGE-small (p = 0.23).
+
+**Best system:** the fine-tuned encoder fused with BM25 at a BM25 weight of 0.3, chosen on
+held-out development claims (`scripts/tune_fusion.py`): **nDCG@10 0.759, Recall@10 0.905**,
+significantly better than equal-weight fusion (p = 0.0009) and than the original
+pipeline (+0.043, p = 0.003). Results in `results/dense_minilm_finetuned__fusion_weighted/`.
 Every run is recorded in [docs/EXPERIMENT_LOG.md](docs/EXPERIMENT_LOG.md).
 
 ---
@@ -130,6 +135,7 @@ scripts/
   finetune_dense.py      contrastive fine-tuning of the dense encoder on SciFact train claims
   significance.py        recompute significance.json from saved runs
   compare_runs.py        paired comparison of a one-change run against the main results
+  tune_fusion.py         choose the BM25 fusion weight on held-out dev claims
   query_subsets.py       which retriever helps which kind of claim (overlap, numbers, rare terms)
   answer_sheet.py        blind sheet for hand-scoring the generated answers; --summarize
 tests/                   unit tests: metrics, fusion, config, significance, subsets, scoring

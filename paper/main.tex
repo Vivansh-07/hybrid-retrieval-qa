@@ -195,11 +195,14 @@ Reciprocal Rank Fusion~\cite{cormack2009rrf} scores a passage by
 where $\mathrm{rank}_s(d)$ is $d$'s position in system $s$'s list and $k$
 damps the influence of the very top ranks. Fusing \emph{ranks} rather than scores
 sidesteps the incompatibility between unbounded BM25 scores and bounded cosine
-similarities, and it needs no labelled data. We use $k=60$ and equal weights
-$w_s=1$ for the two retrievers and keep the 100 best passages; a passage that
+similarities, and it needs no labelled data. We use $k=60$ and, by default,
+equal weights $w_s=1$ for the two retrievers, and keep the 100 best passages; a passage that
 appears in only one list receives a contribution from that list alone. As a
 baseline we also implement score fusion, which min-max normalises the scores of
-each list per query and adds them.
+each list per query and adds them. Finally, we tune the BM25 weight
+$w_{\mathrm{BM25}}\in\{0,0.1,0.2,0.3,0.5,0.7,1,1.5,2\}$ (dense fixed at 1) by
+nDCG@10 on the 120 development claims held out during fine-tuning; the test
+claims play no part in the choice.
 
 \subsection{Stage 4: cross-encoder reranking}
 The 50 highest-ranked fused passages are rescored by a
@@ -276,8 +279,10 @@ Reader, extractive& \texttt{roberta-base-squad2}    & 124M \\
 variants of the ablation: BM25 alone, dense alone, fusion, and fusion with
 reranking. Every further configuration changes exactly one component of it:
 whole abstracts instead of three-sentence passages; score fusion instead of RRF;
-fusion of documents instead of passages; the BGE-small encoder instead of MiniLM; the BGE reranker instead of the MS~MARCO
-cross-encoder (on top of BGE-small); and the fine-tuned MiniLM encoder. We also
+fusion of documents instead of passages; a BM25 weight of 0.3 in fusion, chosen
+on the development claims; the BGE-small encoder instead of MiniLM; the BGE reranker instead of the MS~MARCO
+cross-encoder (on top of BGE-small); and the fine-tuned MiniLM encoder, alone
+and with the tuned BM25 weight. We also
 vary the reranking depth $N\in\{10,25,50,100\}$ and the RRF constant
 $k\in\{10,30,60,100\}$ in the main configuration.
 
@@ -464,7 +469,9 @@ Score fusion instead of RRF & --    & --    & 0.717 & --    \\
 Document-level fusion       & --    & --    & 0.706 & 0.704 \\
 BGE-small encoder           & 0.656 & 0.723$^{*}$ & 0.721 & 0.712 \\
 \quad with BGE reranker     & --    & --    & --    & 0.714 \\
-Fine-tuned MiniLM           & 0.656 & \textbf{0.742}$^{*}$ & 0.731$^{*}$ & 0.725 \\
+BM25 weight 0.3 in fusion   & --    & --    & 0.711 & 0.729 \\
+Fine-tuned MiniLM           & 0.656 & 0.742$^{*}$ & 0.731$^{*}$ & 0.725 \\
+\quad with BM25 weight 0.3 & --    & --    & \textbf{0.759}$^{*}$ & 0.745$^{*}$ \\
 \bottomrule
 \end{tabular}
 % Numbers: results/set_*/, results/dense_bge_small*/, results/dense_minilm_finetuned/
@@ -504,6 +511,17 @@ larger BGE reranker gives 0.714 ($+0.002$, $p=0.86$) at about 1.2~s more per
 claim. Measured against the original full pipeline (0.715), the fine-tuned dense
 retriever alone is higher by 0.026, but that difference is not significant
 ($p=0.13$).
+
+Fusion becomes useful again when the weaker retriever's vote is reduced. Tuned on
+the development claims, the BM25 weight settles at 0.3 for both encoders
+(development nDCG@10 0.788 against 0.770 for the fine-tuned retriever alone).
+On the test claims, fusing the fine-tuned retriever with BM25 at this weight
+gives nDCG@10 0.759 and Recall@10 0.905, the best result in this study: higher
+than equal-weight fusion ($+0.027$, $p=0.0009$) and than the original full
+pipeline ($+0.043$, $p=0.003$), and level with the fine-tuned retriever alone
+($+0.017$, $p=0.057$). With the pretrained encoder, where the two retrievers are
+equally strong, the weight makes no difference ($p=0.88$). Even here, reranking
+the weighted fusion lowers the score (0.745).
 
 \subsection{Which retriever helps which claim?}
 
@@ -616,9 +634,9 @@ and is not comparable across passage lengths; the @10 metrics are unaffected.
 retriever each rank a different passage of the same relevant abstract first,
 their evidence does not add up (claim 1259 in our test set is a concrete case).
 Fusing documents instead did not help on average (Section~\ref{sec:results}), so
-such cases remain. Fusion also weights the two retrievers equally for every
-claim, although the subset analysis shows that the better weighting depends on
-the claim; weights chosen per claim are untested.
+such cases remain. The BM25 weight is a single number tuned on 120 development
+claims; the subset analysis suggests the best weight differs from claim to
+claim, and weights chosen per claim are untested.
 
 \paragraph{Training.} Only the dense encoder is fine-tuned, in a single run with
 one seed. Its positive passages are weak labels chosen by the pretrained model,
