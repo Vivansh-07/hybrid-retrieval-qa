@@ -37,7 +37,7 @@ REPO = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(REPO / "src"))
 
 from hybridqa.config import apply_overrides, load_config, resolve_model  # noqa: E402
-from hybridqa.data import build_chunks, chunk_to_doc, load_beir_hf  # noqa: E402
+from hybridqa.data import build_chunks, chunk_to_doc, dev_split, load_beir_hf  # noqa: E402
 from hybridqa.dense import DenseRetriever  # noqa: E402
 from hybridqa.metrics import evaluate_run  # noqa: E402
 
@@ -123,9 +123,7 @@ def main() -> None:
     for c in chunks:
         chunks_by_doc.setdefault(c.doc_id, []).append(c)
 
-    queries = sorted(queries, key=lambda q: q["query_id"])
-    random.Random(seed).shuffle(queries)
-    dev_q, train_q = queries[: args.dev_queries], queries[args.dev_queries:]
+    train_q, dev_q = dev_split(queries, args.dev_queries, seed)  # same split as tune_fusion.py
     print(f"[finetune] base model {base}")
     print(f"[finetune] {len(train_q)} training claims, {len(dev_q)} dev claims, {len(chunks)} passages")
 

@@ -111,3 +111,14 @@ def test_post_hoc_attribution_credits_the_passage_the_sentence_came_from():
     assert attribute("Vitamin D supplementation reduced respiratory infections.", passages) == 2
     assert attribute("Something unrelated entirely.", passages) == 1   # no overlap: top passage
     assert attribute("vitamin d", passages) == 2                        # tie: the higher-ranked passage
+
+
+def test_dev_split_is_deterministic_and_disjoint():
+    from hybridqa.data import dev_split
+
+    queries = [{"query_id": str(i)} for i in range(50)]
+    train_a, dev_a = dev_split(queries, 10, seed=42)
+    train_b, dev_b = dev_split(list(reversed(queries)), 10, seed=42)   # input order does not matter
+    assert [q["query_id"] for q in dev_a] == [q["query_id"] for q in dev_b]
+    assert len(dev_a) == 10 and len(train_a) == 40
+    assert not {q["query_id"] for q in dev_a} & {q["query_id"] for q in train_a}

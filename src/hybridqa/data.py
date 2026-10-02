@@ -12,6 +12,7 @@ if its parent doc_id is relevant. `chunk_to_doc` handles that mapping.
 from __future__ import annotations
 
 import json
+import random
 import re
 from dataclasses import dataclass, asdict
 from pathlib import Path
@@ -194,3 +195,14 @@ def load_dataset_for(cfg, cache_dir: Optional[str] = None):
             kept.setdefault(did, doc)
         corpus = kept
     return corpus, queries, qrels
+
+
+def dev_split(queries: List[dict], n_dev: int, seed: int = 42):
+    """Split TRAINING claims into (train, dev) the same way every time.
+
+    Sorted by id first, then shuffled with a fixed seed, so the fine-tuning script and
+    the fusion-weight tuning use exactly the same 120 held-out dev claims.
+    """
+    ordered = sorted(queries, key=lambda q: q["query_id"])
+    random.Random(seed).shuffle(ordered)
+    return ordered[n_dev:], ordered[:n_dev]
