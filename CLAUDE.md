@@ -265,7 +265,10 @@ plus RAG/FiD and attribution (ALCE). **Three research gaps** this project addres
   reranker_error 8, ambiguous 4; `results/failure_summary.json`) and scores for all 100 answers
   (`results/answer_quality.json`). Paper now complete: abstract, intro, all sections, conclusion,
   Acknowledgment disclosing AI assistance; BEIR 0.665 verified. Institution: Manipal University
-  Jaipur. Remaining: slides, viva rehearsal, Vivansh reviewing the AI labels/scores and the text.
+  Jaipur. Slides: 12-slide deck as a claude.ai artifact
+  (https://claude.ai/artifact/GEbH9cU6oLxKbpxAtDsCMC), titles + speaker notes + sources in
+  `docs/SLIDES.md`. Remaining (Vivansh): review the AI labels/scores, rewrite the paper in
+  own words where needed, Overleaf compile, viva rehearsal, fresh-clone pass.
 - **2026-10-01 (evening):** answer rubric (`docs/ANSWER_RUBRIC.md`, written before generating),
   `scripts/answer_sheet.py` + `hybridqa/scoring.py` (shuffled sheet, hidden key, `--summarize`),
   50 answers per reader generated (`results/answers.json`, `results/set_answer.mode=extractive/`):

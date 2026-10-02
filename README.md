@@ -37,7 +37,7 @@ python -m pip install torch --index-url https://download.pytorch.org/whl/cu126  
 python -m pip install -r requirements.txt
 python -m pip install -e .
 
-python -m pytest tests/ -q                           # 34 tests
+python -m pytest tests/ -q                           # 45 tests
 
 # full four-way ablation + sweeps (downloads SciFact + models on first run, ~13 min on an RTX 3050)
 python scripts/run_ablation.py --sweep-depth 10 25 50 100 --sweep-fusion-k 10 30 60 100
@@ -152,6 +152,7 @@ docs/
   VIVA_PREP.md           expected questions with worked answers
   ANSWER_RUBRIC.md       how the generated answers are scored by hand (fixed in advance)
   RUN_AND_PRESENT.md     tested commands, expected output, presentation script, daily plan
+  SLIDES.md              the 12 slides: titles, what to say, where each number comes from
   Problem_Statement.pdf  the project explained in plain language
   EXPERIMENT_LOG.md      append one entry per run, including failed ones
 ```

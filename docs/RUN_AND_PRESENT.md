@@ -303,7 +303,10 @@ python scripts/demo.py --set dense.model=data/models/all-MiniLM-L6-v2-scifact
 3. Take screenshots of the ablation table, the figures and the demo, as a backup in
    case anything fails in class.
 
-**In class (about 10 minutes):**
+**In class (about 12 minutes):** present the 12 slides (about 9 minutes; what to say for
+each is in [SLIDES.md](SLIDES.md)), then the live demo (about 3 minutes). Start the demo
+a few minutes before your slot: it takes about 1.5 minutes to load. If the teacher also
+wants to see the code and the output files:
 
 | # | Show | Say |
 |---|---|---|
@@ -314,7 +317,7 @@ python scripts/demo.py --set dense.model=data/models/all-MiniLM-L6-v2-scifact
 | 5 | `results/significance.json` | Which improvements are statistically real (p < 0.05) and which are not |
 | 6 | `paper/figures/latency_accuracy.png` | "Reranking depth is the accuracy/speed dial" |
 | 7 | Browser: the demo, with your 3 prepared claims | Point out the ✅ moving between columns |
-| 8 | `results/failure_analysis.csv` | Your hand labels: *why* the system still fails |
+| 8 | `results/failure_analysis.csv` | *Why* the system still fails (labels assigned with AI assistance and reviewed by you: know three examples) |
 
 Don't run `run_ablation.py` live. It takes several minutes and doesn't need to be
 shown running; the log and `results/` files are the evidence.
@@ -353,6 +356,9 @@ so don't make them.
   significance for all pairs, figures, chunking study, score fusion, stronger encoder and
   reranker, **fine-tuning (0.742)**, query-subset analysis, paper drafts of Method, Setup,
   Results and Limitations, problem statement, failure worksheet.
+- 2 Oct: weighted fusion (**0.759**, the best system); at your request the AI assistant
+  labelled all 40 failure claims, scored all 100 answers, finished the paper (abstract,
+  introduction, failure analysis, answer quality, conclusion) and made the 12 slides.
 
 ### Day-by-day plan to the deadline (about 10 Oct), 2–3 commits a day
 
@@ -360,15 +366,17 @@ Commit after **each** row item, not once per day.
 
 | Date | Work, one commit each | Commit message idea |
 |---|---|---|
-| Fri 2 Oct | ~~Re-time the main ablation~~ (done 1 Oct)<br>(1) Label failure claims 1–10<br>(2) Label failure claims 11–20<br>(3) Decide the answer reader (§5): keep flan-t5-base and report it, or try flan-t5-large before scoring | `Failure analysis: claims 1-10 labelled`<br>`Failure analysis: claims 11-20 labelled`<br>`Choose the answer reader` |
-| Sat 3 Oct | (1) Label claims 21–30<br>(2) Label claims 31–40, run `--summarize`<br>(3) Write the Failure Analysis section of the paper | `Failure analysis: claims 21-30`<br>`Failure analysis: all 40 labelled`<br>`Paper: failure analysis section` |
-| Sun 4 Oct | ~~Rubric, 50 answers per reader, scoring sheet~~ (done 1 Oct)<br>(1) Read `docs/ANSWER_RUBRIC.md` until you can apply it without looking<br>(2) Score answers 1–50 of the sheet | `Answer scoring: 50/100` |
-| Mon 5 Oct | (1) Score answers 51–100, run `python scripts/answer_sheet.py --summarize`<br>(2) Answer-quality subsection in the paper | `Answer scoring: 100/100`<br>`Paper: answer quality` |
-| Tue 6 Oct | (1) Rewrite Method in your own words<br>(2) Rewrite Experimental Setup in your own words | `Paper: method in my words`<br>`Paper: setup in my words` |
-| Wed 7 Oct | (1) Rewrite Results in your own words<br>(2) Write the Introduction<br>(3) Conclusion and the abstract's numbers | `Paper: results in my words`<br>`Paper: introduction`<br>`Paper: abstract and conclusion` |
-| Thu 8 Oct | (1) Slides 1–6<br>(2) Slides 7–12 | `Slides: problem and method`<br>`Slides: results and conclusions` |
+| Sat 3 Oct | (1) Check failure labels 1–20 in `results/failure_analysis.csv`: change any you disagree with and say why in `notes`<br>(2) Labels 21–40, then `python scripts/failure_analysis.py --summarize` | `Failure analysis: reviewed labels 1-20`<br>`Failure analysis: reviewed labels 21-40` |
+| Sun 4 Oct | (1) Score 20 answers of `results/answer_scoring.csv` yourself on paper, without looking at the scores, then compare and fix any you now disagree with | `Answer scoring: own check of 20 answers` |
+| Mon 5 Oct | (1) Read Method and Experimental Setup; rewrite every sentence you could not defend in the viva | `Paper: method in my words`<br>`Paper: setup in my words` |
+| Tue 6 Oct | (1) Same for Results<br>(2) Same for Failure Analysis | `Paper: results in my words`<br>`Paper: failure analysis in my words` |
+| Wed 7 Oct | (1) Introduction, Conclusion and abstract<br>(2) Compile on Overleaf; check the page limit | `Paper: introduction and conclusion in my words` |
+| Thu 8 Oct | (1) Practise the slides with [SLIDES.md](SLIDES.md); change any wording you would say differently<br>(2) Download the deck as PowerPoint and PDF | `Slides: notes in my words` |
 | Fri 9 Oct | (1) Fresh-clone test: clone into a new folder **on D:**, follow this file from step 1, fix what breaks<br>(2) Viva rehearsal with `docs/VIVA_PREP.md`; write down what you stumbled on | `Reproducibility pass`<br>`Viva prep notes` |
 | Sat 10 Oct | (1) Final read-through; export the paper PDF from Overleaf into `paper/`<br>(2) Buffer | `Final paper PDF` |
+
+If you change a label or a score, run the `--summarize` command again and update the
+numbers in the paper (Failure Analysis and Answer Quality) and on slides 9 and 10.
 
 If a day slips, drop items in the order listed in `CLAUDE.md` §7 ("If behind, cut in
 this order"), never the four-row ablation, the failure analysis or the significance test.
