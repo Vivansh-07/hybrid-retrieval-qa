@@ -3,6 +3,16 @@
 % IEEE conference format (IEEEtran). IEEEtran.cls ships with Overleaf, TeX Live
 % and MiKTeX, so no extra files are needed.
 % Compile:  pdflatex main && bibtex main && pdflatex main && pdflatex main
+%
+% Length: about 5,400 words of prose, 5 tables and 4 figures, estimated at about
+% 8 pages (not compiled here; check the page count in Overleaf). If it is over
+% the limit, cut in this order:
+%   1. the ablation bar figure (fig:ablation): it repeats Table tab:ablation,
+%      so also drop the sentence that cites it;
+%   2. "Passage length": keep the first two sentences and the index size;
+%   3. "Reranking depth and fusion settings": one sentence per sweep;
+%   4. Related Work: one sentence per paragraph.
+% Never cut the ablation table, the significance tests or the failure analysis.
 % ---------------------------------------------------------------------------
 \documentclass[conference]{IEEEtran}
 \IEEEoverridecommandlockouts
