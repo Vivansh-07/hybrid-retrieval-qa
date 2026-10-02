@@ -1,0 +1,13 @@
+{
+  "labelled": 40,
+  "total": 40,
+  "counts": {
+    "terminology_mismatch": 11,
+    "ambiguous_query": 4,
+    "missing_evidence": 17,
+    "conflicting_evidence": 0,
+    "granularity": 0,
+    "reranker_error": 8
+  },
+  "unlabelled": []
+}
