@@ -270,7 +270,7 @@ including the answer; measured 2 Oct). Start the demo a few minutes before you p
 ```
 python scripts/demo.py --set dense.model=data/models/all-MiniLM-L6-v2-scifact
 ```
-(The folder `data\modelsll-MiniLM-L6-v2-scifact` must exist; if it doesn't, run
+(The folder `data\models\all-MiniLM-L6-v2-scifact` must exist; if it doesn't, run
 `python scripts/finetune_dense.py --epochs 12` first.)
 
 To run the demo with the stronger dense model instead (the header shows which models are active):
