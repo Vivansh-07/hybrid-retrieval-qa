@@ -1,0 +1,56 @@
+{
+  "dense_model": "data/models/all-MiniLM-L6-v2-scifact",
+  "dev_claims": 120,
+  "grid": [
+    {
+      "bm25_weight": 0.0,
+      "nDCG@10": 0.7704,
+      "Recall@10": 0.8875
+    },
+    {
+      "bm25_weight": 0.1,
+      "nDCG@10": 0.7781,
+      "Recall@10": 0.8875
+    },
+    {
+      "bm25_weight": 0.2,
+      "nDCG@10": 0.7812,
+      "Recall@10": 0.8875
+    },
+    {
+      "bm25_weight": 0.3,
+      "nDCG@10": 0.7879,
+      "Recall@10": 0.9125
+    },
+    {
+      "bm25_weight": 0.5,
+      "nDCG@10": 0.7859,
+      "Recall@10": 0.8958
+    },
+    {
+      "bm25_weight": 0.7,
+      "nDCG@10": 0.7852,
+      "Recall@10": 0.9042
+    },
+    {
+      "bm25_weight": 1.0,
+      "nDCG@10": 0.7718,
+      "Recall@10": 0.8833
+    },
+    {
+      "bm25_weight": 1.5,
+      "nDCG@10": 0.7624,
+      "Recall@10": 0.8667
+    },
+    {
+      "bm25_weight": 2.0,
+      "nDCG@10": 0.7549,
+      "Recall@10": 0.8583
+    }
+  ],
+  "chosen": {
+    "bm25_weight": 0.3,
+    "nDCG@10": 0.7879,
+    "Recall@10": 0.9125
+  }
+}

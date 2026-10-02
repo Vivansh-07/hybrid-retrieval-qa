@@ -1,0 +1,56 @@
+{
+  "dense_model": "sentence-transformers/all-MiniLM-L6-v2",
+  "dev_claims": 120,
+  "grid": [
+    {
+      "bm25_weight": 0.0,
+      "nDCG@10": 0.6912,
+      "Recall@10": 0.8292
+    },
+    {
+      "bm25_weight": 0.1,
+      "nDCG@10": 0.7097,
+      "Recall@10": 0.8292
+    },
+    {
+      "bm25_weight": 0.2,
+      "nDCG@10": 0.7241,
+      "Recall@10": 0.8375
+    },
+    {
+      "bm25_weight": 0.3,
+      "nDCG@10": 0.7321,
+      "Recall@10": 0.8292
+    },
+    {
+      "bm25_weight": 0.5,
+      "nDCG@10": 0.7255,
+      "Recall@10": 0.825
+    },
+    {
+      "bm25_weight": 0.7,
+      "nDCG@10": 0.7263,
+      "Recall@10": 0.8333
+    },
+    {
+      "bm25_weight": 1.0,
+      "nDCG@10": 0.7201,
+      "Recall@10": 0.8417
+    },
+    {
+      "bm25_weight": 1.5,
+      "nDCG@10": 0.7186,
+      "Recall@10": 0.8417
+    },
+    {
+      "bm25_weight": 2.0,
+      "nDCG@10": 0.7202,
+      "Recall@10": 0.85
+    }
+  ],
+  "chosen": {
+    "bm25_weight": 0.3,
+    "nDCG@10": 0.7321,
+    "Recall@10": 0.8292
+  }
+}
