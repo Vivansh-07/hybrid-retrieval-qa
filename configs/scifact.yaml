@@ -50,6 +50,7 @@ answer:
   extractive_model: deepset/roberta-base-squad2
   n_passages: 5                # passages placed in the prompt
   max_new_tokens: 128
+  dtype: float32               # reader weights: float32 | bfloat16 (half the memory; for large readers on a 4 GB GPU)
 
 evaluation:
   k_values: [1, 3, 5, 10, 20, 100]

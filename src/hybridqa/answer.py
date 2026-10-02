@@ -51,6 +51,12 @@ class AnswerGenerator:
         self.max_new_tokens = cfg.get_path("answer.max_new_tokens", 128)
         self.gen_model_name = cfg.get_path("answer.generative_model", "google/flan-t5-base")
         self.ext_model_name = cfg.get_path("answer.extractive_model", "deepset/roberta-base-squad2")
+        # bfloat16 halves the memory of the weights, which is what lets flan-t5-large (780M
+        # parameters) fit on a 4 GB GPU next to the retrievers. T5 was trained in bfloat16;
+        # float16 is not offered because T5 is known to overflow in it.
+        self.dtype = cfg.get_path("answer.dtype", "float32")
+        if self.dtype not in {"float32", "bfloat16"}:
+            raise ValueError(f"answer.dtype must be float32 or bfloat16, got {self.dtype!r}")
         self.device = device
         self._tokenizer = None
         self._model = None
@@ -69,7 +75,7 @@ class AnswerGenerator:
             else:
                 name, model_cls = self.gen_model_name, AutoModelForSeq2SeqLM
             self._tokenizer = AutoTokenizer.from_pretrained(name)
-            self._model = model_cls.from_pretrained(name).to(device).eval()
+            self._model = model_cls.from_pretrained(name, dtype=getattr(torch, self.dtype)).to(device).eval()
         return self._tokenizer, self._model
 
     def _generate(self, prompt: str) -> str:
