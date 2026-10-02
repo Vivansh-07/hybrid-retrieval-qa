@@ -180,6 +180,24 @@ dense-only dev score from fine-tuning exactly, which shows it was the same split
 works: once dense is much stronger, an equal BM25 vote pulls good results down on
 paraphrased claims; a smaller vote keeps BM25's help on exact-wording claims.
 
+**What does the failure analysis show?** (Labels were assigned by an AI assistant from fixed
+definitions: say so, and know three examples.)
+Of the 40 hardest claims, 17 (42%) are not retrieval errors: the gold abstract does not state
+the claim. Three contradictory claim pairs share one abstract (e.g. "PPAR-RXRs are inhibited /
+activated by PPAR ligands", and the abstract never mentions PPAR). 11 (28%) are terminology
+mismatch: "aspirin" vs an abstract that says only "COX inhibitors"; claim 690 expands "SFM"
+as a syndrome when its malaria abstract means severe falciparum malaria. 8 (20%) are reranker
+errors: for "Ivermectin is used to treat onchocerciasis" BM25 ranks the gold 1st, fusion 3rd,
+the reranker 17th.
+
+**How good are the generated answers?**
+Scored on 0-2 with a rubric fixed before generating (by the AI assistant; not blind). The
+generative reader is right more often (correctness 0.84 vs 0.48) but a third of its answers
+contain something the cited passage does not say (it called albendazole a myeloma drug); the
+extractive reader never invents anything but mostly returns fragments. Neither abstains when
+the evidence is missing. And the first prompt made flan-t5 answer with a bare "[3]." 49 times
+out of 50: the fix was the instruction (explain, then cite afterwards), not a bigger model.
+
 **What would you do with more time / compute?**
 In order of expected value: (1) fine-tune the reranker in-domain too, since fine-tuning the
 bi-encoder gave the largest gain and two off-the-shelf rerankers did not help; (2) mine hard

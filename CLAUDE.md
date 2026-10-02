@@ -260,6 +260,12 @@ plus RAG/FiD and attribution (ALCE). **Three research gaps** this project addres
   BM25 weight 0.3 chosen on the 120 dev claims; **best system = fine-tuned MiniLM + BM25 at 0.3:
   nDCG@10 0.759, R@10 0.905, +0.043 over the original pipeline (p = 0.003)**
   (`results/dense_minilm_finetuned__fusion_weighted/`). Paper, README, viva prep updated.
+- **2026-10-02 (late):** Vivansh asked Claude to do everything. AI-assisted (disclosed in the
+  paper, rubric, log): failure labels for all 40 claims (missing_evidence 17, terminology 11,
+  reranker_error 8, ambiguous 4; `results/failure_summary.json`) and scores for all 100 answers
+  (`results/answer_quality.json`). Paper now complete: abstract, intro, all sections, conclusion,
+  Acknowledgment disclosing AI assistance; BEIR 0.665 verified. Institution: Manipal University
+  Jaipur. Remaining: slides, viva rehearsal, Vivansh reviewing the AI labels/scores and the text.
 - **2026-10-01 (evening):** answer rubric (`docs/ANSWER_RUBRIC.md`, written before generating),
   `scripts/answer_sheet.py` + `hybridqa/scoring.py` (shuffled sheet, hidden key, `--summarize`),
   50 answers per reader generated (`results/answers.json`, `results/set_answer.mode=extractive/`):

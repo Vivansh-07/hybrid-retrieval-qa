@@ -110,6 +110,13 @@ significantly better than equal-weight fusion (p = 0.0009) and than the original
 pipeline (+0.043, p = 0.003). Results in `results/dense_minilm_finetuned__fusion_weighted/`.
 Every run is recorded in [docs/EXPERIMENT_LOG.md](docs/EXPERIMENT_LOG.md).
 
+**Failure analysis** of the 40 hardest claims (`results/failure_analysis.csv`): missing
+evidence in the gold abstract 42%, terminology mismatch 28%, reranker error 20%, ambiguous
+claim 10%. **Answer quality** (100 answers, 0-2 rubric, `results/answer_quality.json`): the
+generative reader is more often correct (0.84 vs 0.48) but less faithful (1.16 vs 2.00)
+than the extractive one. Both were labelled/scored by an AI assistant following fixed
+rubrics (see the paper and `docs/ANSWER_RUBRIC.md`).
+
 ---
 
 ## Repository layout
