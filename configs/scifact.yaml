@@ -49,6 +49,7 @@ answer:
   mode: generative             # one of: extractive | generative
   generative_model: google/flan-t5-base
   extractive_model: deepset/roberta-base-squad2
+  prompt_style: explain_then_cite   # explain_then_cite (cite afterwards) | cite_inline (answers "[3]." on claims)
   n_passages: 5                # passages placed in the prompt
   max_new_tokens: 128
   dtype: float32               # reader weights: float32 | bfloat16 (half the memory; for large readers on a 4 GB GPU)

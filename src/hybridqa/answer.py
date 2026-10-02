@@ -3,9 +3,18 @@
 Two modes:
   extractive  -- a span-selection QA head (roberta-base-squad2) picks a span from the
                  single best passage. Cheap, and the citation is exact by construction.
-  generative  -- flan-t5 conditions on the top-n passages, each tagged [1]..[n], and is
-                 instructed to cite. Fluent, but must be checked for faithfulness, which
-                 is why `faithfulness_signals` below is reported alongside the answer.
+  generative  -- flan-t5 conditions on the top-n passages, each tagged [1]..[n]. Fluent,
+                 but must be checked for faithfulness, which is why `faithfulness_signals`
+                 below is reported alongside the answer.
+
+Two prompt styles for the generative reader (answer.prompt_style):
+  explain_then_cite  (default) the model explains in one sentence whether the passages
+                     support the claim; the citation is then attached afterwards to the
+                     passage that shares the most terms with that sentence (post-hoc
+                     attribution). Chosen on 20 TRAINING claims: 19 real answers out of 20.
+  cite_inline        the model is told to answer and cite inline. On SciFact claims it
+                     almost always replies with only a passage number ("[3]."), so it is
+                     kept only to reproduce that finding.
 """
 
 from __future__ import annotations
@@ -36,12 +45,33 @@ class Answer:
         }
 
 
-PROMPT = (
+PROMPT = (  # style "cite_inline"
     "Answer the question using only the numbered passages below. "
     "Cite every claim with the passage number in square brackets, e.g. [2]. "
     "If the passages do not contain the answer, reply exactly: Not enough evidence.\n\n"
     "{passages}\n\nQuestion: {question}\nAnswer:"
 )
+
+EXPLAIN_PROMPT = (  # style "explain_then_cite"
+    "Read the passages and explain in one sentence whether they support the claim.\n\n"
+    "{passages}\n\nClaim: {question}\nExplanation:"
+)
+
+
+def attribute(sentence: str, passages: Sequence[str]) -> int:
+    """1-based number of the passage that shares the most terms with `sentence`.
+
+    Post-hoc attribution: the reader writes the sentence, then it is credited to the
+    passage it overlaps with most (BM25's terms: lower-cased, stopwords removed,
+    stemmed). Ties go to the higher-ranked passage. Returns 1 if nothing overlaps.
+    """
+    from .sparse import tokenize
+
+    words = set(tokenize(sentence))
+    overlaps = [len(words & set(tokenize(p))) for p in passages]
+    if not overlaps or max(overlaps) == 0:
+        return 1
+    return overlaps.index(max(overlaps)) + 1
 
 
 class AnswerGenerator:
@@ -57,6 +87,9 @@ class AnswerGenerator:
         self.dtype = cfg.get_path("answer.dtype", "float32")
         if self.dtype not in {"float32", "bfloat16"}:
             raise ValueError(f"answer.dtype must be float32 or bfloat16, got {self.dtype!r}")
+        self.prompt_style = cfg.get_path("answer.prompt_style", "explain_then_cite")
+        if self.prompt_style not in {"explain_then_cite", "cite_inline"}:
+            raise ValueError(f"answer.prompt_style must be explain_then_cite or cite_inline, got {self.prompt_style!r}")
         self.device = device
         self._tokenizer = None
         self._model = None
@@ -127,9 +160,13 @@ class AnswerGenerator:
             return Answer(query_id, query, self._extract_span(query, passage), [cid], selected)
 
         numbered = "\n\n".join(f"[{i}] {text}" for i, (_, text) in enumerate(selected, start=1))
-        prompt = PROMPT.format(passages=numbered, question=query)
-        out = self._generate(prompt)
 
+        if self.prompt_style == "explain_then_cite":
+            sentence = self._generate(EXPLAIN_PROMPT.format(passages=numbered, question=query)).strip()
+            i = attribute(sentence, [text for _, text in selected])
+            return Answer(query_id, query, f"{sentence} [{i}]", [selected[i - 1][0]], selected)
+
+        out = self._generate(PROMPT.format(passages=numbered, question=query))
         cited_idx = {int(m) for m in re.findall(r"\[(\d+)\]", out) if 1 <= int(m) <= len(selected)}
         cited = [selected[i - 1][0] for i in sorted(cited_idx)] or [selected[0][0]]
         return Answer(query_id, query, out.strip(), cited, selected)

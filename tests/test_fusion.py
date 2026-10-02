@@ -100,3 +100,14 @@ def test_document_level_fusion_adds_up_votes_for_different_passages_of_one_paper
     document_level = [cid for cid, _ in fuse([bm25, dense], cfg.override("fusion.level", "document"))]
     assert document_level[0] == "A#1"         # A wins, shown by its best-ranked passage
     assert [c.split("#")[0] for c in document_level] == ["A", "B", "C"]   # one entry per paper
+
+
+def test_post_hoc_attribution_credits_the_passage_the_sentence_came_from():
+    from hybridqa.answer import attribute
+
+    passages = ["Aspirin had no effect on cancer incidence.",
+                "Daily vitamin D supplementation reduced acute respiratory infections.",
+                "Vitamin D levels were measured in winter."]
+    assert attribute("Vitamin D supplementation reduced respiratory infections.", passages) == 2
+    assert attribute("Something unrelated entirely.", passages) == 1   # no overlap: top passage
+    assert attribute("vitamin d", passages) == 2                        # tie: the higher-ranked passage
