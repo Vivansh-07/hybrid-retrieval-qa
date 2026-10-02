@@ -478,4 +478,42 @@ Next:        —
 
 ---
 
+### 2026-10-02 — Weighted fusion: BM25 weight chosen on dev claims, evaluated once on test
+Commit:      bcec2c7
+Config:      changed: fusion.weights=[0.3, 1.0] (BM25, dense), chosen by scripts/tune_fusion.py on
+             the 120 dev claims of the training split (grid 0, 0.1, 0.2, 0.3, 0.5, 0.7, 1, 1.5, 2)
+Command:     `python scripts/tune_fusion.py` and `... --set dense.model=data/models/all-MiniLM-L6-v2-scifact`
+             `python scripts/run_ablation.py --variants fusion fusion+rerank --set "fusion.weights=[0.3, 1.0]" --out results/fusion_weighted`
+             `python scripts/run_ablation.py --variants fusion fusion+rerank --set dense.model=data/models/all-MiniLM-L6-v2-scifact --set "fusion.weights=[0.3, 1.0]" --out results/dense_minilm_finetuned__fusion_weighted`
+Hardware:    NVIDIA GeForce RTX 3050 Laptop GPU (4 GB), PyTorch 2.6.0+cu126
+
+Result:      dev (training split, 120 claims), nDCG@10 by BM25 weight:
+               pretrained  0: 0.691  0.3: 0.732  1.0: 0.720     fine-tuned  0: 0.770  0.3: 0.788  1.0: 0.772
+             test (300 claims), evaluated once:
+             setup                         variant         nDCG@10  R@10   MRR@10  ms/q
+             fine-tuned, weighted fusion   fusion          0.7587   0.905  0.718   114
+                                           fusion+rerank   0.7445   0.883  0.708   306
+             pretrained, weighted fusion   fusion          0.7109   0.839  0.674   117
+                                           fusion+rerank   0.7286   0.857  0.696   315
+             paired bootstrap, nDCG@10:
+               fine-tuned: weighted vs equal-weight fusion   +0.0273  p = 0.0009
+               fine-tuned: weighted fusion vs dense alone    +0.0171  p = 0.057
+               fine-tuned: weighted vs equal, + rerank       +0.0199  p = 0.0001
+               pretrained: weighted vs equal-weight fusion   +0.0013  p = 0.88
+               pretrained: weighted vs equal, + rerank       +0.0132  p = 0.051
+               fine-tuned weighted fusion vs ORIGINAL full pipeline (0.7154): +0.0433  p = 0.0027
+Latency:     see table.
+
+Observation: Best system of the project: the fine-tuned encoder fused with BM25 at weight 0.3,
+             nDCG@10 0.759 and a relevant abstract in the top 10 for 90.5% of claims. Equal-weight
+             fusion hurt the strong fine-tuned retriever on paraphrased claims; a smaller BM25 weight,
+             learned on held-out training claims, turns fusion from a loss into a gain, and the
+             improvement over the original pipeline is now significant (p = 0.003; fine-tuned dense
+             alone was not, p = 0.13). With the pretrained encoder the weight barely matters, as
+             expected when the two retrievers are equally strong. The reranker still does not beat
+             fusion. The weight was chosen on dev claims only and the test set was read once.
+Next:        report it in the paper, README and viva prep.
+
+---
+
 <!-- add new entries above this line, newest last -->

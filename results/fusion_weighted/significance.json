@@ -1,0 +1,15 @@
+{
+  "metric": "nDCG@10",
+  "test": "two-sided paired bootstrap",
+  "n_samples": 10000,
+  "seed": 42,
+  "comparisons": {
+    "fusion+rerank vs fusion": {
+      "delta": 0.0177,
+      "p_value": 0.1715,
+      "better": 63,
+      "worse": 49,
+      "same": 188
+    }
+  }
+}

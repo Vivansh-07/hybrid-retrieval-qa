@@ -1,0 +1,141 @@
+{
+  "config": {
+    "dataset": {
+      "name": "scifact",
+      "hf_id": "BeIR/scifact",
+      "split": "test",
+      "max_docs": null
+    },
+    "chunking": {
+      "strategy": "sentence_window",
+      "window_sentences": 3,
+      "stride_sentences": 2,
+      "min_chars": 120
+    },
+    "sparse": {
+      "method": "bm25",
+      "k1": 0.9,
+      "b": 0.4,
+      "top_k": 100,
+      "lowercase": true,
+      "remove_stopwords": true,
+      "stem": true
+    },
+    "dense": {
+      "model": "sentence-transformers/all-MiniLM-L6-v2",
+      "query_prefix": "",
+      "batch_size": 128,
+      "max_seq_length": 256,
+      "normalize": true,
+      "top_k": 100,
+      "index": "flat_ip"
+    },
+    "fusion": {
+      "method": "rrf",
+      "level": "passage",
+      "k": 60,
+      "weights": [
+        0.3,
+        1.0
+      ],
+      "top_k": 100
+    },
+    "rerank": {
+      "model": "cross-encoder/ms-marco-MiniLM-L-6-v2",
+      "batch_size": 64,
+      "max_length": 512,
+      "candidates": 50,
+      "top_k": 10
+    },
+    "answer": {
+      "enabled": true,
+      "mode": "generative",
+      "generative_model": "google/flan-t5-base",
+      "extractive_model": "deepset/roberta-base-squad2",
+      "prompt_style": "explain_then_cite",
+      "n_passages": 5,
+      "max_new_tokens": 128,
+      "dtype": "float32"
+    },
+    "evaluation": {
+      "k_values": [
+        1,
+        3,
+        5,
+        10,
+        20,
+        100
+      ],
+      "primary_k": 10,
+      "seed": 42
+    },
+    "paths": {
+      "data_dir": "data",
+      "index_dir": "data/indexes",
+      "results_dir": "results"
+    }
+  },
+  "build_stats": {
+    "load_and_chunk_s": 12.554,
+    "bm25_index_s": 26.125,
+    "dense_index_s": 0.123,
+    "dense_from_cache": 1.0,
+    "embedding_mb": 32.279
+  },
+  "corpus": {
+    "n_chunks": 21015,
+    "n_queries": 300
+  },
+  "variants": [
+    {
+      "variant": "fusion",
+      "latency_ms_per_query": 116.83,
+      "Recall@1": 0.5676,
+      "Precision@1": 0.5867,
+      "nDCG@1": 0.5867,
+      "Recall@3": 0.7051,
+      "Precision@3": 0.25,
+      "nDCG@3": 0.6586,
+      "Recall@5": 0.7646,
+      "Precision@5": 0.1667,
+      "nDCG@5": 0.684,
+      "Recall@10": 0.839,
+      "Precision@10": 0.0947,
+      "nDCG@10": 0.7109,
+      "Recall@20": 0.8787,
+      "Precision@20": 0.0498,
+      "nDCG@20": 0.7214,
+      "Recall@100": 0.916,
+      "Precision@100": 0.0104,
+      "nDCG@100": 0.7291,
+      "MRR": 0.6781,
+      "MRR@10": 0.6742,
+      "num_queries": 300.0
+    },
+    {
+      "variant": "fusion+rerank",
+      "latency_ms_per_query": 315.48,
+      "Recall@1": 0.5884,
+      "Precision@1": 0.6133,
+      "nDCG@1": 0.6133,
+      "Recall@3": 0.7246,
+      "Precision@3": 0.2611,
+      "nDCG@3": 0.6794,
+      "Recall@5": 0.7747,
+      "Precision@5": 0.1707,
+      "nDCG@5": 0.6996,
+      "Recall@10": 0.8573,
+      "Precision@10": 0.0967,
+      "nDCG@10": 0.7286,
+      "Recall@20": 0.8853,
+      "Precision@20": 0.0502,
+      "nDCG@20": 0.7363,
+      "Recall@100": 0.916,
+      "Precision@100": 0.0104,
+      "nDCG@100": 0.7426,
+      "MRR": 0.6983,
+      "MRR@10": 0.6957,
+      "num_queries": 300.0
+    }
+  ]
+}
