@@ -379,4 +379,29 @@ Next:        hand-score the sheet (docs/ANSWER_RUBRIC.md). Decision for the read
 
 ---
 
+### 2026-10-02 — Document-level fusion
+Commit:      676612d
+Config:      changed: fusion.level=document (default: passage); variants fusion and fusion+rerank
+Command:     `python scripts/run_ablation.py --variants fusion fusion+rerank --set fusion.level=document`
+             `python scripts/run_ablation.py --variants fusion fusion+rerank --set dense.model=data/models/all-MiniLM-L6-v2-scifact --set fusion.level=document --out results/dense_minilm_finetuned__doc_fusion`
+             then `scripts/compare_runs.py` against the passage-level runs
+Hardware:    NVIDIA GeForce RTX 3050 Laptop GPU (4 GB), PyTorch 2.6.0+cu126
+
+Result:      nDCG@10, passage-level -> document-level fusion (paired bootstrap):
+             pretrained MiniLM   fusion          0.7097 -> 0.7062  -0.0034  p = 0.46   17/31/252
+                                 fusion+rerank   0.7154 -> 0.7041  -0.0113  p = 0.11   21/38/241
+             fine-tuned MiniLM   fusion          0.7313 -> 0.7228  -0.0085  p = 0.12   18/42/240
+                                 fusion+rerank   0.7245 -> 0.7086  -0.0160  p = 0.0195 19/39/242
+Latency:     not compared (a 3 GB model download ran at the same time). Runs took 156-191 s.
+
+Observation: Fusing documents instead of passages does not help, and with the fine-tuned encoder
+             plus reranking it is significantly worse. It fixes cases like claim 1259, but those
+             are rare. Likely reason: at passage level a paper has several chances (whichever of
+             its passages ranks highest counts), while at document level only one passage per paper
+             reaches the reranker, and if it is not the one with the evidence the paper is lost.
+             Passage-level fusion stays the default; the 1259 case remains a documented limitation.
+Next:        flan-t5-large reader.
+
+---
+
 <!-- add new entries above this line, newest last -->

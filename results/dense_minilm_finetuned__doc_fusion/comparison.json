@@ -1,0 +1,29 @@
+{
+  "metric": "nDCG@10",
+  "baseline": "results/dense_minilm_finetuned",
+  "other": "results/dense_minilm_finetuned__doc_fusion",
+  "variants": {
+    "fusion": {
+      "baseline": 0.7313,
+      "other": 0.7228,
+      "delta": -0.0085,
+      "p_value": 0.1239,
+      "better": 18,
+      "worse": 42,
+      "same": 240,
+      "baseline_docs_per_query": 53.3,
+      "other_docs_per_query": 86.7
+    },
+    "fusion+rerank": {
+      "baseline": 0.7245,
+      "other": 0.7086,
+      "delta": -0.016,
+      "p_value": 0.0195,
+      "better": 19,
+      "worse": 39,
+      "same": 242,
+      "baseline_docs_per_query": 53.3,
+      "other_docs_per_query": 86.7
+    }
+  }
+}
