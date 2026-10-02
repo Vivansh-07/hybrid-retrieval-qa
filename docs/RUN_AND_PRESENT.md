@@ -257,13 +257,21 @@ python -m hybridqa.cli query "Does vitamin D reduce respiratory infections?" --a
 ```
 python scripts/demo.py
 ```
-Takes ≈50 s to start (it builds the BM25 index), prints
+Takes ≈1.5 min to start: it builds the BM25 index, then prints
+`[demo] loading the models with one warm-up question...` and answers one question by
+itself so every model is already on the GPU. Then it prints
 `Running on local URL: http://127.0.0.1:7860` and opens that page in your browser.
 Leave the terminal open. Closing it or pressing `Ctrl+C` stops the demo.
 
-**The first question after starting is slow (≈40 s)** while the models load onto the
-GPU; after that each question takes under a second. So always ask one warm-up
-question before you present.
+Because of that warm-up, **the first question you ask is already fast** (≈4–5 s
+including the answer; measured 2 Oct). Start the demo a few minutes before you present.
+
+**For the presentation, run it with your fine-tuned encoder** (the best retriever):
+```
+python scripts/demo.py --set dense.model=data/models/all-MiniLM-L6-v2-scifact
+```
+(The folder `data\modelsll-MiniLM-L6-v2-scifact` must exist; if it doesn't, run
+`python scripts/finetune_dense.py --epochs 12` first.)
 
 To run the demo with the stronger dense model instead (the header shows which models are active):
 ```
@@ -300,7 +308,7 @@ python scripts/demo.py --set dense.model=data/models/all-MiniLM-L6-v2-scifact
 |---|---|---|
 | 1 | VS Code: `src/hybridqa/pipeline.py`, the `retrieve()` function | "All four strategies share one index; only this function changes. That makes it a controlled ablation." |
 | 2 | Run `python -m pytest tests/ -q` live | "The metrics are implemented from their definitions and checked against hand-computed values." |
-| 3 | Start `python scripts/demo.py` in the terminal | ≈50 s to load, then ask one warm-up question (≈40 s). Talk through the pipeline diagram in the README meanwhile |
+| 3 | Start the demo (command above, with the fine-tuned encoder) a few minutes before your slot | ≈1.5 min to load; the first question is then fast. Talk through the pipeline diagram in the README meanwhile |
 | 4 | `results/ablation.csv` | The main result: which strategy wins and at what cost |
 | 5 | `results/significance.json` | Which improvements are statistically real (p < 0.05) and which are not |
 | 6 | `paper/figures/latency_accuracy.png` | "Reranking depth is the accuracy/speed dial" |

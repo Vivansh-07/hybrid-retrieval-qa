@@ -48,6 +48,15 @@ def build_app(cfg_path: str, device: str | None, overrides: list[str] | None = N
     cfg = apply_overrides(load_config(cfg_path), overrides)
     pipe = RetrievalPipeline(cfg, device=device).prepare()
     gen = AnswerGenerator(cfg, device=device)
+
+    # Warm up before the page opens: the encoder, reranker and reader load lazily, so
+    # without this the FIRST question asked in front of the audience waits ~45 s.
+    t0 = time.perf_counter()
+    print("[demo] loading the models with one warm-up question...", flush=True)
+    warm = pipe.queries[0]["text"]
+    gen.answer("warmup", warm, pipe.retrieve(warm, "fusion+rerank"), pipe.chunk_texts)
+    print(f"[demo] models ready in {time.perf_counter() - t0:.0f}s", flush=True)
+
     chunks = {c.chunk_id: c for c in pipe.chunks}
     qid_by_text = {q["text"]: q["query_id"] for q in pipe.queries}
 
