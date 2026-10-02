@@ -457,4 +457,25 @@ Next:        hand-score results/answer_scoring.csv with docs/ANSWER_RUBRIC.md.
 
 ---
 
+### 2026-10-02 — Reproducibility check from a fresh clone
+Commit:      23f64aa (cloned from GitHub into D:\Deep Learning\Claude\_repro_check)
+Config:      unchanged
+Command:     `git clone https://github.com/Vivansh-07/hybrid-retrieval-qa.git _repro_check`, then in
+             the clone `python -m pytest tests/ -q` and
+             `python scripts/run_ablation.py --variants bm25 dense fusion --out results/_repro`
+             (empty data/ folder: SciFact and MiniLM downloaded fresh, dense index rebuilt)
+Hardware:    NVIDIA GeForce RTX 3050 Laptop GPU (4 GB), PyTorch 2.6.0+cu126
+
+Result:      101 tracked files; the PDF, PNG and DOCX files are byte-identical to the originals;
+             43 tests pass; all 21 accuracy columns of bm25, dense and fusion are identical to
+             results/ablation.csv (nDCG@10 0.6562 / 0.6789 / 0.7097).
+Latency:     n/a. Dense index built from scratch in 125.4 s; run took 248 s; 131 MB downloaded
+             into the clone's own data/ folder on D: (nothing written to C:).
+
+Observation: The results are reproducible from the public repository alone, with nothing cached.
+             The clone was deleted afterwards.
+Next:        —
+
+---
+
 <!-- add new entries above this line, newest last -->
