@@ -236,10 +236,17 @@ examiner will probe hardest. Do not automate it.
 ```
 python -m hybridqa.cli answer --limit 50
 ```
-**Writes:** `results/answers.json`: the question, the answer, which passages it cited,
-and citation precision/recall against the gold documents.
-**Known issue, and a finding for the paper:** the default reader `flan-t5-base` often
-replies with only a citation like `[1]` instead of a sentence. See §5 below.
+**Writes:** `results/answers.json`: the question, the answer, the five passages it was
+given, which ones it cited, and citation precision/recall against the gold documents.
+**Known issue, and a finding for the paper:** the default reader `flan-t5-base` replies
+with only a citation like `[3].` for 49 of the 50 claims. See §5 below.
+
+The answers of both readers (generative and extractive) were generated on 1 Oct, and the
+blind scoring sheet is ready: `results/answer_scoring.csv`. Score it with
+`docs/ANSWER_RUBRIC.md`, commit after every 25 answers, then:
+```
+python scripts/answer_sheet.py --summarize
+```
 
 ### Step 7: One question from the command line (≈1 min: rebuilds BM25 and loads the models each time)
 ```
