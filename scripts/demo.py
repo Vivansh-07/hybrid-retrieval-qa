@@ -126,7 +126,8 @@ def build_app(cfg_path: str, device: str | None, overrides: list[str] | None = N
                     "strategies, same index — only the strategy changes.\n\n"
                     f"Dense encoder: `{cfg.get_path('dense.model')}` · "
                     f"Reranker: `{cfg.get_path('rerank.model')}` · "
-                    f"Fusion: `{cfg.get_path('fusion.method')}`")
+                    f"Fusion: `{cfg.get_path('fusion.method')}`, weights BM25 / dense = "
+                    f"`{' / '.join(str(w) for w in cfg.get_path('fusion.weights', [1.0, 1.0]))}`")
         with gr.Tab("Live demo"):
             with gr.Row():
                 claim_picker = gr.Dropdown(claims, label="Pick a SciFact test claim (gold evidence is known)",

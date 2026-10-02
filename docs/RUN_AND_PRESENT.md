@@ -266,9 +266,10 @@ Leave the terminal open. Closing it or pressing `Ctrl+C` stops the demo.
 Because of that warm-up, **the first question you ask is already fast** (≈4–5 s
 including the answer; measured 2 Oct). Start the demo a few minutes before you present.
 
-**For the presentation, run it with your fine-tuned encoder** (the best retriever):
+**For the presentation, run the best system**: your fine-tuned encoder, fused with BM25 at the
+weight chosen on the dev claims (0.759 nDCG@10; the header shows the active settings):
 ```
-python scripts/demo.py --set dense.model=data/models/all-MiniLM-L6-v2-scifact
+python scripts/demo.py --set dense.model=data/models/all-MiniLM-L6-v2-scifact --set "fusion.weights=[0.3, 1.0]"
 ```
 (The folder `data\models\all-MiniLM-L6-v2-scifact` must exist; if it doesn't, run
 `python scripts/finetune_dense.py --epochs 12` first.)
