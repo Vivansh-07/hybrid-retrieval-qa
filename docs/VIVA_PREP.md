@@ -217,6 +217,14 @@ extractive reader never invents anything but mostly returns fragments. Neither a
 the evidence is missing. And the first prompt made flan-t5 answer with a bare "[3]." 49 times
 out of 50: the fix was the instruction (explain, then cite afterwards), not a bigger model.
 
+**Why not just make the reader say "not enough evidence" when retrieval is unsure?**
+I tested that (`scripts/abstention.py`). The reranker's top score does carry signal: it
+separates claims whose gold abstract reached the reader from those where it did not with
+an AUC of 0.81 (0.5 would be guessing). But a single cut-off is expensive: the threshold
+chosen on the dev claims catches 68 of the 74 test misses only by also refusing 109 of the
+226 claims it could have answered. So abstention needs more than a score threshold, e.g. a
+model trained to check whether the passages support the claim.
+
 **What would you do with more time / compute?**
 In order of expected value: (1) fine-tune the reranker in-domain too, since fine-tuning the
 bi-encoder gave the largest gain and two off-the-shelf rerankers did not help; (2) mine hard

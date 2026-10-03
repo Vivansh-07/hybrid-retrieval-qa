@@ -654,7 +654,12 @@ agent used for multiple myeloma''. The extractive reader never says anything
 unsupported, because it copies text, but most of its answers are fragments such
 as ``immunostaining'' or ``CHK2'' that do not answer the claim. Neither reader
 abstains: for the 9 claims whose gold abstract was not among the five passages,
-both returned an answer rather than ``Not enough evidence''. Answer quality is
+both returned an answer rather than ``Not enough evidence''. A retrieval signal
+could trigger abstention, but not cheaply: over all 300 test claims, the top
+cross-encoder score separates claims with a gold abstract among the five
+passages from those without one with an ROC AUC of 0.81 (top dense similarity:
+0.73), yet a threshold chosen on the development claims catches 68 of the 74
+misses only by also refusing 109 of the 226 answerable claims. Answer quality is
 therefore limited first by retrieval and then by the reader's faithfulness,
 which is why we report it separately from retrieval.
 
