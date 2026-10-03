@@ -1,0 +1,28 @@
+{
+  "config": "main",
+  "n_passages": 5,
+  "dev_claims": 120,
+  "test_claims": 300,
+  "signals": {
+    "cross_encoder_top": {
+      "test_auc": 0.807,
+      "threshold_from_dev_on_test": {
+        "threshold": 5.3591,
+        "misses_caught": 68,
+        "misses": 74,
+        "hits_refused": 109,
+        "hits": 226
+      }
+    },
+    "dense_top": {
+      "test_auc": 0.726,
+      "threshold_from_dev_on_test": {
+        "threshold": 0.5912,
+        "misses_caught": 35,
+        "misses": 74,
+        "hits_refused": 36,
+        "hits": 226
+      }
+    }
+  }
+}

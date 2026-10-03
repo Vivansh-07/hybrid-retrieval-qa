@@ -622,4 +622,31 @@ Next:        —
 
 ---
 
+### 2026-10-03 — Could a retrieval signal tell the reader to abstain?
+Commit:      see the commit adding scripts/abstention.py
+Config:      main configuration, and the best system (`--best`)
+Command:     `python scripts/abstention.py`; `python scripts/abstention.py --best`
+Hardware:    RTX 3050 Laptop GPU (4 GB)
+
+Result:      Label: is any gold abstract among the 5 passages given to the reader?
+             main: yes for 226/300 test claims (74 misses); best: 235/300 (65 misses).
+             ROC AUC on test          main    best
+               top cross-encoder     0.807   0.782
+               top dense cosine      0.726   0.718
+             Threshold chosen on the 120 dev claims (maximising caught misses minus refused
+             hits), applied once to test, main configuration:
+               cross-encoder: abstains on 68/74 misses and 109/226 answerable claims
+               dense:         abstains on 35/74 misses and  36/226 answerable claims
+             Best system, cross-encoder: 59/65 misses, 118/235 answerable.
+Latency:     n/a (signals come from retrieval that runs anyway)
+
+Observation: The reranker's confidence carries real signal (AUC about 0.8), but a single
+             threshold cannot buy abstention cheaply: catching most misses refuses about half
+             of the answerable claims. Only 27 dev claims are misses, so the threshold itself
+             is noisy. A reader that abstains needs more than a score cut-off, e.g. a trained
+             verifier over the claim and passages.
+Next:        one sentence in the paper (Answer quality) and a viva answer.
+
+---
+
 <!-- add new entries above this line, newest last -->
