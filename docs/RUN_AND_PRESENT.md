@@ -85,10 +85,12 @@ models (~100 MB–1 GB each) once, into `data\hf_cache\`. After that it works of
 ```
 python -m pytest tests/ -q
 ```
-**Expect:** `34 passed`.
+**Expect:** `66 passed`.
 **What it shows:** the metrics (Recall, MRR, nDCG) and RRF are implemented correctly;
-the tests compare them to hand-worked answers. They also check the config overrides
-the embedding-cache naming and the significance comparisons.
+the tests compare them to hand-worked answers. They also check the config overrides,
+the embedding-cache naming and the significance comparisons, that the paper's references
+and figures resolve, and that the headline numbers in the paper and README match the
+files in `results/`.
 
 ### Step 2: BM25 baseline (≈3 min first time, including downloads)
 ```
