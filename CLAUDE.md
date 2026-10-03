@@ -269,6 +269,15 @@ plus RAG/FiD and attribution (ALCE). **Three research gaps** this project addres
   (https://claude.ai/artifact/GEbH9cU6oLxKbpxAtDsCMC), titles + speaker notes + sources in
   `docs/SLIDES.md`. Remaining (Vivansh): review the AI labels/scores, rewrite the paper in
   own words where needed, Overleaf compile, viva rehearsal, fresh-clone pass.
+- **2026-10-03:** `demo.py --best` (fine-tuned encoder + tuned weight) and a configurations
+  table in the Results tab; `scripts/pick_demo_claims.py`, four demo claims checked live
+  (269, 1303, 659, 660). Found that BM25 weight 0.3 < 61/160 means BM25 only re-orders the
+  dense top 100 (verified: no fused doc outside dense's list; 2 claims lost, e.g. 660); in
+  paper + viva prep. Best system reproduced exactly from a fresh clone, fine-tuning included.
+  `scripts/abstention.py`: top cross-encoder score AUC 0.807 for 'gold reached the reader',
+  but the dev threshold refuses 109/226 answerable claims to catch 68/74 misses. New tests:
+  `test_paper.py` (refs/cites/figures/braces) and `test_numbers.py` (headline numbers match
+  results/); 66 tests pass. Paper is ~5,600 words of prose.
 - **2026-10-01 (evening):** answer rubric (`docs/ANSWER_RUBRIC.md`, written before generating),
   `scripts/answer_sheet.py` + `hybridqa/scoring.py` (shuffled sheet, hidden key, `--summarize`),
   50 answers per reader generated (`results/answers.json`, `results/set_answer.mode=extractive/`):

@@ -369,6 +369,11 @@ so don't make them.
 - 2 Oct: weighted fusion (**0.759**, the best system); at your request the AI assistant
   labelled all 40 failure claims, scored all 100 answers, finished the paper (abstract,
   introduction, failure analysis, answer quality, conclusion) and made the 12 slides.
+- 3 Oct: `demo.py --best` and four demo claims checked live; what the 0.3 weight does
+  (BM25 only re-orders dense's candidates); the best system rerun from a fresh clone,
+  fine-tuning included, with identical results; abstention check (reranker score AUC
+  0.81, but no cheap threshold); tests for the paper's references and numbers (66 tests).
+  The Fri 9 Oct fresh-clone pass is still worth doing yourself: it is your evidence.
 
 ### Day-by-day plan to the deadline (about 10 Oct), 2–3 commits a day
 
