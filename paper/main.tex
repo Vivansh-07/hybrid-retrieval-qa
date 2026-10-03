@@ -228,6 +228,7 @@ number of epochs.
 Reciprocal Rank Fusion~\cite{cormack2009rrf} scores a passage by
 \begin{equation}
 \mathrm{RRF}(d)=\sum_{s \in S} \frac{w_s}{k + \mathrm{rank}_s(d)},
+\label{eq:rrf}
 \end{equation}
 where $\mathrm{rank}_s(d)$ is $d$'s position in system $s$'s list and $k$
 damps the influence of the very top ranks. Fusing \emph{ranks} rather than scores
@@ -562,7 +563,15 @@ On the test claims, fusing the fine-tuned retriever with BM25 at this weight
 gives nDCG@10 0.759 and Recall@10 0.905, the best result in this study: higher
 than equal-weight fusion ($+0.027$, $p=0.0009$) and than the original full
 pipeline ($+0.043$, $p=0.003$), and level with the fine-tuned retriever alone
-($+0.017$, $p=0.057$). With the pretrained encoder, where the two retrievers are
+($+0.017$, $p=0.057$). At this weight BM25 can only re-order the dense
+retriever's candidates: a passage retrieved by BM25 alone scores at most
+$0.3/61\approx0.0049$ in Eq.~(\ref{eq:rrf}), less than the $1/160\approx0.0063$
+of the dense retriever's 100th passage, so it never reaches the fused top 100
+(on the test claims, no fused document lies outside the dense retriever's list).
+The gain therefore comes from re-ordering. Its price is small here: only two
+test claims have a gold abstract in BM25's top ten that the dense retriever does
+not retrieve, among them ``Ivermectin is used to treat onchocerciasis'', which
+BM25 ranks first. With the pretrained encoder, where the two retrievers are
 equally strong, the weight makes no difference ($p=0.88$). Even here, reranking
 the weighted fusion lowers the score (0.745).
 
@@ -769,7 +778,9 @@ their evidence does not add up (claim 1259 in our test set is a concrete case).
 Fusing documents instead did not help on average (Section~\ref{sec:results}), so
 such cases remain. The BM25 weight is a single number tuned on 120 development
 claims; the subset analysis suggests the best weight differs from claim to
-claim, and weights chosen per claim are untested.
+claim, and weights chosen per claim are untested. Below a weight of about
+$61/160\approx0.38$, BM25 cannot add documents that the dense retriever missed,
+which matters most where the dense retriever is weak.
 
 \paragraph{Training.} Only the dense encoder is fine-tuned, in a single run with
 one seed. Its positive passages are weak labels chosen by the pretrained model,

@@ -180,6 +180,16 @@ dense-only dev score from fine-tuning exactly, which shows it was the same split
 works: once dense is much stronger, an equal BM25 vote pulls good results down on
 paraphrased claims; a smaller vote keeps BM25's help on exact-wording claims.
 
+**So what does a BM25 weight of 0.3 actually do?** (A sharp examiner will ask this.)
+It only re-orders the dense retriever's candidates; it never adds new ones. Work it out
+from the formula: a passage that only BM25 found scores at most 0.3/(60+1) ≈ 0.0049, but
+the dense retriever's 100th passage scores 1/(60+100) = 0.00625, and fusion keeps the
+top 100. So every BM25-only passage falls off the list. I checked it on the test claims:
+no fused document is outside the dense retriever's list. The break-even weight is
+61/160 ≈ 0.38. It costs little here: only 2 test claims have the gold abstract in BM25's
+top 10 but not in the dense list. One is "Ivermectin is used to treat onchocerciasis.",
+which BM25 ranks 1st and the best system loses completely (you can show it in the demo).
+
 **What does the failure analysis show?** (Labels were assigned by an AI assistant from fixed
 definitions: say so, and know three examples.)
 Of the 40 hardest claims, 17 (42%) are not retrieval errors: the gold abstract does not state
