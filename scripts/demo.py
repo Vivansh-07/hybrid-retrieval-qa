@@ -1,6 +1,8 @@
 """Interactive demo: one question, four retrieval strategies side by side.
 
     python scripts/demo.py              # opens http://127.0.0.1:7860 in the browser
+    python scripts/demo.py --best       # the best system (0.759 nDCG@10): fine-tuned encoder,
+                                        # BM25 fused at the weight chosen on dev claims
 
 Builds the same indexes as the ablation (first launch downloads SciFact and the
 models; dense embeddings are then cached in data/indexes/), and for any question
@@ -15,6 +17,7 @@ The "Results" tab shows results/ablation.csv and the figures once they exist.
 from __future__ import annotations
 
 import argparse
+import json
 import os
 import sys
 import time
@@ -41,7 +44,42 @@ LABELS = {
     "fusion": "3 · RRF fusion",
     "fusion+rerank": "4 · Fusion + cross-encoder",
 }
-FIGURES = ["ablation_ndcg.png", "recall_curve.png", "latency_accuracy.png"]
+FIGURES = ["ablation_ndcg.png", "latency_accuracy.png", "overlap_split.png",
+           "finetune_curve_all-MiniLM-L6-v2-scifact.png", "recall_curve.png"]
+# Results tab: one row per configuration, (label, folder under results/; "" = the main run)
+CONFIGS = [
+    ("Pretrained MiniLM (main run)", ""),
+    ("BGE-small encoder", "dense_bge_small"),
+    ("Fine-tuned MiniLM", "dense_minilm_finetuned"),
+    ("Fine-tuned MiniLM, BM25 weight 0.3 (best)", "dense_minilm_finetuned__fusion_weighted"),
+]
+
+BEST_MODEL = "data/models/all-MiniLM-L6-v2-scifact"
+BEST_WEIGHTS = ROOT / "results" / "fusion_weights_all-MiniLM-L6-v2-scifact.json"
+
+
+def best_overrides() -> list[str]:
+    """The best system: the fine-tuned encoder, fused with BM25 at the weight chosen on dev claims."""
+    if not (ROOT / BEST_MODEL).is_dir():
+        sys.exit(f"--best needs the fine-tuned encoder in {BEST_MODEL}; "
+                 "run python scripts/finetune_dense.py --epochs 12 first")
+    if not BEST_WEIGHTS.exists():
+        sys.exit(f"--best needs {BEST_WEIGHTS.relative_to(ROOT)}; "
+                 f"run python scripts/tune_fusion.py --set dense.model={BEST_MODEL} first")
+    weight = json.loads(BEST_WEIGHTS.read_text(encoding="utf-8"))["chosen"]["bm25_weight"]
+    return [f"dense.model={BEST_MODEL}", f"fusion.weights=[{weight}, 1.0]"]
+
+
+def configs_table(results_dir: Path) -> pd.DataFrame:
+    """nDCG@10 of every variant in every configuration that has been run."""
+    rows = []
+    for label, sub in CONFIGS:
+        path = results_dir / sub / "metrics.json"
+        if not path.exists():
+            continue
+        scores = {v["variant"]: v["nDCG@10"] for v in json.loads(path.read_text(encoding="utf-8"))["variants"]}
+        rows.append({"configuration": label, **{LABELS[v]: scores.get(v) for v in LABELS}})
+    return pd.DataFrame(rows)
 
 
 def build_app(cfg_path: str, device: str | None, overrides: list[str] | None = None) -> gr.Blocks:
@@ -112,11 +150,12 @@ def build_app(cfg_path: str, device: str | None, overrides: list[str] | None = N
         return panels + [note, answer]
 
     def load_results():
-        csv_path = resolve(cfg, "results_dir") / "ablation.csv"
+        results_dir = resolve(cfg, "results_dir")
+        csv_path = results_dir / "ablation.csv"
         table = pd.read_csv(csv_path) if csv_path.exists() else pd.DataFrame(
             {"status": ["No results yet: run scripts/run_ablation.py first."]})
         figures = [str(p) for p in (ROOT / "paper" / "figures" / f for f in FIGURES) if p.exists()]
-        return table, figures
+        return table, configs_table(results_dir), figures
 
     claims = [q["text"] for q in pipe.queries]
 
@@ -149,9 +188,11 @@ def build_app(cfg_path: str, device: str | None, overrides: list[str] | None = N
         with gr.Tab("Results"):
             refresh = gr.Button("Reload results")
             table = gr.Dataframe(label="Ablation (results/ablation.csv)")
+            configs = gr.Dataframe(label="nDCG@10 in every configuration (results/*/metrics.json; "
+                                         "empty = not run in that configuration)")
             gallery = gr.Gallery(label="Figures (paper/figures/)", columns=3, height="auto")
-            refresh.click(load_results, None, [table, gallery])
-            app.load(load_results, None, [table, gallery])
+            refresh.click(load_results, None, [table, configs, gallery])
+            app.load(load_results, None, [table, configs, gallery])
 
     return app
 
@@ -164,8 +205,11 @@ def main() -> None:
     p.add_argument("--no-browser", action="store_true", help="don't open a browser tab automatically")
     p.add_argument("--set", dest="overrides", action="append", default=[], metavar="KEY=VALUE",
                    help="change one config value, e.g. dense.model=BAAI/bge-small-en-v1.5 (repeatable)")
+    p.add_argument("--best", action="store_true",
+                   help="run the best system: the fine-tuned encoder with the tuned BM25 fusion weight")
     args = p.parse_args()
-    build_app(args.config, args.device, args.overrides).launch(server_port=args.port, inbrowser=not args.no_browser)
+    overrides = (best_overrides() if args.best else []) + args.overrides
+    build_app(args.config, args.device, overrides).launch(server_port=args.port, inbrowser=not args.no_browser)
 
 
 if __name__ == "__main__":
