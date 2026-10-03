@@ -50,6 +50,7 @@ python -m hybridqa.cli query "Does vitamin D supplementation reduce respiratory 
 
 # interactive web demo: four strategies side by side + cited answer (http://127.0.0.1:7860)
 python scripts/demo.py
+python scripts/demo.py --best                        # the best system (fine-tuned encoder + weighted fusion)
 ```
 
 Downloads (SciFact, models) are cached inside the project in `data/hf_cache/`, not in
@@ -138,7 +139,8 @@ scripts/
   run_ablation.py        the four variants + rerank-depth and RRF-k sweeps
   make_plots.py          results/*.json → paper/figures/*.png
   failure_analysis.py    the 40 hardest claims as a worksheet for manual labelling; --summarize
-  demo.py                Gradio web demo: one question, all four variants side by side
+  demo.py                Gradio web demo: one question, all four variants side by side; --best
+  pick_demo_claims.py    claims worth showing in the demo (where the variants disagree)
   finetune_dense.py      contrastive fine-tuning of the dense encoder on SciFact train claims
   significance.py        recompute significance.json from saved runs
   compare_runs.py        paired comparison of a one-change run against the main results

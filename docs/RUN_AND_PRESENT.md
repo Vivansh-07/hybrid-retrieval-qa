@@ -257,7 +257,7 @@ python -m hybridqa.cli query "Does vitamin D reduce respiratory infections?" --a
 ```
 python scripts/demo.py
 ```
-Takes ≈1.5 min to start: it builds the BM25 index, then prints
+Takes about 2 minutes to start: it builds the BM25 index, then prints
 `[demo] loading the models with one warm-up question...` and answers one question by
 itself so every model is already on the GPU. Then it prints
 `Running on local URL: http://127.0.0.1:7860` and opens that page in your browser.
@@ -266,28 +266,38 @@ Leave the terminal open. Closing it or pressing `Ctrl+C` stops the demo.
 Because of that warm-up, **the first question you ask is already fast** (≈4–5 s
 including the answer; measured 2 Oct). Start the demo a few minutes before you present.
 
-**For the presentation, run the best system**: your fine-tuned encoder, fused with BM25 at the
-weight chosen on the dev claims (0.759 nDCG@10; the header shows the active settings):
+**For the presentation, run the best system** (0.759 nDCG@10): your fine-tuned encoder,
+fused with BM25 at the weight chosen on the dev claims. The header shows
+`all-MiniLM-L6-v2-scifact` and `weights BM25 / dense = 0.3 / 1.0` when it is active:
 ```
-python scripts/demo.py --set dense.model=data/models/all-MiniLM-L6-v2-scifact --set "fusion.weights=[0.3, 1.0]"
+python scripts/demo.py --best
 ```
-(The folder `data\models\all-MiniLM-L6-v2-scifact` must exist; if it doesn't, run
-`python scripts/finetune_dense.py --epochs 12` first.)
+Startup takes about 2 minutes (measured 3 Oct). `--best` needs the folder
+`data\models\all-MiniLM-L6-v2-scifact` (from `python scripts/finetune_dense.py --epochs 12`)
+and `results\fusion_weights_all-MiniLM-L6-v2-scifact.json` (from `scripts/tune_fusion.py`);
+if either is missing it says which command to run.
 
-To run the demo with the stronger dense model instead (the header shows which models are active):
+To run the demo with the stronger off-the-shelf dense model instead:
 ```
 python scripts/demo.py --set dense.model=BAAI/bge-small-en-v1.5 --set "dense.query_prefix=Represent this sentence for searching relevant passages: "
-```
-
-Or with your fine-tuned encoder (the best-performing setup):
-```
-python scripts/demo.py --set dense.model=data/models/all-MiniLM-L6-v2-scifact
 ```
 
 - **Live demo tab:** pick a SciFact claim from the dropdown (or type any question) →
   **Retrieve**. Four columns show what BM25, dense, fusion and fusion+rerank each
   return; ✅ marks the correct paper. Below: the generated answer with citations.
-- **Results tab:** your `ablation.csv` table and the three figures.
+- **Results tab:** your `ablation.csv` table, nDCG@10 in every configuration (the
+  progression up to 0.759 in one table) and the figures.
+
+**Claims to show** (each checked in the running `--best` demo on 3 Oct; the same ranks
+come from `python scripts/pick_demo_claims.py`, which lists more). Type them exactly,
+full stop included, or pick them from the dropdown, so ✅ marks the gold paper:
+
+| Claim | What the four columns show | What it shows |
+|---|---|---|
+| *Cold exposure reduces BAT recruitment.* (269) | BM25 2nd, dense 2nd, fusion 1st, rerank 1st | Fusion: both retrievers rank it 2nd, and their agreement puts it first. |
+| *Tirasemtiv has no effect on fast-twitch muscle.* (1303) | BM25 misses it, dense 1st, fusion 2nd, rerank 2nd | Dense matches meaning: the paper calls the drug CK-2017357 and says "fast skeletal muscle", so BM25 has no words to match. |
+| *Ivermectin is used to treat lymphatic filariasis.* (659) | 1st in BM25, dense and fusion; the reranker drops it to 6th, out of view | The reranker can hurt, which is why it adds no accuracy overall. |
+| *Ivermectin is used to treat onchocerciasis.* (660) | BM25 1st; dense misses it, and so does the best system's fusion | An honest failure. At weight 0.3, BM25 can only re-order dense's candidates. The reader then wrote "Ivermectin is a sedative…" and cited an unrelated paper: the case for a reader that abstains. |
 
 ---
 
@@ -295,24 +305,22 @@ python scripts/demo.py --set dense.model=data/models/all-MiniLM-L6-v2-scifact
 
 **At home, the day before (needs internet the first time):**
 1. Run steps 1–6 above so `results/` and `paper/figures/` are filled with your numbers.
-2. Try the demo and pick **3 claims** to show: one where BM25 wins, one where dense
-   wins, one where reranking fixes the order. Write them down. (For example, claim 660,
-   *"Ivermectin is used to treat onchocerciasis."*: BM25 ranks the gold paper first but
-   the cross-encoder pushes it out of the top 5, a live `reranker_error` example.
-   `results/failure_analysis.csv` lists more candidates.)
+2. Start `python scripts/demo.py --best` and run the four claims in "Claims to show"
+   (Step 8) once, so you have seen what each column shows. Pick three if time is short:
+   269, 1303 and 660 cover fusion, dense and a failure.
 3. Take screenshots of the ablation table, the figures and the demo, as a backup in
    case anything fails in class.
 
 **In class (about 12 minutes):** present the 12 slides (about 9 minutes; what to say for
 each is in [SLIDES.md](SLIDES.md)), then the live demo (about 3 minutes). Start the demo
-a few minutes before your slot: it takes about 1.5 minutes to load. If the teacher also
+a few minutes before your slot: it takes about 2 minutes to load. If the teacher also
 wants to see the code and the output files:
 
 | # | Show | Say |
 |---|---|---|
 | 1 | VS Code: `src/hybridqa/pipeline.py`, the `retrieve()` function | "All four strategies share one index; only this function changes. That makes it a controlled ablation." |
 | 2 | Run `python -m pytest tests/ -q` live | "The metrics are implemented from their definitions and checked against hand-computed values." |
-| 3 | Start the demo (command above, with the fine-tuned encoder) a few minutes before your slot | ≈1.5 min to load; the first question is then fast. Talk through the pipeline diagram in the README meanwhile |
+| 3 | Start the demo (`python scripts/demo.py --best`) a few minutes before your slot | About 2 min to load; the first question is then fast. Talk through the pipeline diagram in the README meanwhile |
 | 4 | `results/ablation.csv` | The main result: which strategy wins and at what cost |
 | 5 | `results/significance.json` | Which improvements are statistically real (p < 0.05) and which are not |
 | 6 | `paper/figures/latency_accuracy.png` | "Reranking depth is the accuracy/speed dial" |

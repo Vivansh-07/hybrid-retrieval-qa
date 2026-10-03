@@ -52,7 +52,7 @@ To find out which retriever helps which claims, I split the 300 test claims by h
 
 ## 8. Fine-tuning the encoder gave the largest gain
 
-The biggest improvement did not come from adding stages but from adapting the dense encoder to the domain. I fine-tuned MiniLM on SciFact's 689 training claims with a contrastive loss, using 120 other training claims to decide when to stop; it took about ten minutes on my laptop GPU. Dense retrieval alone went from 0.679 to 0.742, better than a larger off-the-shelf encoder. Then I fused it with BM25, giving BM25 a weight of 0.3 that I chose on the held-out claims, never on the test set. The result is 0.759, significantly better than the original pipeline (p = 0.003), and since it needs no reranker it is also about three times faster.
+The biggest improvement did not come from adding stages but from adapting the dense encoder to the domain. I fine-tuned MiniLM on SciFact's 689 training claims with a contrastive loss, using 120 other training claims to decide when to stop; it took about ten minutes on my laptop GPU. Dense retrieval alone went from 0.679 to 0.742, better than a larger off-the-shelf encoder. Then I fused it with BM25, giving BM25 a weight of 0.3 that I chose on the held-out claims, never on the test set. The result is 0.759, significantly better than the original pipeline (p = 0.003), and since it needs no reranker it is also about three times faster. If asked what the weight does: at 0.3, BM25 can only re-order the dense retriever's candidates, never add new ones, because a passage only BM25 found scores less than the dense retriever's 100th passage.
 
 *Numbers:* `results/dense_minilm_finetuned/comparison.json`, `results/dense_minilm_finetuned__fusion_weighted/`, `results/dense_bge_small/`, `results/fusion_weights_all-MiniLM-L6-v2-scifact.json`
 
@@ -76,6 +76,6 @@ Be specific about limits; examiners reward it. Everything was measured on one da
 
 ## 12. Three takeaways
 
-To sum up: combining keyword and meaning-based search helps when the two are of similar strength, because they fail on different claims. The cross-encoder reranker, the most expensive stage, gave no significant gain in any configuration I tried. The largest gain came from fine-tuning the dense encoder on in-domain training claims: 0.759 at about a third of the original pipeline's cost per claim. Next I would choose fusion weights per claim, try a reranker trained on scientific text, and make the reader say when the evidence is missing. Now switch to the demo: run python scripts/demo.py, ask a claim, and show the four strategies side by side with the cited answer.
+To sum up: combining keyword and meaning-based search helps when the two are of similar strength, because they fail on different claims. The cross-encoder reranker, the most expensive stage, gave no significant gain in any configuration I tried. The largest gain came from fine-tuning the dense encoder on in-domain training claims: 0.759 at about a third of the original pipeline's cost per claim. Next I would choose fusion weights per claim, try a reranker trained on scientific text, and make the reader say when the evidence is missing. Now switch to the demo, already started with python scripts/demo.py --best: pick the prepared claims and show the four strategies side by side with the cited answer.
 
 *Numbers:* paper, Conclusion
