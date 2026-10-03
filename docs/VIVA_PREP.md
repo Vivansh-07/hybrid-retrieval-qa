@@ -88,6 +88,15 @@ was chosen on the dev set before the test set was evaluated, once. And the gain 
 training run with one seed, and the positives are weak labels (the chunk of the evidence
 paper that the base model found most similar), not human-marked sentences.
 
+**Could someone else get your 0.759?**
+Yes, exactly. On 3 Oct the repository was cloned fresh from GitHub and the whole chain was
+rerun: fine-tuning (11 minutes), choosing the BM25 weight on the dev claims, then the
+test evaluation. Every epoch's dev score was identical, the weight search picked 0.3
+again, and all 21 test metrics matched to the last digit. Training is seeded and was
+deterministic on this GPU. Caveat if pressed: a different GPU or library version could
+change the last decimals, since GPU arithmetic is not guaranteed bit-identical across
+hardware.
+
 **Why chunk at all? SciFact abstracts are short.**
 I measured it. For BM25 it makes no difference (+0.002 nDCG@10 unchunked, p = 0.82). For
 the neural models it matters: on whole abstracts the dense encoder loses 0.031 (p = 0.009)

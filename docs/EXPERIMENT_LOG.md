@@ -597,4 +597,29 @@ Next:        none planned; added to the paper (Results, Limitations) and viva pr
 
 ---
 
+### 2026-10-03 — Reproducibility of the best system from a fresh clone
+Commit:      72ba527 (cloned from GitHub into D:\Deep Learning\Claude\_repro_best)
+Config:      fine-tuned MiniLM, BM25 weight from tune_fusion.py, otherwise unchanged
+Command:     in the clone: `python -m pytest tests -q`;
+             `python scripts/finetune_dense.py --epochs 12`;
+             `python scripts/tune_fusion.py --set dense.model=data/models/all-MiniLM-L6-v2-scifact`;
+             `python scripts/run_ablation.py --set dense.model=data/models/all-MiniLM-L6-v2-scifact
+             --set "fusion.weights=[0.3, 1.0]" --variants dense fusion --out results/_repro_best`
+             (HF_HOME pointed at the existing download cache; model, index and results new)
+Hardware:    NVIDIA GeForce RTX 3050 Laptop GPU (4 GB)
+
+Result:      Fine-tuning: all 12 epochs' train loss and dev nDCG@10/Recall@10 identical to
+             results/finetune_all-MiniLM-L6-v2-scifact/history.json (best epoch 12, 0.7704).
+             Weight grid on the 120 dev claims identical; 0.3 chosen again (dev 0.7879).
+             Test: all 21 metric columns of dense (0.7416) and weighted fusion (0.7587,
+             Recall@10 0.905) identical to the committed results.
+Latency:     fine-tuning 11 min 23 s, weight tuning 2 min 47 s, evaluation 1 min 19 s
+
+Observation: The best system, training included, is exactly reproducible from the repository
+             (seeded, and deterministic on this GPU). The earlier fresh-clone check (2 Oct)
+             covered the main ablation only. The clone was deleted afterwards.
+Next:        —
+
+---
+
 <!-- add new entries above this line, newest last -->
