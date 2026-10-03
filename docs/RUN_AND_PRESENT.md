@@ -343,7 +343,26 @@ Your repo: <https://github.com/Vivansh-07/hybrid-retrieval-qa> (private for now)
    Commits are credited to you by that email.
 2. Your profile page → **Contribution settings → Private contributions** ✔.
    Otherwise commits to a private repo do not show on your graph.
-3. Commit to the `main` branch. Commits on other branches don't count until merged.
+3. Commits count once they are on `main`: commit to `main` directly, or merge the pull
+   request (below). Commits on a branch don't count until it is merged. Opening a pull
+   request counts as a contribution on its own.
+
+**Working with pull requests (from 3 Oct):** each piece of work goes on its own branch
+and into `main` through a pull request. GitHub then runs all the tests on its own
+machines (`.github/workflows/tests.yml`) and shows a green tick or a red cross on the PR.
+Merge only with a green tick.
+```
+git checkout main
+git pull
+git checkout -b review/failure-labels          # one branch per piece of work
+git add .
+git commit -m "Failure analysis: reviewed labels 1-20"
+git push -u origin review/failure-labels
+gh pr create --fill                             # opens the pull request
+```
+When the tests pass: **Merge pull request** on the PR page (or `gh pr merge --merge
+--delete-branch`), then `git checkout main` and `git pull`. Several commits can go into
+one PR; one PR per day's piece of work is a good rhythm.
 
 **Daily routine (2 minutes, VS Code terminal):**
 ```
