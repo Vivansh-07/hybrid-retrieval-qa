@@ -569,4 +569,32 @@ Next:        paper answer-quality subsection (done in the same commit series).
 
 ---
 
+### 2026-10-03 — What the BM25 weight of 0.3 does; demo check of the best system
+Commit:      f1eba53 (analysis), 4779497 (demo claims)
+Config:      best system: fine-tuned MiniLM, RRF k = 60, weights BM25 / dense = 0.3 / 1.0,
+             fusion.top_k = 100 passages
+Command:     saved runs in results/dense_minilm_finetuned/ and
+             results/dense_minilm_finetuned__fusion_weighted/ (a scratch script, no retrieval);
+             `python scripts/pick_demo_claims.py`; `python scripts/demo.py --best`
+Hardware:    RTX 3050 Laptop GPU (demo only)
+
+Result:      No document in the weighted fusion lists lies outside the dense retriever's list
+             (0 over 300 claims). From the formula: a BM25-only passage scores at most
+             0.3/61 = 0.0049 < 1/160 = 0.0063 for dense's 100th passage, and fusion keeps 100,
+             so BM25 only re-orders dense's candidates. Break-even weight 61/160 = 0.38.
+             Claims with gold in BM25's top 10 but absent from the dense list: 2 (303, 660);
+             equal-weight fusion keeps 1 of them in its top 10, weighted fusion neither.
+             Demo (--best): claims 269, 1303, 659 and 660 show the same top-5 ranks as the runs.
+Latency:     demo startup 2 min (BM25 index 28 s, model warm-up 82 s); per claim 17-47 ms for
+             BM25/dense, 64-100 ms fusion, 0.4-0.5 s with the reranker
+
+Observation: The 0.759 comes from re-ordering, at the cost of claims only BM25 finds. With the
+             fine-tuned encoder that cost is 2 claims; with a weaker encoder it would be larger,
+             so the weight should be re-tuned (or kept above 0.38) if the encoder changes.
+             For claim 660 the reader, given no relevant passage, wrote "Ivermectin is a
+             sedative that is used to treat onchocerciasis" citing an antipsychotics paper.
+Next:        none planned; added to the paper (Results, Limitations) and viva prep.
+
+---
+
 <!-- add new entries above this line, newest last -->
