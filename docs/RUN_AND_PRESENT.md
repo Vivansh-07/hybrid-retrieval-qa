@@ -303,6 +303,21 @@ full stop included, or pick them from the dropdown, so ✅ marks the gold paper:
 
 ---
 
+### Step 9: The paper as a PDF (no LaTeX on this PC needed)
+Every pull request that changes `paper/` makes GitHub compile the paper
+(`.github/workflows/paper.yml`, pdflatex + bibtex). The run's summary shows the page
+count; the PDF and the build log are attached to the run as the artifact **paper**:
+on GitHub, **Actions → paper → the latest run → Artifacts → paper**, or in the terminal
+```
+gh run download --name paper --dir data\paper_pdf
+```
+which saves `main.pdf` into `data\paper_pdf\` (the latest run's). The 4 Oct build was
+exactly **8 pages**. Overleaf works as before (upload `paper_overleaf.zip`); use it to
+edit and preview, and use the GitHub build to check that what is in the repository
+compiles.
+
+---
+
 ## 3. Presentation day
 
 **At home, the day before (needs internet the first time):**
@@ -404,10 +419,10 @@ Commit after **each** row item, not once per day.
 | Sun 4 Oct | (1) Score 20 answers of `results/answer_scoring.csv` yourself on paper, without looking at the scores, then compare and fix any you now disagree with | `Answer scoring: own check of 20 answers` |
 | Mon 5 Oct | (1) Read Method and Experimental Setup; rewrite every sentence you could not defend in the viva | `Paper: method in my words`<br>`Paper: setup in my words` |
 | Tue 6 Oct | (1) Same for Results<br>(2) Same for Failure Analysis | `Paper: results in my words`<br>`Paper: failure analysis in my words` |
-| Wed 7 Oct | (1) Introduction, Conclusion and abstract<br>(2) Compile on Overleaf; check the page limit | `Paper: introduction and conclusion in my words` |
+| Wed 7 Oct | (1) Introduction, Conclusion and abstract<br>(2) Open a PR with your paper edits; its GitHub build shows the page count (Step 9) | `Paper: introduction and conclusion in my words` |
 | Thu 8 Oct | (1) Practise the slides with [SLIDES.md](SLIDES.md); change any wording you would say differently<br>(2) Download the deck as PowerPoint and PDF | `Slides: notes in my words` |
 | Fri 9 Oct | (1) Fresh-clone test: clone into a new folder **on D:**, follow this file from step 1, fix what breaks<br>(2) Viva rehearsal with `docs/VIVA_PREP.md`; write down what you stumbled on | `Reproducibility pass`<br>`Viva prep notes` |
-| Sat 10 Oct | (1) Final read-through; export the paper PDF from Overleaf into `paper/`<br>(2) Buffer | `Final paper PDF` |
+| Sat 10 Oct | (1) Final read-through; put the final PDF (GitHub build or Overleaf export) into `paper/`<br>(2) Buffer | `Final paper PDF` |
 
 If you change a label or a score, run the `--summarize` command again and update the
 numbers in the paper (Failure Analysis and Answer Quality) and on slides 9 and 10.
