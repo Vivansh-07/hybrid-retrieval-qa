@@ -262,11 +262,27 @@ Be able to open the file and explain, without preamble:
 If you cannot explain a line, delete it or rewrite it in a way you can. Code you cannot
 defend is worse than code you do not have.
 
+**How do you know your code computes what you say it does?**
+Three layers. (1) 72 unit tests: the metrics are compared with values worked out by hand
+from their definitions, RRF with a hand-computed fusion, the AUC with scikit-learn's.
+(2) External agreement: my BM25 gives 0.656 on SciFact where the BEIR paper reports
+0.665, so the data loading and evaluation behave as expected. (3) GitHub runs all the
+tests on every pull request, and other tests check that the paper's references resolve
+and that its headline numbers still match the files in `results/`. If asked, open
+`tests/test_metrics.py` and walk through `test_ndcg_hand_computed`.
+
+**Why pull requests for a one-person project?**
+Every change goes through a branch and a pull request, so it is tested on GitHub before
+it reaches `main`, and the paper is compiled there too (that build found a table that
+overflowed its column, which I fixed). It also leaves a reviewable history: what changed,
+why, and that the tests passed at the time.
+
 ---
 
 ## The day before
 
-- Rerun the ablation from a clean clone. Numbers in your slides must match `results/`.
+- Rerun the ablation from a clean clone (done once on 3 Oct for the best system: identical).
+  Numbers in your slides must match `results/`.
 - Print the paper and one page with the ablation table on it. Bring both.
 - Know your headline numbers cold. Zero-shot pipeline: full system 0.715 nDCG@10; fusion
   gives +0.031 over dense (p = 0.019) and +0.053 over BM25 (p < 0.0001); the reranker adds
