@@ -4,9 +4,9 @@
 % and MiKTeX, so no extra files are needed.
 % Compile:  pdflatex main && bibtex main && pdflatex main && pdflatex main
 %
-% Length: about 5,600 words of prose, 5 tables and 4 figures, estimated at about
-% 8 pages (not compiled here; check the page count in Overleaf). If it is over
-% the limit, cut in this order:
+% Length: about 5,600 words of prose, 5 tables and 4 figures: exactly 8 pages as
+% built by the paper workflow on GitHub (4 Oct; Actions tab -> "paper" -> artifact).
+% If an edit pushes it over the limit, cut in this order:
 %   1. the ablation bar figure (fig:ablation): it repeats Table tab:ablation,
 %      so also drop the sentence that cites it;
 %   2. "Passage length": keep the first two sentences and the index size;
@@ -126,21 +126,21 @@ encoder fine-tuned on SciFact's training claims.
 \label{sec:related}
 
 % Four short paragraphs, one per thread. Two to four citations each; do not pad.
-\paragraph{Sparse retrieval.} BM25~\cite{robertson2009bm25} remains a strong
+\paragraph{Sparse retrieval} BM25~\cite{robertson2009bm25} remains a strong
 baseline on out-of-domain collections; learned sparse models such as
 SPLADE~\cite{formal2021splade} keep the inverted index while learning term weights.
 
-\paragraph{Dense retrieval.} DPR~\cite{karpukhin2020dpr} and
+\paragraph{Dense retrieval} DPR~\cite{karpukhin2020dpr} and
 Contriever~\cite{izacard2022contriever} embed queries and passages into a shared
 space. BEIR~\cite{thakur2021beir} showed that these models often lose to BM25 under
 domain shift --- the observation this work builds on.
 
-\paragraph{Fusion and reranking.} Reciprocal Rank Fusion~\cite{cormack2009rrf}
+\paragraph{Fusion and reranking} Reciprocal Rank Fusion~\cite{cormack2009rrf}
 combines ranked lists without score calibration. Cross-encoders trained on
 MS MARCO~\cite{nogueira2019passage} rescore a shallow candidate pool; monoT5 and
 related work~\cite{nogueira2020document} push this further.
 
-\paragraph{Retrieval-augmented generation.} RAG~\cite{lewis2020rag} and
+\paragraph{Retrieval-augmented generation} RAG~\cite{lewis2020rag} and
 FiD~\cite{izacard2021fid} condition generation on retrieved passages; attribution
 and citation faithfulness remain open~\cite{gao2023enabling}.
 
@@ -279,7 +279,7 @@ construction.
 % Drafted with AI assistance (Claude). Read every sentence before submitting:
 % the examiner may ask about any of them.
 % ---------------------------------------------------------------------------
-\paragraph{Dataset.} We use SciFact~\cite{wadden2020scifact} as distributed in
+\paragraph{Dataset} We use SciFact~\cite{wadden2020scifact} as distributed in
 BEIR~\cite{thakur2021beir}. The corpus holds 5{,}183 abstracts of scientific
 papers; each query is a scientific claim, and its relevant documents are the
 abstracts that contain evidence for or against it. Relevance is binary and
@@ -289,7 +289,7 @@ more than five. The 809 training claims (919 relevant abstracts), which share no
 claim with the test set, are used only to fine-tune the dense encoder
 (Section~\ref{sec:method}).
 
-\paragraph{Models.} Table~\ref{tab:models} lists the neural models, all
+\paragraph{Models} Table~\ref{tab:models} lists the neural models, all
 loaded from the Hugging Face Hub. The main configuration uses the pretrained
 MiniLM bi-encoder and the MS~MARCO cross-encoder without any training on
 SciFact, the zero-shot setting of BEIR. BM25 uses the \texttt{rank\_bm25}
@@ -314,7 +314,7 @@ Reader, extractive& \texttt{roberta-base-squad2}    & 124M \\
 \end{tabular}
 \end{table}
 
-\paragraph{Configurations.} The main configuration is evaluated in all four
+\paragraph{Configurations} The main configuration is evaluated in all four
 variants of the ablation: BM25 alone, dense alone, fusion, and fusion with
 reranking. Every further configuration changes exactly one component of it:
 whole abstracts instead of three-sentence passages; score fusion instead of RRF;
@@ -325,14 +325,14 @@ and with the tuned BM25 weight. We also
 vary the reranking depth $N\in\{10,25,50,100\}$ and the RRF constant
 $k\in\{10,30,60,100\}$ in the main configuration.
 
-\paragraph{Hardware and software.} All experiments run on one laptop: an Intel
+\paragraph{Hardware and software} All experiments run on one laptop: an Intel
 Core i5-12450H CPU, 16~GB of RAM and an NVIDIA GeForce RTX~3050 Laptop GPU with
 4~GB of memory, under Windows~11, with Python~3.13, PyTorch~2.6 (CUDA~12.6),
 sentence-transformers~6.1, transformers~5.17 and FAISS~1.15. The encoders, the
 rerankers and the reader run on the GPU; BM25 scoring and the FAISS search run
 on the CPU.
 
-\paragraph{Latency.} Latency is the wall-clock time from receiving a claim to
+\paragraph{Latency} Latency is the wall-clock time from receiving a claim to
 returning its final ranked list, including query encoding, with claims processed
 one at a time, averaged over the 300 test claims. One untimed warm-up query is
 run first, so loading the models is not counted as query time. Index
@@ -340,7 +340,7 @@ construction is reported separately. On this machine the same run differed by up
 to a factor of two in latency between repetitions, so we treat latency as
 approximate and compare it only across orders of magnitude.
 
-\paragraph{Metrics.} Each passage ranking is first converted to a document
+\paragraph{Metrics} Each passage ranking is first converted to a document
 ranking (Section~\ref{sec:method}). Recall@$k$ is the fraction of a claim's
 relevant abstracts found in the top $k$, Precision@$k$ the fraction of the top
 $k$ that is relevant, and MRR@10 the reciprocal rank of the first relevant
@@ -360,10 +360,10 @@ hand-computed values. The answers of both readers for the first 50 test claims
 with a rubric written before any answer was generated
 (\texttt{docs/ANSWER\_RUBRIC.md}). The answers are presented in random order
 without the reader's name. The scores were assigned by an AI assistant (Claude)
-following that rubric; as the same assistant produced the answers, the scoring
-is not blind, and no second annotator was used.
+following that rubric; as the same assistant had run both readers and knew which
+reader wrote each answer, the scoring is not blind, and no second annotator was used.
 
-\paragraph{Significance.} Every difference we report is tested with a
+\paragraph{Significance} Every difference we report is tested with a
 two-sided paired bootstrap over per-claim nDCG@10: the 300 claims are resampled
 with replacement 10{,}000 times (seed 42), and the $p$-value is the fraction of
 resamples, shifted to a mean difference of zero, whose mean difference is at
@@ -390,13 +390,13 @@ in nDCG@10 on the 300 test claims unless stated otherwise.
 \subsection{The retrieval ablation}
 
 \begin{table}[t]
-\centering\small
+\centering\footnotesize
 \caption{Retrieval ablation on SciFact (300 test claims) in the main
 configuration. All variants share one corpus, one passage split and one index;
 only the retrieval strategy differs. R@100 counts relevant abstracts within the
 top 100 passages; ms/q is approximate.}
 \label{tab:ablation}
-\begin{tabular}{lccccr}
+\begin{tabular}{@{}lccccr@{}}
 \toprule
 Variant & nDCG@10 & R@10 & R@100 & MRR@10 & ms/q \\
 \midrule
@@ -537,8 +537,8 @@ BGE-small encoder raises dense retrieval to 0.723 ($+0.044$ over MiniLM,
 $p=0.002$), which is now significantly better than BM25 ($+0.067$, $p=0.0003$).
 Fine-tuning MiniLM on the SciFact training claims raises its nDCG@10 on the 120
 development claims from 0.691 to 0.770 (Fig.~\ref{fig:finetune}) and on the
-test claims from 0.679 to 0.742 ($+0.063$, $p<10^{-4}$), the best result in this
-study. The fine-tuned retriever places a relevant abstract in its top ten for
+test claims from 0.679 to 0.742 ($+0.063$, $p<10^{-4}$), the best single retriever
+in this study. The fine-tuned retriever places a relevant abstract in its top ten for
 269 of the 300 claims, against 248 before fine-tuning, at no extra cost per
 query. With the same size as before, it is level with the larger BGE-small
 ($+0.018$, $p=0.23$).
@@ -766,18 +766,18 @@ conflicting evidence or to granularity.
 % Drafted with AI assistance (Claude). Read every sentence before submitting:
 % the examiner may ask about any of them.
 % ---------------------------------------------------------------------------
-\paragraph{One dataset.} All results come from SciFact: 300 English test claims
+\paragraph{One dataset} All results come from SciFact: 300 English test claims
 about biomedical research and 5{,}183 abstracts. Whether the findings, in
 particular that fusion helps only when the two retrievers are of similar
 strength, hold on other domains or on longer documents is not established.
 
-\paragraph{Document-level judgements.} Relevance is judged per abstract, so we
+\paragraph{Document-level judgements} Relevance is judged per abstract, so we
 cannot tell whether the passage a retriever found is the one that holds the
 evidence. Because several passages share an abstract, the top 100 passages cover
 only about 50 abstracts, so our Recall@100 is recall within the top 100 passages
 and is not comparable across passage lengths; the @10 metrics are unaffected.
 
-\paragraph{Fusion design.} Fusion operates on passages: when BM25 and the dense
+\paragraph{Fusion design} Fusion operates on passages: when BM25 and the dense
 retriever each rank a different passage of the same relevant abstract first,
 their evidence does not add up (claim 1259 in our test set is a concrete case).
 Fusing documents instead did not help on average (Section~\ref{sec:results}), so
@@ -787,14 +787,14 @@ claim, and weights chosen per claim are untested. Below a weight of about
 $61/160\approx0.38$, BM25 cannot add documents that the dense retriever missed,
 which matters most where the dense retriever is weak.
 
-\paragraph{Training.} Only the dense encoder is fine-tuned, in a single run with
+\paragraph{Training} Only the dense encoder is fine-tuned, in a single run with
 one seed. Its positive passages are weak labels chosen by the pretrained model,
 and it sees only in-batch negatives; the rerankers and the reader are used
 without any training on SciFact. The fine-tuned retriever's gain over the
 original full pipeline is not significant ($p=0.13$), although its gains over
 each single retriever and over fusion are.
 
-\paragraph{Measurement.} Latency was measured on one laptop with one claim at a
+\paragraph{Measurement} Latency was measured on one laptop with one claim at a
 time and varied by up to a factor of two between identical runs, so it supports
 comparisons across orders of magnitude only. We ran many significance tests
 without correcting for multiple comparisons, and the subgroup analysis uses the
