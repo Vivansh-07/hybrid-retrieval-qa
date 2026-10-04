@@ -1,0 +1,42 @@
+# Builds paper/main.tex into a PDF on GitHub's machines whenever the paper changes,
+# so the page count and LaTeX warnings can be checked without installing LaTeX.
+# The PDF and the build log are attached to the run as the "paper" artifact
+# (Actions tab -> the run -> Artifacts), or: gh run download <run id> -n paper
+name: paper
+
+on:
+  pull_request:
+    paths: ["paper/**", ".github/workflows/paper.yml"]
+  push:
+    branches: [main]
+    paths: ["paper/**", ".github/workflows/paper.yml"]
+  workflow_dispatch:
+
+jobs:
+  pdf:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Compile with latexmk (pdflatex + bibtex)
+        uses: xu-cheng/latex-action@v3
+        with:
+          root_file: main.tex
+          working_directory: paper
+
+      - name: Page count and warnings
+        if: always()
+        run: |
+          pages=$(grep -ao "/Type */Page[^s]" paper/main.pdf | wc -l)
+          echo "pages: $pages"
+          echo "### Paper: $pages pages" >> "$GITHUB_STEP_SUMMARY"
+          grep -E "LaTeX Warning|Overfull|Underfull|undefined" paper/main.log | sort | uniq -c | sort -rn | head -40 || true
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: paper
+          path: |
+            paper/main.pdf
+            paper/main.log
