@@ -278,6 +278,15 @@ plus RAG/FiD and attribution (ALCE). **Three research gaps** this project addres
   but the dev threshold refuses 109/226 answerable claims to catch 68/74 misses. New tests:
   `test_paper.py` (refs/cites/figures/braces) and `test_numbers.py` (headline numbers match
   results/); 66 tests pass. Paper is ~5,600 words of prose.
+- **2026-10-04:** Pull-request workflow (Vivansh asked for PRs; Claude merges each once the
+  checks pass). Every change now goes branch -> PR -> merge; never commit straight to main.
+  CI: `.github/workflows/tests.yml` (pytest, CPU torch) on every PR and push to main;
+  `.github/workflows/paper.yml` compiles the paper with latexmk on PRs touching `paper/`
+  (PDF + log as the "paper" artifact). No LaTeX installed locally (not needed). First build:
+  exactly 8 pages; fixed Table II overflow, "Dataset.:" paragraph punctuation, a duplicated
+  "best result" claim and the "assistant produced the answers" wording (#3). Abstention
+  helpers moved to `src/hybridqa/abstention.py` with tests (#5); README badges and findings
+  (#6). 72 tests pass.
 - **2026-10-01 (evening):** answer rubric (`docs/ANSWER_RUBRIC.md`, written before generating),
   `scripts/answer_sheet.py` + `hybridqa/scoring.py` (shuffled sheet, hidden key, `--summarize`),
   50 answers per reader generated (`results/answers.json`, `results/set_answer.mode=extractive/`):
