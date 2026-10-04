@@ -149,7 +149,7 @@ scripts/
   query_subsets.py       which retriever helps which kind of claim (overlap, numbers, rare terms)
   answer_sheet.py        blind sheet for hand-scoring the generated answers; --summarize
 tests/                   unit tests: metrics, fusion, config, significance, subsets, scoring
-paper/                   LaTeX skeleton, bibliography, figures
+paper/                   LaTeX source, bibliography, figures (GitHub builds the PDF: Actions → paper)
 docs/
   WORKFLOW.md            week-by-week plan through to the viva
   VIVA_PREP.md           expected questions with worked answers
