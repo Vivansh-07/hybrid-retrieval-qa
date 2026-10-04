@@ -27,18 +27,13 @@ from pathlib import Path
 REPO = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(REPO / "src"))
 
+from hybridqa.abstention import apply_threshold, auc, best_threshold  # noqa: E402
 from hybridqa.config import apply_overrides, load_config  # noqa: E402
 from hybridqa.data import dev_split, load_dataset_for  # noqa: E402
 from hybridqa.pipeline import RetrievalPipeline  # noqa: E402
 
 BEST = ["dense.model=data/models/all-MiniLM-L6-v2-scifact", "fusion.weights=[0.3, 1.0]"]
 SIGNALS = ("cross_encoder_top", "dense_top")
-
-
-def auc(pos: list[float], neg: list[float]) -> float:
-    """P(score of a random hit > score of a random miss), ties count half (Mann-Whitney)."""
-    wins = sum((p > n) + 0.5 * (p == n) for p in pos for n in neg)
-    return wins / (len(pos) * len(neg))
 
 
 def collect(pipe: RetrievalPipeline, queries: list[dict], qrels: dict, n_passages: int) -> list[dict]:
@@ -54,25 +49,6 @@ def collect(pipe: RetrievalPipeline, queries: list[dict], qrels: dict, n_passage
             "dense_top": pipe.retrieve(q["text"], "dense")[0][1],
         })
     return rows
-
-
-def best_threshold(rows: list[dict], signal: str) -> float:
-    """Abstain when the signal is below t; pick t maximising caught misses - refused hits (rates)."""
-    hits = [r[signal] for r in rows if r["gold_in_passages"]]
-    misses = [r[signal] for r in rows if not r["gold_in_passages"]]
-    candidates = sorted({r[signal] for r in rows})
-    return max(candidates, key=lambda t: sum(m < t for m in misses) / len(misses)
-               - sum(h < t for h in hits) / len(hits))
-
-
-def apply_threshold(rows: list[dict], signal: str, t: float) -> dict:
-    hits = [r for r in rows if r["gold_in_passages"]]
-    misses = [r for r in rows if not r["gold_in_passages"]]
-    return {
-        "threshold": round(t, 4),
-        "misses_caught": sum(r[signal] < t for r in misses), "misses": len(misses),
-        "hits_refused": sum(r[signal] < t for r in hits), "hits": len(hits),
-    }
 
 
 def main() -> None:
