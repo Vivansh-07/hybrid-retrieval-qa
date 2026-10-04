@@ -1,5 +1,8 @@
 # Hybrid Sparse–Dense Retrieval for Scientific Question Answering
 
+[![tests](https://github.com/Vivansh-07/hybrid-retrieval-qa/actions/workflows/tests.yml/badge.svg)](https://github.com/Vivansh-07/hybrid-retrieval-qa/actions/workflows/tests.yml)
+[![paper](https://github.com/Vivansh-07/hybrid-retrieval-qa/actions/workflows/paper.yml/badge.svg)](https://github.com/Vivansh-07/hybrid-retrieval-qa/actions/workflows/paper.yml)
+
 A multi-stage retrieval pipeline for question answering over a specialised corpus,
 evaluated with a controlled ablation on **SciFact** (BEIR).
 
