@@ -417,22 +417,25 @@ Commit after **each** row item, not once per day.
 
 | Date | Work, one commit each | Commit message idea |
 |---|---|---|
-| Sat 3 Oct | (1) Check failure labels 1–20 in `results/failure_analysis.csv`: change any you disagree with and say why in `notes`<br>(2) Labels 21–40, then `python scripts/failure_analysis.py --summarize` | `Failure analysis: reviewed labels 1-20`<br>`Failure analysis: reviewed labels 21-40` |
-| Sun 4 Oct | (1) Score 20 answers of `results/answer_scoring.csv` yourself on paper, without looking at the scores, then compare and fix any you now disagree with | `Answer scoring: own check of 20 answers` |
-| Mon 5 Oct | (1) Read Method and Experimental Setup; rewrite every sentence you could not defend in the viva | `Paper: method in my words`<br>`Paper: setup in my words` |
-| Tue 6 Oct | (1) Same for Results<br>(2) Same for Failure Analysis | `Paper: results in my words`<br>`Paper: failure analysis in my words` |
-| Wed 7 Oct | (1) Introduction, Conclusion and abstract<br>(2) Open a PR with your paper edits; its GitHub build shows the page count (Step 9) | `Paper: introduction and conclusion in my words` |
-| Thu 8 Oct | (1) Practise the slides with [SLIDES.md](SLIDES.md); change any wording you would say differently<br>(2) Download the deck as PowerPoint and PDF | `Slides: notes in my words` |
+| Wed 7 Oct | (1) Review the 40 failure labels with [FAILURE_REVIEW.md](FAILURE_REVIEW.md): tick each one you agree with; change any you don't in `results/failure_analysis.csv`<br>(2) Score 20 answers of `results/answer_scoring.csv` yourself, without looking at the scores, then compare | `Failure analysis: reviewed all 40 labels`<br>`Answer scoring: own check of 20 answers` |
+| Thu 8 Oct | (1) Read the paper (PDF from Step 9) section by section; rewrite every sentence you could not defend in the viva, in a PR<br>(2) Practise the slides with [SLIDES.md](SLIDES.md); download the deck as PowerPoint and PDF | `Paper: method and results in my words`<br>`Slides: notes in my words` |
 | Fri 9 Oct | (1) Fresh-clone test: clone into a new folder **on D:**, follow this file from step 1, fix what breaks<br>(2) Viva rehearsal with `docs/VIVA_PREP.md`; write down what you stumbled on | `Reproducibility pass`<br>`Viva prep notes` |
 | Sat 10 Oct | (1) Final read-through; put the final PDF (GitHub build or Overleaf export) into `paper/`<br>(2) Buffer | `Final paper PDF` |
 
-If you change a label or a score, run the `--summarize` command again and update the
-numbers in the paper (Failure Analysis and Answer Quality) and on slides 9 and 10.
+The review and rewriting planned for 3–6 Oct moved to 7–8 Oct; the rest is unchanged.
+If you change a label or a score, run `--summarize` again (and `--markdown` for a label)
+and update the numbers in the paper (Failure Analysis and Answer Quality) and on slides 9
+and 10. The tests catch a paper number that no longer matches `results/`.
 
 If a day slips, drop items in the order listed in `CLAUDE.md` §7 ("If behind, cut in
 this order"), never the four-row ablation, the failure analysis or the significance test.
 
 ### How to label the failure worksheet
+
+To **review** the labels already assigned, read [FAILURE_REVIEW.md](FAILURE_REVIEW.md): the same
+40 claims grouped by category, with the reason for each label and a checkbox. Corrections
+go into the CSV (as below); then run `python scripts/failure_analysis.py --summarize` and
+`--markdown`.
 
 Open `results\failure_analysis.csv` in Excel. For each of the 40 rows, read the claim,
 the gold abstract's title and opening, and the ranks, then type **one** category, the
