@@ -53,6 +53,15 @@ CONFIGS = [
     ("Fine-tuned MiniLM", "dense_minilm_finetuned"),
     ("Fine-tuned MiniLM, BM25 weight 0.3 (best)", "dense_minilm_finetuned__fusion_weighted"),
 ]
+# One-click claims for the presentation, (button label, claim text). Checked in the running
+# demo with --best (docs/RUN_AND_PRESENT.md, "Claims to show"); other configurations rank
+# them differently. scripts/pick_demo_claims.py finds more.
+PREPARED = [
+    ("Fusion wins (269)", "Cold exposure reduces BAT recruitment."),
+    ("Dense wins (1303)", "Tirasemtiv has no effect on fast-twitch muscle."),
+    ("Reranker drops it (659)", "Ivermectin is used to treat lymphatic filariasis."),
+    ("Lost by fusion (660)", "Ivermectin is used to treat onchocerciasis."),
+]
 
 BEST_MODEL = "data/models/all-MiniLM-L6-v2-scifact"
 BEST_WEIGHTS = ROOT / "results" / "fusion_weights_all-MiniLM-L6-v2-scifact.json"
@@ -68,6 +77,11 @@ def best_overrides() -> list[str]:
                  f"run python scripts/tune_fusion.py --set dense.model={BEST_MODEL} first")
     weight = json.loads(BEST_WEIGHTS.read_text(encoding="utf-8"))["chosen"]["bm25_weight"]
     return [f"dense.model={BEST_MODEL}", f"fusion.weights=[{weight}, 1.0]"]
+
+
+def _constant(value: str):
+    """A no-argument callback returning `value` (a lambda in a loop would capture the last one)."""
+    return lambda: value
 
 
 def configs_table(results_dir: Path) -> pd.DataFrame:
@@ -172,6 +186,9 @@ def build_app(cfg_path: str, device: str | None, overrides: list[str] | None = N
                 claim_picker = gr.Dropdown(claims, label="Pick a SciFact test claim (gold evidence is known)",
                                            scale=3)
                 want_answer = gr.Checkbox(value=True, label="Generate cited answer", scale=1)
+            prepared = [(label, text) for label, text in PREPARED if text in qid_by_text]
+            with gr.Row():
+                prepared_buttons = [gr.Button(label, size="sm") for label, _ in prepared]
             question = gr.Textbox(label="…or type any question",
                                   placeholder="Does vitamin D reduce respiratory infections?")
             go = gr.Button("Retrieve", variant="primary")
@@ -184,6 +201,9 @@ def build_app(cfg_path: str, device: str | None, overrides: list[str] | None = N
             outputs = panels + [note, answer]
             go.click(run, [question, want_answer], outputs)
             question.submit(run, [question, want_answer], outputs)
+            for button, (_, text) in zip(prepared_buttons, prepared):
+                # one click: put the claim in the box, then retrieve
+                button.click(_constant(text), None, question).then(run, [question, want_answer], outputs)
 
         with gr.Tab("Results"):
             refresh = gr.Button("Reload results")
