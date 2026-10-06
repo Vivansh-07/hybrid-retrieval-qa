@@ -4,14 +4,13 @@
 % and MiKTeX, so no extra files are needed.
 % Compile:  pdflatex main && bibtex main && pdflatex main && pdflatex main
 %
-% Length: about 5,600 words of prose, 5 tables and 4 figures: exactly 8 pages as
-% built by the paper workflow on GitHub (4 Oct; Actions tab -> "paper" -> artifact).
-% If an edit pushes it over the limit, cut in this order:
-%   1. the ablation bar figure (fig:ablation): it repeats Table tab:ablation,
-%      so also drop the sentence that cites it;
-%   2. "Passage length": keep the first two sentences and the index size;
-%   3. "Reranking depth and fusion settings": one sentence per sweep;
-%   4. Related Work: one sentence per paragraph.
+% Length: about 5,700 words of prose, 5 tables and 3 figures. The paper workflow on
+% GitHub builds it and reports the page count (Actions tab -> "paper" -> artifact).
+% The ablation bar chart was already cut (6 Oct). If an edit pushes it over 8 pages,
+% cut next, in this order:
+%   1. "Passage length": keep the first two sentences and the index size;
+%   2. "Reranking depth and fusion settings": one sentence per sweep;
+%   3. Related Work: one sentence per paragraph.
 % Never cut the ablation table, the significance tests or the failure analysis.
 % ---------------------------------------------------------------------------
 \documentclass[conference]{IEEEtran}
@@ -417,16 +416,9 @@ RRF fusion      & 0.710 & \textbf{0.833} & \textbf{0.947} & 0.675 & 119 \\
 % 2026-09-28; ms/q from the identical re-run of 2026-10-01 with the warm-up query.
 \end{table}
 
-\begin{figure}[t]
-\centering
-\includegraphics[width=\columnwidth]{figures/ablation_ndcg.png}
-\caption{nDCG@10 of the four variants in the main configuration
-(Table~\ref{tab:ablation}).}
-% If the paper runs over the page limit, drop this figure: it repeats Table II.
-\label{fig:ablation}
-\end{figure}
-
-Table~\ref{tab:ablation} and Fig.~\ref{fig:ablation} show the ablation. BM25
+% The bar chart of these four numbers (figures/ablation_ndcg.png) was dropped on 6 Oct
+% to stay within 8 pages: it repeated this table. The demo's Results tab still shows it.
+Table~\ref{tab:ablation} shows the ablation. BM25
 reaches an nDCG@10 of 0.656, close to the BM25 result reported for SciFact in
 BEIR~\cite{thakur2021beir} (0.665), which suggests that our passage split and
 evaluation behave as intended.
