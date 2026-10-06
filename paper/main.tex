@@ -133,16 +133,23 @@ SPLADE~\cite{formal2021splade} keep the inverted index while learning term weigh
 \paragraph{Dense retrieval} DPR~\cite{karpukhin2020dpr} and
 Contriever~\cite{izacard2022contriever} embed queries and passages into a shared
 space. BEIR~\cite{thakur2021beir} showed that these models often lose to BM25 under
-domain shift --- the observation this work builds on.
+domain shift --- the observation this work builds on. GPL~\cite{wang2022gpl} adapts
+a dense retriever to a new domain without labels, from generated queries; SciFact
+provides labelled training claims, so we fine-tune on those instead.
 
 \paragraph{Fusion and reranking} Reciprocal Rank Fusion~\cite{cormack2009rrf}
-combines ranked lists without score calibration. Cross-encoders trained on
+combines ranked lists without score calibration. Bruch et
+al.~\cite{bruch2024fusion} find RRF sensitive to its parameters and a tuned convex
+combination of scores better; on SciFact we find RRF insensitive to $k$ and tied
+with score fusion (Section~\ref{sec:results}). Cross-encoders trained on
 MS MARCO~\cite{nogueira2019passage} rescore a shallow candidate pool; monoT5 and
 related work~\cite{nogueira2020document} push this further.
 
 \paragraph{Retrieval-augmented generation} RAG~\cite{lewis2020rag} and
 FiD~\cite{izacard2021fid} condition generation on retrieved passages; attribution
-and citation faithfulness remain open~\cite{gao2023enabling}.
+and citation faithfulness remain open~\cite{gao2023enabling}. Selective question
+answering~\cite{kamath2020selective} trains a calibrator that decides when a model
+should abstain; we test whether a retrieval score alone could make that decision.
 
 % ===========================================================================
 \section{Method}
