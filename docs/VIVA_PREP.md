@@ -236,6 +236,27 @@ This *is* the retrieval half of RAG, evaluated properly. Most RAG work reports o
 answer quality, which conflates retrieval failures with generation failures. Splitting the
 evaluation is deliberate: if the gold passage was never retrieved, no reader can fix it.
 
+**Does your fusion result agree with the literature?** (Bruch et al., ACM TOIS 2024)
+Partly. They compared RRF with a convex combination of normalised scores over several
+datasets and found RRF sensitive to its parameters and a *tuned* combination better. On
+SciFact I find RRF insensitive to k (0.709 to 0.714 for k from 10 to 100) and tied with
+an *untuned* min-max score fusion (0.717 against 0.710, p = 0.27). Not a contradiction:
+one dataset against several, and I did not tune the score combination. Where we agree:
+one fusion parameter can be tuned from few labelled examples. They tune the score
+weight; I tuned the BM25 weight inside RRF on 120 dev claims, and it gave the best result.
+
+**Why fine-tune on labels instead of an unsupervised method such as GPL?**
+GPL (Wang et al., NAACL 2022) is for a domain without labelled queries: it generates
+synthetic queries for the target documents and labels them with a cross-encoder. SciFact
+comes with 809 labelled training claims, so supervised fine-tuning is the direct route.
+GPL is what I would use for a new corpus with no training claims.
+
+**Is your abstention check new?**
+No, and the paper does not claim it is. Selective question answering (Kamath et al., ACL
+2020) trains a separate calibrator that decides when a QA model should abstain. My check
+is a simpler baseline: can one retrieval score decide it? It cannot cheaply, which is
+consistent with their reason for training a calibrator.
+
 **Is your citation metric measuring faithfulness?**
 No, and I am careful about that in the paper. Citation precision measures whether the cited
 documents are gold documents. It does not verify that the sentence is actually supported by
