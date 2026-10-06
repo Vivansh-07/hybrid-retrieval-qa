@@ -290,9 +290,11 @@ python scripts/demo.py --set dense.model=BAAI/bge-small-en-v1.5 --set "dense.que
 - **Results tab:** your `ablation.csv` table, nDCG@10 in every configuration (the
   progression up to 0.759 in one table) and the figures.
 
-**Claims to show** (each checked in the running `--best` demo on 3 Oct; the same ranks
-come from `python scripts/pick_demo_claims.py`, which lists more). Type them exactly,
-full stop included, or pick them from the dropdown, so ✅ marks the gold paper:
+**Claims to show** (each checked in the running `--best` demo on 3 and 6 Oct; the same
+ranks come from `python scripts/pick_demo_claims.py`, which lists more). Each has a
+button above the question box (**Fusion wins (269)**, **Dense wins (1303)**, **Reranker
+drops it (659)**, **Lost by fusion (660)**): one click fills in the claim and retrieves.
+Typed by hand, they must match exactly, full stop included, so that ✅ marks the gold paper:
 
 | Claim | What the four columns show | What it shows |
 |---|---|---|
@@ -322,9 +324,9 @@ compiles.
 
 **At home, the day before (needs internet the first time):**
 1. Run steps 1–6 above so `results/` and `paper/figures/` are filled with your numbers.
-2. Start `python scripts/demo.py --best` and run the four claims in "Claims to show"
-   (Step 8) once, so you have seen what each column shows. Pick three if time is short:
-   269, 1303 and 660 cover fusion, dense and a failure.
+2. Start `python scripts/demo.py --best` and click the four claim buttons ("Claims to
+   show", Step 8) once, so you have seen what each column shows. Pick three if time is
+   short: 269, 1303 and 660 cover fusion, dense and a failure.
 3. Take screenshots of the ablation table, the figures and the demo, as a backup in
    case anything fails in class.
 
