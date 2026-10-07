@@ -1,6 +1,7 @@
 # Literature Survey: Hybrid Sparse–Dense Retrieval for Scientific Question Answering
 
 Vivansh Garg · Department of Computer Science and Engineering (Data Science), Manipal University Jaipur
+
 Deep Learning course project · first version 13 September 2026, updated 7 October 2026
 
 > The September version reviewed 15 works up to 2023. This update adds 25 works from
