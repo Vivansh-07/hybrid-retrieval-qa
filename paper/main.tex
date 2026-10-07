@@ -4,14 +4,13 @@
 % and MiKTeX, so no extra files are needed.
 % Compile:  pdflatex main && bibtex main && pdflatex main && pdflatex main
 %
-% Length: about 5,700 words of prose, 5 tables and 3 figures. The paper workflow on
+% Length: 5 tables and 2 figures (Fig. 1 diagram, overlap plot). The paper workflow on
 % GitHub builds it and reports the page count (Actions tab -> "paper" -> artifact).
-% The ablation bar chart was already cut (6 Oct). If an edit pushes it over 8 pages,
-% cut next, in this order:
-%   1. "Passage length": keep the first two sentences and the index size;
-%   2. "Reranking depth and fusion settings": one sentence per sweep;
-%   3. Related Work: one sentence per paragraph.
-% Never cut the ablation table, the significance tests or the failure analysis.
+% Already cut to stay at 8 pages: the ablation bar chart (6 Oct), the reranking-depth
+% plot and the fine-tuning curve (7 Oct), and the passage-length details. Next, if needed:
+%   1. the answer-quality subsection: one example per reader;
+%   2. the failure analysis: two examples instead of four.
+% Never cut the ablation table, the significance tests or the failure-category table.
 % ---------------------------------------------------------------------------
 \documentclass[conference]{IEEEtran}
 \IEEEoverridecommandlockouts
@@ -19,6 +18,8 @@
 \usepackage{cite}
 \usepackage{amsmath,amssymb}
 \usepackage{graphicx}
+\usepackage{tikz}
+\usetikzlibrary{arrows.meta,fit,positioning}
 \usepackage{booktabs}
 \usepackage{url}
 \usepackage[hidelinks]{hyperref}
@@ -40,26 +41,23 @@ vivanshgarg05@gmail.com}
 
 % ===========================================================================
 \begin{abstract}
-% 150--200 words. Write this LAST, after the numbers are in.
-% Formula: problem -> why existing methods fall short -> what you built ->
-%          what you measured -> the single most surprising number -> what it means.
-Retrieval-augmented question answering over scientific literature depends on
-finding the right evidence, yet lexical matching fails when a claim is phrased
-differently from its evidence, and dense retrieval trained on general text
-struggles with specialised vocabulary. We build a pipeline that runs BM25 and a
-dense bi-encoder independently, merges their rankings with Reciprocal Rank
-Fusion (RRF), reranks the fused passages with a cross-encoder and answers with
-citations, and we evaluate every stage separately on SciFact (300 claims, 5{,}183
-abstracts) with paired significance tests and latency. With a pretrained
-encoder, BM25 and dense retrieval are tied (nDCG@10 0.656 and 0.679) but succeed
-on different claims, and fusion beats both (0.710); the cross-encoder adds no
-significant accuracy (+0.006) while nearly tripling latency. Splitting the
-claims by their word overlap with the evidence shows where each retriever helps:
-dense retrieval on paraphrased claims, BM25 on claims that share the evidence's
-wording. Fine-tuning the encoder on SciFact's training claims raises dense
-retrieval to 0.742, and fusing it with BM25 at a weight chosen on held-out claims
-gives 0.759, significantly above the original pipeline. A failure analysis finds
-that 42\% of the hardest misses are claims whose gold abstract does not state them.
+% Under 200 words, in three parts: why (2 sentences), method (2), output (4).
+Question answering over scientific literature is only as good as the evidence it
+retrieves, yet keyword search misses claims phrased differently from their
+evidence, and dense retrievers trained on general text miss specialised
+vocabulary. Hybrid systems combine the two, but rarely show which stage helps,
+for which claims, and at what cost. We build a five-stage pipeline (BM25 and a
+dense bi-encoder in parallel, Reciprocal Rank Fusion (RRF), cross-encoder
+reranking, and a reader that cites its sources) and evaluate each stage
+separately on SciFact (300 claims, 5{,}183 abstracts) with paired significance
+tests and latency. We also fine-tune the encoder on SciFact's training claims and
+tune the fusion weight on held-out claims. Fusion beats BM25 and dense retrieval
+alone (nDCG@10 0.710 against 0.656 and 0.679), whereas reranking adds no
+significant accuracy at nearly three times the latency. The word overlap between
+a claim and its evidence decides which retriever wins. The fine-tuned encoder
+fused with BM25 reaches 0.759, significantly above the original pipeline at about
+a third of its latency, and we show why its low BM25 weight lets BM25 only
+re-order the dense candidates.
 \end{abstract}
 
 \begin{IEEEkeywords}
@@ -102,22 +100,29 @@ a reader that cites its sources) and evaluate them in a controlled ablation in
 which only the retrieval strategy changes, with a paired significance test for
 every comparison and with latency and index cost. We then change one component
 at a time: passage length, fusion method and weights, encoder, reranker, and an
-encoder fine-tuned on SciFact's training claims.
+encoder fine-tuned on SciFact's training claims. One configuration file drives
+every run, and a fresh copy of the code reproduces all results exactly.
 
-\noindent Our contributions are:
+\noindent Recent hybrid-retrieval studies compare whole configurations by their
+average scores (Section~\ref{sec:related}). What this paper adds is:
 \begin{enumerate}\itemsep2pt
-  \item A reproducible pipeline, driven by one configuration file, whose results
-        are reproduced exactly from a fresh copy of the code.
-  \item A controlled ablation showing that fusion is the stage that helps when the
-        two retrievers are comparably strong, while cross-encoder reranking adds
-        latency but no significant accuracy, even with a twelve times larger reranker.
-  \item A query-subset analysis showing that the word overlap between a claim and
-        its evidence decides which retriever wins.
-  \item In-domain fine-tuning and fusion weights chosen on held-out claims, which
-        raise nDCG@10 from 0.715 to 0.759, a significant improvement.
-  \item A failure analysis and an answer-quality evaluation: 42\% of the hardest
-        misses are claims whose gold abstract does not support them, and the
-        generative reader trades faithfulness for usefulness.
+  \item A controlled ablation on scientific claims, with a paired significance
+        test for every comparison and with latency: fusion is the stage that helps
+        when the two retrievers are comparably strong, while cross-encoder
+        reranking adds latency but no significant accuracy, even with a twelve
+        times larger reranker.
+  \item A per-claim explanation of which retriever wins: the word overlap between
+        a claim and its evidence decides it.
+  \item An analysis of weighted RRF: below a BM25 weight of about 0.38, BM25 can
+        only re-order the dense retriever's candidates, which shows how
+        down-weighting the weaker retriever avoids the ``weakest link'' effect
+        reported for hybrid search~\cite{wang2026blend}, and what it costs.
+  \item A cheaper alternative to reranking: fine-tuning a 22M-parameter encoder on
+        689 training claims and fusing it with BM25 at a weight chosen on held-out
+        claims raises nDCG@10 from 0.715 to 0.759 at about a third of the latency.
+  \item A failure analysis and an answer-quality study: 42\% of the hardest misses
+        are claims whose gold abstract does not support them, and a retrieval score
+        alone cannot cheaply decide when the reader should abstain.
 \end{enumerate}
 
 % ===========================================================================
@@ -136,19 +141,36 @@ domain shift --- the observation this work builds on. GPL~\cite{wang2022gpl} ada
 a dense retriever to a new domain without labels, from generated queries; SciFact
 provides labelled training claims, so we fine-tune on those instead.
 
-\paragraph{Fusion and reranking} Reciprocal Rank Fusion~\cite{cormack2009rrf}
-combines ranked lists without score calibration. Bruch et
-al.~\cite{bruch2024fusion} find RRF sensitive to its parameters and a tuned convex
-combination of scores better; on SciFact we find RRF insensitive to $k$ and tied
-with score fusion (Section~\ref{sec:results}). Cross-encoders trained on
-MS MARCO~\cite{nogueira2019passage} rescore a shallow candidate pool; monoT5 and
-related work~\cite{nogueira2020document} push this further.
+\paragraph{Hybrid retrieval and reranking} Lexical and dense retrievers are
+complementary even when the dense one is weaker~\cite{chen2022hybrid}. Reciprocal
+Rank Fusion~\cite{cormack2009rrf} combines ranked lists without score
+calibration. Bruch et al.~\cite{bruch2024fusion} find RRF sensitive to its
+parameters and a tuned convex combination of scores better; on SciFact we find
+RRF insensitive to $k$ and tied with score fusion (Section~\ref{sec:results}).
+Recent studies map the design space: Wang et al.~\cite{wang2026blend} report a
+``weakest link'' effect, where one weak retrieval path degrades the fused result;
+hybrid retrieval with reranking is strongest on financial
+documents~\cite{akarsu2026bm25}; a compact MiniLM encoder fused with other
+signals and an LLM reranker does well on SciFact~\cite{rao2025rethinking}; and
+DAT~\cite{hsu2025dat} sets the fusion weight per query with an LLM.
+Cross-encoders~\cite{nogueira2019passage} rescore a shallow candidate pool;
+monoT5~\cite{nogueira2020document} and LLM rerankers push this further, and
+cross-encoders distilled from LLMs match them at a fraction of the
+cost~\cite{schlatt2025rankdistillm}.
 
 \paragraph{Retrieval-augmented generation} RAG~\cite{lewis2020rag} and
 FiD~\cite{izacard2021fid} condition generation on retrieved passages; attribution
-and citation faithfulness remain open~\cite{gao2023enabling}. Selective question
-answering~\cite{kamath2020selective} trains a calibrator that decides when a model
-should abstain; we test whether a retrieval score alone could make that decision.
+and citation faithfulness remain open~\cite{gao2023enabling}.
+OpenScholar~\cite{asai2026openscholar} answers scientific questions from 45 million
+papers with citation accuracy on par with experts. Selective question
+answering~\cite{kamath2020selective} and CRAG~\cite{yan2024crag} train components
+that decide when to abstain or retrieve again; we test whether a retrieval score
+alone could make that decision.
+
+\paragraph{Gap} These studies compare configurations by aggregate scores and tune
+fusion weights as a black box. None of them explains, claim by claim, why one
+retriever wins, or what a fusion weight does to the set of candidates; this paper
+answers both for scientific claims.
 
 % ===========================================================================
 \section{Method}
@@ -158,7 +180,47 @@ should abstain; we test whether a retrieval score alone could make that decision
 % Drafted with AI assistance (Claude). Read every sentence before submitting:
 % the examiner may ask about any of them.
 % ---------------------------------------------------------------------------
-The system is a pipeline of five stages. A query is sent to a sparse and a dense
+\begin{figure*}[t]
+\centering
+\resizebox{\textwidth}{!}{%
+\begin{tikzpicture}[font=\small,
+  stage/.style={draw, rounded corners=2pt, align=center, inner sep=4pt, text width=#1},
+  arr/.style={-{Stealth[length=2.2mm]}, thick}]
+  \node[stage=1.5cm] (claim) at (0,0) {\textbf{Claim}\\$q$};
+  \node[stage=3.1cm] (bm25) at (3.4,1.05) {\textbf{Stage 1: BM25}\\inverted index,
+    $k_1{=}0.9$, $b{=}0.4$\\top 100 passages};
+  \node[stage=3.1cm] (dense) at (3.4,-1.05) {\textbf{Stage 2: dense}\\MiniLM bi-encoder\\+ FAISS, top 100};
+  \node[draw, dashed, rounded corners=3pt, inner sep=5pt, fit=(bm25)(dense)] (group) {};
+  \node[stage=7.4cm, fill=gray!12, above=6mm of group] (offline) {\textit{Offline, once:}
+    5{,}183 abstracts $\rightarrow$ 21{,}015 passages (3-sentence windows)
+    $\rightarrow$ BM25 index + embeddings};
+  \node[stage=2.9cm] (rrf) at (7.4,0) {\textbf{Stage 3: RRF fusion}\\[2pt]
+    $\displaystyle\sum_{s} \frac{w_s}{60+\mathrm{rank}_s(d)}$\\[2pt]$w_{\mathrm{BM25}}{=}0.3$ in the best system};
+  \node[stage=2.8cm] (ce) at (10.8,0) {\textbf{Stage 4: reranker}\\cross-encoder,\\rescores the top 50};
+  \node[stage=2.5cm] (reader) at (14.0,0) {\textbf{Stage 5: reader}\\flan-t5-base,\\top 5 passages};
+  \node[stage=1.9cm] (answer) at (16.9,0) {Answer citing passages [1]--[5]};
+  \draw[arr] (claim.east) -- ([xshift=4mm]claim.east) |- (bm25.west);
+  \draw[arr] (claim.east) -- ([xshift=4mm]claim.east) |- (dense.west);
+  \draw[arr] (bm25.east) -| ([xshift=-4mm]rrf.west) -- (rrf.west);
+  \draw[arr] (dense.east) -| ([xshift=-4mm]rrf.west) -- (rrf.west);
+  \draw[arr] (rrf) -- (ce);
+  \draw[arr] (ce) -- (reader);
+  \draw[arr] (reader) -- (answer);
+  \draw[arr, dashed] (offline.south) -- (group.north) node[midway, right, font=\footnotesize] {indexes};
+  \draw[arr, densely dotted] (rrf.south) -- ++(0,-0.75) -| (reader.south)
+    node[pos=0.27, below, font=\footnotesize] {best system (nDCG@10 0.759): no reranker};
+\end{tikzpicture}}
+\caption{System overview. Offline, the SciFact abstracts are split into
+overlapping three-sentence passages and indexed once for both retrievers. For
+each claim, BM25 and the dense bi-encoder each return their top 100 passages
+(Stages 1--2), RRF fuses the two rankings using ranks only (Stage 3), a
+cross-encoder rescores the top 50 (Stage 4), and a reader writes an answer that
+cites the top five passages (Stage 5). The best configuration, a fine-tuned
+encoder with BM25 weight 0.3, skips the reranker (dotted path).}
+\label{fig:pipeline}
+\end{figure*}
+
+The system is a pipeline of five stages (Fig.~\ref{fig:pipeline}). A query is sent to a sparse and a dense
 retriever independently; their ranked lists are fused; the fused list is reranked
 by a cross-encoder; and the top passages are passed to a reader that produces a
 cited answer. Every stage reads its settings from one configuration file, so two runs
@@ -450,49 +512,27 @@ reranking.
 
 \subsection{Reranking depth and fusion settings}
 
-\begin{figure*}[t]
-\centering
-\includegraphics[width=\textwidth]{figures/latency_accuracy.png}
-\caption{Effect of the reranking depth $N$ (number of fused candidates scored by
-the cross-encoder) on nDCG@10 (left) and latency (right). ``none'' is RRF fusion
-without reranking; dotted lines mark BM25 and dense alone. Accuracy is flat from
-$N=10$ to $N=100$ while latency grows with $N$.}
-\label{fig:latency}
-\end{figure*}
-
-Fig.~\ref{fig:latency} varies the number $N$ of fused passages that the
-cross-encoder rescores. Accuracy is flat: nDCG@10 stays between 0.716 and 0.722
-for $N$ from 10 to 100, against 0.710 without reranking, while latency grows
-from about 120~ms without reranking to about 470~ms at $N=100$. Scoring more
-candidates therefore buys cost, not accuracy. Fusion is equally insensitive to
-its constant: for $k\in\{10,30,60,100\}$, nDCG@10 lies between 0.709 and 0.714,
-so the fusion gain is not an artefact of the default $k=60$. Replacing RRF with
-min-max score fusion gives 0.717 against 0.710 ($p=0.27$). The two are tied on
-this data, so we keep RRF for its practical advantages, not for accuracy: it
-needs no score normalisation and no labelled data to tune.
-
-Fusion operates on passages, so when the two retrievers rank different passages
-of the same abstract first, their votes do not add up. Fusing documents instead,
-each represented by its best-ranked passage, does not help: nDCG@10 falls
-slightly with the pretrained encoder (0.706 against 0.710, $p=0.46$) and with
-the fine-tuned one (0.723 against 0.731, $p=0.12$), and with reranking on the
-fine-tuned encoder the drop is significant (0.709 against 0.725, $p=0.02$). A
-likely reason is that at passage level an abstract has several chances to rank
-high, one per passage, whereas at document level only one passage per abstract
-reaches the reranker.
+% The reranking-depth plot (figures/latency_accuracy.png) was dropped on 7 Oct to keep
+% 8 pages after adding Fig. 1; its numbers are in the paragraph below.
+Varying the number $N$ of fused passages that the cross-encoder rescores buys
+cost, not accuracy: nDCG@10 stays between 0.716 and 0.722 for $N$ from 10 to 100,
+against 0.710 without reranking, while latency grows from about 120~ms without
+reranking to about 470~ms at $N=100$. Fusion is equally insensitive to its
+constant ($k\in\{10,30,60,100\}$ gives 0.709 to 0.714), and min-max score fusion
+is tied with RRF (0.717 against 0.710, $p=0.27$); we keep RRF because it needs no
+score normalisation or labelled data. Fusing documents instead of passages, each
+represented by its best-ranked passage, does not help (0.706 against 0.710 with
+the pretrained encoder, $p=0.46$, and with reranking on the fine-tuned encoder a
+significant drop, 0.709 against 0.725, $p=0.02$), probably because at passage
+level an abstract has several chances to rank high.
 
 \subsection{Passage length}
 With whole abstracts instead of three-sentence passages
-(Table~\ref{tab:configs}), BM25 is unchanged ($+0.002$, $p=0.82$), but the two
-neural stages lose significantly: the dense retriever by 0.031 ($p=0.009$) and
-the full pipeline by 0.029 ($p=0.007$). For the dense retriever the cause is
-measurable: 71.6\% of the abstracts (median 317 tokens) exceed its 256-token
-input limit and are truncated, against 1.2\% of the passages (median 125
-tokens). BM25, which reads every word either way, is unaffected. Fusion still
-beats both single retrievers on whole abstracts ($p=0.0002$ against BM25,
-$p<10^{-4}$ against dense), so the fusion result does not depend on the passage
-split. The passages cost a four times larger embedding index (32.3 against
-8.0~MB).
+(Table~\ref{tab:configs}), BM25 is unchanged ($+0.002$, $p=0.82$), but the dense
+retriever loses 0.031 ($p=0.009$) and the full pipeline 0.029 ($p=0.007$): 71.6\%
+of the abstracts exceed the encoder's 256-token limit and are truncated, against
+1.2\% of the passages. Fusion still beats both single retrievers on whole
+abstracts, and the passages cost a four times larger index (32.3 against 8.0~MB).
 
 \subsection{Stronger and fine-tuned encoders}
 
@@ -521,21 +561,13 @@ Fine-tuned MiniLM           & 0.656 & 0.742$^{*}$ & 0.731$^{*}$ & 0.725 \\
 % (comparison.json in each folder holds the per-variant p-values).
 \end{table}
 
-\begin{figure}[t]
-\centering
-\includegraphics[width=\columnwidth]{figures/finetune_curve_all-MiniLM-L6-v2-scifact.png}
-\caption{Fine-tuning the dense encoder on SciFact training claims: training loss
-(top) and nDCG@10 on 120 held-out development claims (bottom) per epoch. Epoch 0
-is the pretrained model. Development accuracy rises from 0.691 to 0.770 and
-levels off after epoch 9; the weights of epoch 12 are kept.}
-\label{fig:finetune}
-\end{figure}
-
+% The fine-tuning curve (figures/finetune_curve_*.png) was dropped on 7 Oct to keep
+% 8 pages; the development scores it showed are in the text.
 Table~\ref{tab:configs} also reports two stronger encoders. The off-the-shelf
 BGE-small encoder raises dense retrieval to 0.723 ($+0.044$ over MiniLM,
 $p=0.002$), which is now significantly better than BM25 ($+0.067$, $p=0.0003$).
 Fine-tuning MiniLM on the SciFact training claims raises its nDCG@10 on the 120
-development claims from 0.691 to 0.770 (Fig.~\ref{fig:finetune}) and on the
+development claims from 0.691 to 0.770 (levelling off after epoch 9) and on the
 test claims from 0.679 to 0.742 ($+0.063$, $p<10^{-4}$), the best single retriever
 in this study. The fine-tuned retriever places a relevant abstract in its top ten for
 269 of the 300 claims, against 248 before fine-tuning, at no extra cost per
