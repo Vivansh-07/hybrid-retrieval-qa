@@ -17,10 +17,12 @@
 \usepackage{tikz}
 \usetikzlibrary{arrows.meta,fit,positioning}
 \usepackage{booktabs}
+\usepackage{microtype}
 \usepackage[hyphens]{url}
 \usepackage[hidelinks]{hyperref}
 
 \begin{document}
+\setlength{\emergencystretch}{1em} % model names in typewriter type cannot be hyphenated
 
 \title{Hybrid Sparse--Dense Retrieval for Scientific Question Answering}
 
@@ -95,8 +97,7 @@ a reader that cites its sources) and evaluate them in a controlled ablation in
 which only the retrieval strategy changes, with a paired significance test for
 every comparison and with latency and index cost. We then change one component
 at a time: passage length, fusion method and weights, encoder, reranker, and an
-encoder fine-tuned on SciFact's training claims. One configuration file drives
-every run, and a fresh copy of the code reproduces all results exactly.
+encoder fine-tuned on SciFact's training claims.
 
 \noindent Recent hybrid-retrieval studies compare whole configurations by their
 average scores (Section~\ref{sec:related}). What this paper adds is:
@@ -521,11 +522,6 @@ against 0.857, $p=0.13$), and fusion gains 0.052 over the dense retriever
 exact wording still matters. Paraphrased claims are also much harder: in the
 main configuration no method exceeds 0.53 on them, against 0.86 to 0.92 on the
 others.
-
-Two other expectations are not borne out: BM25 is not better on the 114 claims
-containing a number or a code such as ``IL-6'' (the dense retriever leads, 0.715
-against 0.655, $p=0.031$), and on claims with a rare term it only ties with the
-dense retriever.
 
 The split also explains why fusion stops helping after fine-tuning. Fine-tuning
 raises dense retrieval by 0.106 on the low-overlap claims ($p<10^{-4}$) but only by
