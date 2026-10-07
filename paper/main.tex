@@ -294,9 +294,9 @@ and the depth $N$ is the dial between accuracy and latency. Passages below depth
 $N$ keep their fused order.
 
 \subsection{Stage 5: grounded answering}
-The five highest-ranked passages are numbered \texttt{[1]}--\texttt{[5]} and given
-to \texttt{flan-t5-base}, which explains in one sentence whether they support the
-claim (greedy decoding, at most 128 new tokens). The sentence is then credited to
+The reader is \texttt{flan-t5-base}. Given the five highest-ranked passages,
+numbered [1] to [5], it explains in one sentence whether they support the claim
+(greedy decoding, at most 128 new tokens). The sentence is then credited to
 the passage with which it shares the most terms (post-hoc attribution). We chose
 this prompt on 20 training claims: asked to answer and cite inline, the model
 replies with a bare passage number (``[3].'') for 49 of the first 50 test claims,
