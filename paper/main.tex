@@ -126,18 +126,18 @@ average scores (Section~\ref{sec:related}). What this paper adds is:
 \label{sec:related}
 
 % Four short paragraphs, one per thread. Two to four citations each; do not pad.
-\paragraph{Sparse retrieval} BM25~\cite{robertson2009bm25} remains a strong
+\paragraph{Sparse retrieval.} BM25~\cite{robertson2009bm25} remains a strong
 baseline on out-of-domain collections; learned sparse models such as
 SPLADE~\cite{formal2021splade} keep the inverted index while learning term weights.
 
-\paragraph{Dense retrieval} DPR~\cite{karpukhin2020dpr} and
+\paragraph{Dense retrieval.} DPR~\cite{karpukhin2020dpr} and
 Contriever~\cite{izacard2022contriever} embed queries and passages into a shared
 space. BEIR~\cite{thakur2021beir} showed that these models often lose to BM25 under
 domain shift --- the observation this work builds on. GPL~\cite{wang2022gpl} adapts
 a dense retriever to a new domain without labels, from generated queries; SciFact
 provides labelled training claims, so we fine-tune on those instead.
 
-\paragraph{Hybrid retrieval and reranking} Lexical and dense retrievers are
+\paragraph{Hybrid retrieval and reranking.} Lexical and dense retrievers are
 complementary even when the dense one is weaker~\cite{chen2022hybrid}. Reciprocal
 Rank Fusion~\cite{cormack2009rrf} combines ranked lists without score
 calibration. Bruch et al.~\cite{bruch2024fusion} find RRF sensitive to its
@@ -154,7 +154,7 @@ monoT5~\cite{nogueira2020document} and LLM rerankers push this further, and
 cross-encoders distilled from LLMs match them at a fraction of the
 cost~\cite{schlatt2025rankdistillm}.
 
-\paragraph{Retrieval-augmented generation} RAG~\cite{lewis2020rag} and
+\paragraph{Retrieval-augmented generation.} RAG~\cite{lewis2020rag} and
 FiD~\cite{izacard2021fid} condition generation on retrieved passages; attribution
 and citation faithfulness remain open~\cite{gao2023enabling}.
 OpenScholar~\cite{asai2026openscholar} answers scientific questions from 45 million
@@ -163,7 +163,7 @@ answering~\cite{kamath2020selective} and CRAG~\cite{yan2024crag} train component
 that decide when to abstain or retrieve again; we test whether a retrieval score
 alone could make that decision.
 
-\paragraph{Gap} These studies compare configurations by aggregate scores and tune
+\paragraph{Gap.} These studies compare configurations by aggregate scores and tune
 fusion weights as a black box. None of them explains, claim by claim, why one
 retriever wins, or what a fusion weight does to the set of candidates; this paper
 answers both for scientific claims.
@@ -181,17 +181,17 @@ answers both for scientific claims.
 \begin{tikzpicture}[font=\footnotesize,
   stage/.style={draw, rounded corners=2pt, align=center, inner sep=3pt, text width=#1},
   arr/.style={-{Stealth[length=2mm]}, thick}]
-  \node[stage=1.2cm] (claim) at (0,0) {\textbf{Claim}\\$q$};
-  \node[stage=2.8cm] (bm25) at (3.0,0.8) {\textbf{Stage 1: BM25}\\inverted index,\\top 100 passages};
-  \node[stage=2.8cm] (dense) at (3.0,-0.8) {\textbf{Stage 2: dense}\\MiniLM bi-encoder\\+ FAISS, top 100};
+  \node[stage=1.0cm] (claim) at (0,0) {\textbf{Claim}\\$q$};
+  \node[stage=2.8cm] (bm25) at (2.7,0.8) {\textbf{Stage 1: BM25}\\inverted index,\\top 100 passages};
+  \node[stage=2.8cm] (dense) at (2.7,-0.8) {\textbf{Stage 2: dense}\\MiniLM bi-encoder\\+ FAISS, top 100};
   \node[draw, dashed, rounded corners=3pt, inner sep=4pt, fit=(bm25)(dense)] (group) {};
-  \node[stage=5.6cm, fill=gray!12, above=5mm of group] (offline) {\textit{Offline, once:} 5{,}183
-    abstracts $\rightarrow$ 21{,}015 passages $\rightarrow$ BM25 index + embeddings};
-  \node[stage=2.6cm] (rrf) at (6.6,0) {\textbf{Stage 3: RRF}\\[1pt]
+  \node[stage=6.0cm, fill=gray!12, above=5mm of group] (offline) {\textit{Offline, once:}
+    5{,}183 abstracts $\rightarrow$ 21{,}015 passages\\$\rightarrow$ BM25 index + passage embeddings};
+  \node[stage=2.6cm] (rrf) at (6.2,0) {\textbf{Stage 3: RRF}\\[1pt]
     $\displaystyle\sum_{s}\frac{w_s}{60+\mathrm{rank}_s(d)}$\\[1pt]$w_{\mathrm{BM25}}{=}0.3$ (best)};
-  \node[stage=2.7cm] (ce) at (9.8,0) {\textbf{Stage 4: reranker}\\cross-encoder,\\rescores top 50};
-  \node[stage=2.7cm] (reader) at (9.8,-2.7) {\textbf{Stage 5: reader}\\flan-t5-base,\\top 5 passages};
-  \node[stage=2.4cm] (answer) at (6.6,-2.7) {Answer citing\\passages [1]--[5]};
+  \node[stage=3.0cm] (ce) at (9.55,0) {\textbf{Stage 4: reranker}\\cross-encoder,\\rescores top 50};
+  \node[stage=3.0cm] (reader) at (9.55,-2.7) {\textbf{Stage 5: reader}\\flan-t5-base,\\top 5 passages};
+  \node[stage=2.4cm] (answer) at (6.2,-2.7) {Answer citing\\passages [1]--[5]};
   \draw[arr] (claim.east) -- ([xshift=3mm]claim.east) |- (bm25.west);
   \draw[arr] (claim.east) -- ([xshift=3mm]claim.east) |- (dense.west);
   \draw[arr] (bm25.east) -| ([xshift=-3mm]rrf.west) -- (rrf.west);
@@ -311,13 +311,13 @@ copies an answer span from the top passage.
 % Drafted with AI assistance (Claude). Read every sentence before submitting:
 % the examiner may ask about any of them.
 % ---------------------------------------------------------------------------
-\paragraph{Dataset} We use SciFact~\cite{wadden2020scifact} as distributed in
+\paragraph{Dataset.} We use SciFact~\cite{wadden2020scifact} as distributed in
 BEIR~\cite{thakur2021beir}: 5{,}183 abstracts, and claims whose relevant documents
 are the abstracts holding evidence for or against them, judged per abstract. All
 300 test claims are evaluated (339 relevant abstracts, 1.13 per claim); the 809
 training claims, disjoint from them, are used only for fine-tuning.
 
-\paragraph{Models and configurations} All models come from the Hugging Face Hub:
+\paragraph{Models and configurations.} All models come from the Hugging Face Hub:
 the MiniLM bi-encoder; BGE-small (\texttt{bge-small-en-v1.5}, 33.4M parameters) as
 a stronger encoder; the MS~MARCO cross-encoder (22.7M) and \texttt{bge-reranker-base}
 (278M) as rerankers; and \texttt{flan-t5-base} (248M) and \texttt{roberta-base-squad2}
@@ -330,7 +330,7 @@ passages, score fusion, document-level fusion, a BM25 weight of 0.3, BGE-small
 vary the reranking depth $N\in\{10,25,50,100\}$ and the RRF constant
 $k\in\{10,30,60,100\}$.
 
-\paragraph{Hardware and latency} All runs use one laptop (Intel Core i5-12450H,
+\paragraph{Hardware and latency.} All runs use one laptop (Intel Core i5-12450H,
 16~GB of RAM, NVIDIA RTX~3050 Laptop GPU with 4~GB) with PyTorch~2.6 and
 FAISS~1.15; the neural models run on the GPU, BM25 and the FAISS search on the
 CPU. Latency is the wall-clock time per claim to its final ranked list, one claim
@@ -338,7 +338,7 @@ at a time after an untimed warm-up query, averaged over the 300 claims. It varie
 by up to a factor of two between identical runs, so we compare it only across
 orders of magnitude.
 
-\paragraph{Metrics} Passage rankings are mapped to abstracts first. We report
+\paragraph{Metrics.} Passage rankings are mapped to abstracts first. We report
 Recall@$k$, MRR@10 and nDCG@$k$~\cite{jarvelin2002ndcg}, which discounts each
 relevant abstract by $\log_2$ of its rank; nDCG@10 is the primary metric because
 it rewards both finding the evidence and ranking it high. Since the top 100
@@ -350,7 +350,7 @@ faithfulness and citation accuracy, with a rubric written before any answer was
 generated. The scores were assigned by an AI assistant (Claude) that had run both
 readers, so the scoring is not blind, and no second annotator was used.
 
-\paragraph{Significance} Every difference is tested with a two-sided paired
+\paragraph{Significance.} Every difference is tested with a two-sided paired
 bootstrap over per-claim nDCG@10 (10{,}000 resamples, seed 42); $p=0$ is reported
 as $p<10^{-4}$, and a difference counts as significant when $p<0.05$. We do not
 correct for multiple comparisons, so $p$-values near 0.05 should be read with care.
@@ -659,23 +659,23 @@ conflicting evidence or to granularity.
 % Drafted with AI assistance (Claude). Read every sentence before submitting:
 % the examiner may ask about any of them.
 % ---------------------------------------------------------------------------
-\paragraph{Scope} All results come from SciFact (300 biomedical test claims,
+\paragraph{Scope.} All results come from SciFact (300 biomedical test claims,
 5{,}183 abstracts); other domains and longer documents are untested. Relevance is
 judged per abstract, so we cannot tell whether a retrieved passage is the one that
 holds the evidence.
 
-\paragraph{Fusion design} Fusion operates on passages, so when the two retrievers
+\paragraph{Fusion design.} Fusion operates on passages, so when the two retrievers
 rank different passages of one relevant abstract first, their evidence does not
 add up (claim 1259). The BM25 weight is one number tuned on 120 claims; per-claim
 weights are untested, and below about $61/160\approx0.38$ BM25 cannot add
 documents that the dense retriever missed.
 
-\paragraph{Training} Only the dense encoder is fine-tuned, in one run with one
+\paragraph{Training.} Only the dense encoder is fine-tuned, in one run with one
 seed, weak positive labels and in-batch negatives; the rerankers and readers are
 used off the shelf. The fine-tuned retriever's gain over the original full
 pipeline is not significant ($p=0.13$).
 
-\paragraph{Measurement} Latency was measured on one laptop and varied up to
+\paragraph{Measurement.} Latency was measured on one laptop and varied up to
 twofold; the significance tests are not corrected for multiple comparisons; the
 overlap analysis uses the gold abstract and is exploratory; and the failure
 categories and answer scores were assigned by an AI assistant following fixed
