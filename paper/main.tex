@@ -17,7 +17,7 @@
 \usepackage{tikz}
 \usetikzlibrary{arrows.meta,fit,positioning}
 \usepackage{booktabs}
-\usepackage{url}
+\usepackage[hyphens]{url}
 \usepackage[hidelinks]{hyperref}
 
 \begin{document}
@@ -184,12 +184,12 @@ answers both for scientific claims.
   \node[stage=2.8cm] (bm25) at (3.0,0.8) {\textbf{Stage 1: BM25}\\inverted index,\\top 100 passages};
   \node[stage=2.8cm] (dense) at (3.0,-0.8) {\textbf{Stage 2: dense}\\MiniLM bi-encoder\\+ FAISS, top 100};
   \node[draw, dashed, rounded corners=3pt, inner sep=4pt, fit=(bm25)(dense)] (group) {};
-  \node[stage=4.6cm, fill=gray!12, above=5mm of group] (offline) {\textit{Offline, once:} 5{,}183
+  \node[stage=5.6cm, fill=gray!12, above=5mm of group] (offline) {\textit{Offline, once:} 5{,}183
     abstracts $\rightarrow$ 21{,}015 passages $\rightarrow$ BM25 index + embeddings};
   \node[stage=2.6cm] (rrf) at (6.6,0) {\textbf{Stage 3: RRF}\\[1pt]
     $\displaystyle\sum_{s}\frac{w_s}{60+\mathrm{rank}_s(d)}$\\[1pt]$w_{\mathrm{BM25}}{=}0.3$ (best)};
-  \node[stage=2.5cm] (ce) at (9.8,0) {\textbf{Stage 4: reranker}\\cross-encoder,\\rescores top 50};
-  \node[stage=2.5cm] (reader) at (9.8,-2.7) {\textbf{Stage 5: reader}\\flan-t5-base,\\top 5 passages};
+  \node[stage=2.7cm] (ce) at (9.8,0) {\textbf{Stage 4: reranker}\\cross-encoder,\\rescores top 50};
+  \node[stage=2.7cm] (reader) at (9.8,-2.7) {\textbf{Stage 5: reader}\\flan-t5-base,\\top 5 passages};
   \node[stage=2.4cm] (answer) at (6.6,-2.7) {Answer citing\\passages [1]--[5]};
   \draw[arr] (claim.east) -- ([xshift=3mm]claim.east) |- (bm25.west);
   \draw[arr] (claim.east) -- ([xshift=3mm]claim.east) |- (dense.west);
@@ -200,7 +200,7 @@ answers both for scientific claims.
   \draw[arr] (reader) -- (answer);
   \draw[arr, dashed] (offline.south) -- (group.north) node[midway, right] {indexes};
   \draw[arr, densely dotted] (rrf.south) -- ++(0,-0.75) -| ([xshift=-6mm]reader.north)
-    node[pos=0.25, below] {best system: no reranker};
+    node[pos=0.25, above] {best system: no reranker};
 \end{tikzpicture}
 \caption{System overview. The abstracts are split into passages and indexed once,
 offline. For each claim, BM25 and the dense bi-encoder each return their top 100
@@ -211,77 +211,62 @@ rescores the top 50 (Stage 4), and a reader answers, citing the top five passage
 \label{fig:pipeline}
 \end{figure}
 
-The system is a pipeline of five stages (Fig.~\ref{fig:pipeline}). A query is sent to a sparse and a dense
-retriever independently; their ranked lists are fused; the fused list is reranked
-by a cross-encoder; and the top passages are passed to a reader that produces a
-cited answer. Every stage reads its settings from one configuration file, so two runs
-differ only in the settings that are changed on purpose.
+The system is a pipeline of five stages (Fig.~\ref{fig:pipeline}): two retrievers
+run independently, their lists are fused, the fused list is reranked, and a
+reader writes a cited answer.
 
 \subsection{Corpus preparation}
-Each abstract is split into sentences and cut into overlapping passages of three
-consecutive sentences with a stride of two, so neighbouring passages share one
-sentence and evidence that straddles a boundary stays retrievable. A trailing
-passage shorter than 120 characters is discarded, and an abstract of at most
-three sentences forms a single passage. The title of the paper is prepended to
-every passage, because in scientific abstracts the title carries much of the
-topical signal. This turns the 5{,}183 abstracts into 21{,}015 passages (4.05
-per abstract), which both retrievers index. Relevance is judged per document,
-so a ranked list of passages is mapped to documents by keeping each document at
-the position of its highest-ranked passage.
+Each abstract is split into overlapping passages of three consecutive sentences
+with a stride of two, so evidence that straddles a boundary stays retrievable,
+and the paper's title is prepended to every passage. A trailing passage shorter
+than 120 characters is dropped. The 5{,}183 abstracts yield 21{,}015 passages.
+Relevance is judged per abstract, so a ranked list of passages is mapped to
+abstracts by the position of each abstract's best-ranked passage.
 
 \subsection{Stage 1: sparse retrieval}
-BM25~\cite{robertson2009bm25} scores a query--passage pair as
+BM25~\cite{robertson2009bm25} scores a claim--passage pair as
 \begin{equation}
 \mathrm{BM25}(q,d)=\sum_{t \in q}\mathrm{IDF}(t)\,
 \frac{f(t,d)\,(k_1+1)}{f(t,d)+k_1\!\left(1-b+b\frac{|d|}{\mathrm{avgdl}}\right)},
 \end{equation}
 where $f(t,d)$ is the frequency of term $t$ in passage $d$, $|d|$ the passage
-length, $\mathrm{avgdl}$ the mean passage length and
+length, $\mathrm{avgdl}$ the mean length and
 $\mathrm{IDF}(t)=\ln\frac{N-n_t+0.5}{n_t+0.5}$ for $N$ passages of which $n_t$
-contain $t$. We use $k_1=0.9$ and $b=0.4$, the Anserini defaults used by BEIR.
-Text is lower-cased and tokenised so that hyphenated terms such as ``IL-6'' stay
-one token; 47 common function words are removed and the remaining tokens are
-Porter-stemmed. The 100 highest-scoring passages are returned. BM25 rewards exact
-overlap on rare terms, which suits the gene, drug and disease names that
-scientific claims are built around, but it cannot match a claim that is phrased
-differently from its evidence.
+contain $t$. We use $k_1=0.9$ and $b=0.4$ (the defaults used by BEIR), lower-casing,
+a tokeniser that keeps terms such as ``IL-6'' whole, stop-word removal and Porter
+stemming, and return the top 100 passages. BM25 rewards exact overlap on rare
+terms such as gene and drug names, but cannot match a claim phrased differently
+from its evidence.
 
 \subsection{Stage 2: dense retrieval}
-The dense retriever is a bi-encoder~\cite{reimers2019sbert}: one Transformer
-$E$ encodes the query and the passage separately, and relevance is the inner
-product of the two vectors,
+A bi-encoder~\cite{reimers2019sbert} encodes claim and passage separately with
+one Transformer $E$ and scores them by the inner product
 \begin{equation}
 s(q,d)=E(q)^{\top}E(d).
 \end{equation}
-We use \texttt{all-MiniLM-L6-v2}, a 6-layer model whose token outputs are
-mean-pooled into a 384-dimensional vector and L2-normalised, so that the inner
-product equals cosine similarity. Inputs are truncated to 256 tokens. Because
-$E(d)$ does not depend on the query, all passages are encoded once offline and
-stored in an exact inner-product index; at query time only the query is encoded
-and the 100 nearest passages are returned. The price of this efficiency is that
-query and passage never interact before the final inner product.
+We use \texttt{all-MiniLM-L6-v2} (6 layers, 22.7M parameters), which mean-pools
+its token outputs into an L2-normalised 384-dimensional vector, so that the inner
+product is the cosine similarity; inputs are truncated to 256 tokens. Passages are
+encoded once, offline, into an exact inner-product index; at query time only the
+claim is encoded and the 100 nearest passages are returned. The price of this
+speed is that claim and passage never interact before the final product.
 
 \subsection{In-domain fine-tuning of the dense encoder}
-The pretrained encoder has not seen scientific claims. We therefore also
-fine-tune it on the 809 training claims of SciFact, which are disjoint from the
-300 test claims; 120 of them are held out as a development set. Relevance is
-annotated per document, so for each training claim the positive passage $d_i^{+}$
-is the passage of its evidence abstract that the pretrained encoder scores
-highest. The encoder is trained with a contrastive loss that uses the other
-passages of the mini-batch as negatives~\cite{karpukhin2020dpr}:
+We also fine-tune the encoder on SciFact's 809 training claims, which are
+disjoint from the test claims, holding out 120 as a development set. As the
+positive $d_i^{+}$ for each training claim we take the passage of its evidence
+abstract that the pretrained encoder scores highest, and train with a contrastive
+loss whose negatives are the other passages of the mini-batch~\cite{karpukhin2020dpr}:
 \begin{equation}
 \mathcal{L}=-\frac{1}{B}\sum_{i=1}^{B}
 \log\frac{\exp\!\big(\tau\,s(q_i,d_i^{+})\big)}
 {\sum_{j=1}^{B}\exp\!\big(\tau\,s(q_i,d_j^{+})\big)},
 \end{equation}
-with batch size $B=32$ and scale $\tau=20$. This is a cross-entropy over the
-$B\times B$ similarity matrix whose correct class for row $i$ is column $i$. We
-train for 12 epochs with AdamW (learning rate $2\times10^{-5}$, weight decay
-0.01), a linear warm-up over the first 10\% of steps followed by linear decay,
-and gradient clipping at norm 1. After every epoch the corpus is re-encoded and
-nDCG@10 is measured on the development claims; the weights of the best epoch
-are kept. The test claims are used neither for training nor for choosing the
-number of epochs.
+with batch size $B=32$ and scale $\tau=20$: a cross-entropy over the $B\times B$
+similarity matrix whose correct class for row $i$ is column $i$. We train for 12
+epochs with AdamW (learning rate $2\times10^{-5}$) and keep the epoch with the best
+nDCG@10 on the development claims. The test claims play no part in training or in
+any choice.
 
 \subsection{Stage 3: rank fusion}
 Reciprocal Rank Fusion~\cite{cormack2009rrf} scores a passage by
@@ -289,46 +274,33 @@ Reciprocal Rank Fusion~\cite{cormack2009rrf} scores a passage by
 \mathrm{RRF}(d)=\sum_{s \in S} \frac{w_s}{k + \mathrm{rank}_s(d)},
 \label{eq:rrf}
 \end{equation}
-where $\mathrm{rank}_s(d)$ is $d$'s position in system $s$'s list and $k$
-damps the influence of the very top ranks. Fusing \emph{ranks} rather than scores
-sidesteps the incompatibility between unbounded BM25 scores and bounded cosine
-similarities, and it needs no labelled data. We use $k=60$ and, by default,
-equal weights $w_s=1$ for the two retrievers, and keep the 100 best passages; a passage that
-appears in only one list receives a contribution from that list alone. As a
-baseline we also implement score fusion, which min-max normalises the scores of
-each list per query and adds them. Finally, we tune the BM25 weight
+where $\mathrm{rank}_s(d)$ is $d$'s position in system $s$'s list and $k=60$ damps
+the influence of the very top ranks. Fusing ranks rather than scores sidesteps
+the different scales of BM25 and cosine scores and needs no labelled data. By
+default both weights $w_s$ are 1, and the 100 best fused passages are kept. As a
+baseline we also add min-max-normalised scores, and we tune
 $w_{\mathrm{BM25}}\in\{0,0.1,0.2,0.3,0.5,0.7,1,1.5,2\}$ (dense fixed at 1) by
-nDCG@10 on the 120 development claims held out during fine-tuning; the test
-claims play no part in the choice.
+nDCG@10 on the 120 development claims.
 
 \subsection{Stage 4: cross-encoder reranking}
 The 50 highest-ranked fused passages are rescored by a
-cross-encoder~\cite{nogueira2019passage}. Query and passage are concatenated
-into one input, \texttt{[CLS]}~$q$~\texttt{[SEP]}~$d$~\texttt{[SEP]}, truncated
-to 512 tokens, and a single Transformer outputs one relevance score, so every
-query token can attend to every passage token. We use
-\texttt{ms-marco-MiniLM-L-6-v2}, trained on MS~MARCO passage ranking. Nothing
-can be precomputed: each query costs one forward pass per candidate, which is
-why the cross-encoder sees only a shallow pool and never the corpus. The
-candidate depth $N$ is therefore the dial between accuracy and latency that we
-sweep in Section~\ref{sec:results}. Passages below depth $N$ keep their fused
-order behind the reranked block, so reranking reorders the list but never
-removes a passage from it.
+cross-encoder~\cite{nogueira2019passage} trained on MS~MARCO
+(\texttt{ms-marco-MiniLM-L-6-v2}). It reads claim and passage together,
+\texttt{[CLS]}~$q$~\texttt{[SEP]}~$d$~\texttt{[SEP]} (up to 512 tokens), so every
+claim token can attend to every passage token. Nothing can be precomputed: each
+claim costs one forward pass per candidate, so only a shallow pool is rescored,
+and the depth $N$ is the dial between accuracy and latency. Passages below depth
+$N$ keep their fused order.
 
 \subsection{Stage 5: grounded answering}
-The five highest-ranked passages are numbered \texttt{[1]}--\texttt{[5]} and
-given to a sequence-to-sequence reader (\texttt{flan-t5-base}), which is asked
-to explain in one sentence whether they support the claim. Decoding is greedy
-with at most 128 new tokens, so answers are reproducible. The citation is then
-attached afterwards: the sentence is credited to the passage with which it
-shares the most terms (post-hoc attribution), and that passage is mapped back
-to its source document. We chose this prompt on 20 training claims. The obvious
-alternative, asking the model to answer and cite inline, fails on claims: the
-model then replies with a passage number alone (``[3].'') for 49 of the first 50
-test claims, and the larger \texttt{flan-t5-large} still does so for 47. As a
-second reader, an extractive model (\texttt{roberta-base-squad2}) copies an
-answer span from the top passage, which makes its citation exact by
-construction.
+The five highest-ranked passages are numbered \texttt{[1]}--\texttt{[5]} and given
+to \texttt{flan-t5-base}, which explains in one sentence whether they support the
+claim (greedy decoding, at most 128 new tokens). The sentence is then credited to
+the passage with which it shares the most terms (post-hoc attribution). We chose
+this prompt on 20 training claims: asked to answer and cite inline, the model
+replies with a bare passage number (``[3].'') for 49 of the first 50 test claims,
+and \texttt{flan-t5-large} for 47. As a second reader, \texttt{roberta-base-squad2}
+copies an answer span from the top passage.
 
 % ===========================================================================
 \section{Experimental Setup}
@@ -339,99 +311,48 @@ construction.
 % the examiner may ask about any of them.
 % ---------------------------------------------------------------------------
 \paragraph{Dataset} We use SciFact~\cite{wadden2020scifact} as distributed in
-BEIR~\cite{thakur2021beir}. The corpus holds 5{,}183 abstracts of scientific
-papers; each query is a scientific claim, and its relevant documents are the
-abstracts that contain evidence for or against it. Relevance is binary and
-judged per abstract. All 300 test claims are evaluated. They have 339 relevant
-abstracts, 1.13 per claim on average: 277 claims have exactly one and none has
-more than five. The 809 training claims (919 relevant abstracts), which share no
-claim with the test set, are used only to fine-tune the dense encoder
-(Section~\ref{sec:method}).
+BEIR~\cite{thakur2021beir}: 5{,}183 abstracts, and claims whose relevant documents
+are the abstracts holding evidence for or against them, judged per abstract. All
+300 test claims are evaluated (339 relevant abstracts, 1.13 per claim); the 809
+training claims, disjoint from them, are used only for fine-tuning.
 
-\paragraph{Models} Table~\ref{tab:models} lists the neural models, all
-loaded from the Hugging Face Hub. The main configuration uses the pretrained
-MiniLM bi-encoder and the MS~MARCO cross-encoder without any training on
-SciFact, the zero-shot setting of BEIR. BM25 uses the \texttt{rank\_bm25}
-implementation.
-
-\begin{table}[t]
-\centering\footnotesize
-\caption{Neural models (Hugging Face identifiers) and their sizes.}
-\label{tab:models}
-\begin{tabular}{@{}llr@{}}
-\toprule
-Role & Model & Parameters \\
-\midrule
-Dense, main       & \texttt{all-MiniLM-L6-v2}       & 22.7M \\
-Dense, stronger   & \texttt{bge-small-en-v1.5}      & 33.4M \\
-Dense, fine-tuned & MiniLM on SciFact train         & 22.7M \\
-Reranker, main    & \texttt{ms-marco-MiniLM-L-6-v2} & 22.7M \\
-Reranker, stronger& \texttt{bge-reranker-base}      & 278M \\
-Reader            & \texttt{flan-t5-base}           & 248M \\
-Reader, extractive& \texttt{roberta-base-squad2}    & 124M \\
-\bottomrule
-\end{tabular}
-\end{table}
-
-\paragraph{Configurations} The main configuration is evaluated in all four
-variants of the ablation: BM25 alone, dense alone, fusion, and fusion with
-reranking. Every further configuration changes exactly one component of it:
-whole abstracts instead of three-sentence passages; score fusion instead of RRF;
-fusion of documents instead of passages; a BM25 weight of 0.3 in fusion, chosen
-on the development claims; the BGE-small encoder instead of MiniLM; the BGE reranker instead of the MS~MARCO
-cross-encoder (on top of BGE-small); and the fine-tuned MiniLM encoder, alone
-and with the tuned BM25 weight. We also
+\paragraph{Models and configurations} All models come from the Hugging Face Hub:
+the MiniLM bi-encoder; BGE-small (\texttt{bge-small-en-v1.5}, 33.4M parameters) as
+a stronger encoder; the MS~MARCO cross-encoder (22.7M) and \texttt{bge-reranker-base}
+(278M) as rerankers; and \texttt{flan-t5-base} (248M) and \texttt{roberta-base-squad2}
+(124M) as readers. The main configuration uses MiniLM and the MS~MARCO
+cross-encoder without any training on SciFact, the zero-shot setting of BEIR, and
+is evaluated in all four variants: BM25, dense, fusion, and fusion with reranking.
+Every further configuration changes one component: whole abstracts instead of
+passages, score fusion, document-level fusion, a BM25 weight of 0.3, BGE-small
+(with either reranker), and the fine-tuned encoder (with either weight). We also
 vary the reranking depth $N\in\{10,25,50,100\}$ and the RRF constant
-$k\in\{10,30,60,100\}$ in the main configuration.
+$k\in\{10,30,60,100\}$.
 
-\paragraph{Hardware and software} All experiments run on one laptop: an Intel
-Core i5-12450H CPU, 16~GB of RAM and an NVIDIA GeForce RTX~3050 Laptop GPU with
-4~GB of memory, under Windows~11, with Python~3.13, PyTorch~2.6 (CUDA~12.6),
-sentence-transformers~6.1, transformers~5.17 and FAISS~1.15. The encoders, the
-rerankers and the reader run on the GPU; BM25 scoring and the FAISS search run
-on the CPU.
+\paragraph{Hardware and latency} All runs use one laptop (Intel Core i5-12450H,
+16~GB of RAM, NVIDIA RTX~3050 Laptop GPU with 4~GB) with PyTorch~2.6 and
+FAISS~1.15; the neural models run on the GPU, BM25 and the FAISS search on the
+CPU. Latency is the wall-clock time per claim to its final ranked list, one claim
+at a time after an untimed warm-up query, averaged over the 300 claims. It varied
+by up to a factor of two between identical runs, so we compare it only across
+orders of magnitude.
 
-\paragraph{Latency} Latency is the wall-clock time from receiving a claim to
-returning its final ranked list, including query encoding, with claims processed
-one at a time, averaged over the 300 test claims. One untimed warm-up query is
-run first, so loading the models is not counted as query time. Index
-construction is reported separately. On this machine the same run differed by up
-to a factor of two in latency between repetitions, so we treat latency as
-approximate and compare it only across orders of magnitude.
+\paragraph{Metrics} Passage rankings are mapped to abstracts first. We report
+Recall@$k$, MRR@10 and nDCG@$k$~\cite{jarvelin2002ndcg}, which discounts each
+relevant abstract by $\log_2$ of its rank; nDCG@10 is the primary metric because
+it rewards both finding the evidence and ranking it high. Since the top 100
+passages cover only about 50 abstracts, Recall@100 is recall within the top 100
+passages and is not comparable across passage lengths. The metrics are unit-tested
+against hand-computed values. The answers of both readers to the first 50 test
+claims (100 answers) are scored from 0 to 2 on correctness, completeness,
+faithfulness and citation accuracy, with a rubric written before any answer was
+generated. The scores were assigned by an AI assistant (Claude) that had run both
+readers, so the scoring is not blind, and no second annotator was used.
 
-\paragraph{Metrics} Each passage ranking is first converted to a document
-ranking (Section~\ref{sec:method}). Recall@$k$ is the fraction of a claim's
-relevant abstracts found in the top $k$, Precision@$k$ the fraction of the top
-$k$ that is relevant, and MRR@10 the reciprocal rank of the first relevant
-abstract within the top ten. nDCG@$k$~\cite{jarvelin2002ndcg} discounts each
-relevant abstract by $\log_2$ of its rank and normalises by the best possible
-ordering; nDCG@10 is our primary metric because it is the only one that rewards
-both finding the evidence and ranking it high. All metrics are averaged over the
-claims. Two consequences of the data are worth stating. With 1.13 relevant
-abstracts per claim, Precision@10 cannot exceed about 0.11. And because several
-passages come from the same abstract, the top 100 passages cover only about 50
-distinct abstracts, so the Recall@100 we report is recall within the top 100
-passages; it is not comparable between runs with different passage lengths.
-The metrics are implemented from their definitions and unit-tested against
-hand-computed values. The answers of both readers for the first 50 test claims
-(100 answers) are scored from 0 to 2 on correctness, completeness, faithfulness
-(is every statement supported by the cited passage?) and citation accuracy,
-with a rubric written before any answer was generated
-(\texttt{docs/ANSWER\_RUBRIC.md}). The answers are presented in random order
-without the reader's name. The scores were assigned by an AI assistant (Claude)
-following that rubric; as the same assistant had run both readers and knew which
-reader wrote each answer, the scoring is not blind, and no second annotator was used.
-
-\paragraph{Significance} Every difference we report is tested with a
-two-sided paired bootstrap over per-claim nDCG@10: the 300 claims are resampled
-with replacement 10{,}000 times (seed 42), and the $p$-value is the fraction of
-resamples, shifted to a mean difference of zero, whose mean difference is at
-least as large in magnitude as the observed one. With $10^4$ resamples, $p=0$ is
-reported as $p<10^{-4}$. We test all six pairs of variants within a
-configuration, and the same variant across two configurations, and we call a
-difference significant when $p<0.05$. Next to each test we give the number of
-claims that improved, got worse or stayed the same. We do not correct for
-multiple comparisons, so $p$-values close to 0.05 should be read with care.
+\paragraph{Significance} Every difference is tested with a two-sided paired
+bootstrap over per-claim nDCG@10 (10{,}000 resamples, seed 42); $p=0$ is reported
+as $p<10^{-4}$, and a difference counts as significant when $p<0.05$. We do not
+correct for multiple comparisons, so $p$-values near 0.05 should be read with care.
 
 % ===========================================================================
 \section{Results}
@@ -441,11 +362,6 @@ multiple comparisons, so $p$-values close to 0.05 should be read with care.
 % Drafted with AI assistance (Claude). Read every sentence before submitting:
 % the examiner may ask about any of them.
 % ---------------------------------------------------------------------------
-We first report the four-way ablation in the main configuration, then how the
-reranking depth and the fusion settings affect it, then each configuration that
-changes one component, and finally the cost of every stage. All differences are
-in nDCG@10 on the 300 test claims unless stated otherwise.
-
 \subsection{The retrieval ablation}
 
 \begin{table}[t]
@@ -471,35 +387,27 @@ RRF fusion      & 0.710 & \textbf{0.833} & \textbf{0.947} & 0.675 & 119 \\
 
 % The bar chart of these four numbers (figures/ablation_ndcg.png) was dropped on 6 Oct
 % to stay within 8 pages: it repeated this table. The demo's Results tab still shows it.
-Table~\ref{tab:ablation} shows the ablation. BM25
-reaches an nDCG@10 of 0.656, close to the BM25 result reported for SciFact in
-BEIR~\cite{thakur2021beir} (0.665), which suggests that our passage split and
-evaluation behave as intended.
+Table~\ref{tab:ablation} shows the ablation; all differences below are in nDCG@10
+on the 300 test claims. BM25 reaches 0.656, close to the 0.665 that
+BEIR~\cite{thakur2021beir} reports for SciFact, which suggests that our passage
+split and evaluation behave as intended.
 % Checked 2026-10-02 against Table 2 of the BEIR paper: BM25 on SciFact = 0.665.
-The pretrained dense retriever scores 0.679. Its advantage over BM25 is not
-significant ($+0.023$, $p=0.25$): per claim, dense is better on 73, BM25 on 60,
-and 167 are tied.
+The pretrained dense retriever's 0.679 is not significantly better ($+0.023$,
+$p=0.25$; better on 73 claims, worse on 60).
 
-The two retrievers are tied on average but not on the same claims. For 223 of
-the 300 claims both place a relevant abstract in their top ten, for 17 only BM25
-does, for 25 only the dense retriever does, and for 35 neither does. This
-complementarity is what fusion exploits. RRF raises nDCG@10 to 0.710,
-significantly above both BM25 ($+0.053$, $p<10^{-4}$) and the dense retriever
-($+0.031$, $p=0.019$). Of the 42 claims on which only one retriever has a
-relevant abstract in its top ten, fusion keeps it there for 27. Fusion scores
-below both of its inputs on a single claim and above both on 25, and it raises
-the recall within the top 100 passages from 0.882 (BM25) and 0.916 (dense) to
-0.947.
+The two are tied on average but not on the same claims: for 223 claims both place
+a relevant abstract in their top ten, for 17 only BM25 does, for 25 only the dense
+retriever does, and for 35 neither does. Fusion exploits this: RRF reaches 0.710,
+significantly above BM25 ($+0.053$, $p<10^{-4}$) and the dense retriever
+($+0.031$, $p=0.019$), keeps 27 of the 42 single-retriever hits in its top ten,
+and raises recall within the top 100 passages to 0.947.
 
-Reranking the top 50 fused passages with the cross-encoder adds $+0.006$, which
-is not significant ($p=0.65$): the reranker improves 52 claims and worsens 46.
-Its largest change is at the first position (Recall@1 rises from 0.561 to
-0.577), but it almost triples the latency per claim (about 329 against 119~ms). BEIR reports that the same
-cross-encoder raises BM25 from 0.665 to 0.688 on SciFact when it reranks BM25's
-top 100 abstracts~\cite{thakur2021beir}: it has more to correct after a single
-lexical retriever than after fusion. In the
-main configuration, therefore, the stage that earns its place is fusion, not
-reranking.
+Reranking the top 50 fused passages adds $+0.006$, which is not significant
+($p=0.65$; 52 claims better, 46 worse), at almost three times the latency (329
+against 119~ms). BEIR reports that the same cross-encoder lifts BM25 from 0.665 to
+0.688 when it reranks BM25's top 100~\cite{thakur2021beir}: it has more to correct
+after a single lexical retriever than after fusion. In the main configuration the
+stage that earns its place is fusion, not reranking.
 
 \subsection{Reranking depth and fusion settings}
 
@@ -554,29 +462,20 @@ Fine-tuned MiniLM           & 0.656 & 0.742$^{*}$ & 0.731$^{*}$ & 0.725 \\
 
 % The fine-tuning curve (figures/finetune_curve_*.png) was dropped on 7 Oct to keep
 % 8 pages; the development scores it showed are in the text.
-Table~\ref{tab:configs} also reports two stronger encoders. The off-the-shelf
-BGE-small encoder raises dense retrieval to 0.723 ($+0.044$ over MiniLM,
-$p=0.002$), which is now significantly better than BM25 ($+0.067$, $p=0.0003$).
-Fine-tuning MiniLM on the SciFact training claims raises its nDCG@10 on the 120
-development claims from 0.691 to 0.770 (levelling off after epoch 9) and on the
-test claims from 0.679 to 0.742 ($+0.063$, $p<10^{-4}$), the best single retriever
-in this study. The fine-tuned retriever places a relevant abstract in its top ten for
-269 of the 300 claims, against 248 before fine-tuning, at no extra cost per
-query. With the same size as before, it is level with the larger BGE-small
-($+0.018$, $p=0.23$).
+Table~\ref{tab:configs} also reports stronger encoders. BGE-small raises dense
+retrieval to 0.723 ($+0.044$, $p=0.002$), now significantly above BM25.
+Fine-tuning MiniLM raises its nDCG@10 from 0.691 to 0.770 on the development
+claims (levelling off after epoch 9) and from 0.679 to 0.742 on the test claims
+($+0.063$, $p<10^{-4}$), the best single retriever in this study, at no extra cost
+per query and level with the larger BGE-small ($p=0.23$).
 
-A stronger dense retriever changes the role of fusion. With BGE-small, fusion
-equals the dense retriever alone (0.721 against 0.723, $p=0.87$); with the
-fine-tuned encoder it is slightly below it (0.731 against 0.742, $p=0.44$).
-Fusion helps when the two retrievers are comparably strong and fail on
-different claims, as with the pretrained MiniLM; once one retriever clearly
-dominates, equal-weight fusion adds nothing. Reranking does not significantly
-improve on fusion in any configuration: with BGE-small it gives 0.712 ($p=0.50$
-against fusion), and replacing the MS~MARCO cross-encoder by the twelve times
-larger BGE reranker gives 0.714 ($+0.002$, $p=0.86$) at about 1.2~s more per
-claim. Measured against the original full pipeline (0.715), the fine-tuned dense
-retriever alone is higher by 0.026, but that difference is not significant
-($p=0.13$).
+A stronger dense retriever changes the role of fusion: equal-weight fusion then
+matches it (BGE-small: 0.721 against 0.723) or falls slightly below it
+(fine-tuned: 0.731 against 0.742, $p=0.44$). Fusion helps when the retrievers are
+comparably strong; once one dominates, an equal vote for the weaker one adds
+nothing. Reranking does not significantly improve on fusion in any configuration,
+even with the twelve times larger BGE reranker (0.714, $p=0.86$, about 1.2~s more
+per claim).
 
 Fusion becomes useful again when the weaker retriever's vote is reduced. Tuned on
 the development claims, the BM25 weight settles at 0.3 for both encoders
@@ -623,25 +522,19 @@ exact wording still matters. Paraphrased claims are also much harder: in the
 main configuration no method exceeds 0.53 on them, against 0.86 to 0.92 on the
 others.
 
-Two common expectations are not borne out. BM25 is not better on the 114 claims
-that contain a number or a code such as ``IL-6'': there the dense retriever is
-ahead (0.715 against 0.655, $p=0.031$), while on the remaining claims the two
-are tied. And although BM25 does far better on claims with a rare term, one that
-occurs in at most five abstracts (0.721, against 0.579 on claims with common
-terms only), even there it only ties with the dense retriever.
+Two other expectations are not borne out: BM25 is not better on the 114 claims
+containing a number or a code such as ``IL-6'' (the dense retriever leads, 0.715
+against 0.655, $p=0.031$), and on claims with a rare term it only ties with the
+dense retriever.
 
-The split also locates the effect of fine-tuning and explains why fusion stops
-helping once the encoder is fine-tuned. Fine-tuning raises dense retrieval by
-0.106 on the low-overlap claims ($p<10^{-4}$) but only by 0.016 on the
-high-overlap ones ($p=0.21$): it teaches the encoder exactly the paraphrases that
-word matching misses. With the fine-tuned encoder, fusion still gains on
+The split also explains why fusion stops helping after fine-tuning. Fine-tuning
+raises dense retrieval by 0.106 on the low-overlap claims ($p<10^{-4}$) but only by
+0.016 on the high-overlap ones ($p=0.21$): it teaches the encoder the paraphrases
+that word matching misses. With the fine-tuned encoder, fusion still gains on
 high-overlap claims ($+0.040$, $p=0.0006$) but loses on low-overlap ones
-($-0.057$, $p=0.014$), where BM25 mostly contributes wrong candidates, and the
-two effects cancel on average. Weighting the retrievers per claim instead of
-equally could keep the first gain without the second loss; we leave this to
-future work. Because the overlap is computed with the gold abstract, it
-describes the claims and is not available to a retriever, and with this many
-subgroup tests, $p$-values near 0.05 are indicative only.
+($-0.057$, $p=0.014$), where BM25 mostly contributes wrong candidates, and the two
+effects cancel. The overlap is computed with the gold abstract, so it describes
+the claims and is not available to a retriever.
 
 \subsection{Answer quality}
 
@@ -667,36 +560,27 @@ With unsupported content (faithfulness 0) & 17 / 50 & 0 / 50 \\
 % Numbers: results/answer_quality.json, results/answer_scoring.csv.
 \end{table}
 
-Table~\ref{tab:answers} shows a clear trade-off between the two readers. The
-generative reader is more often right and more useful (correctness 0.84 against
-0.48; fully correct on 17 claims against 10), but a third of its answers state
-something the cited passage does not say: it attributes a CXCR2 finding to
-CX3CR1, swaps one protein for another, or calls albendazole ``an alkylating
-agent used for multiple myeloma''. The extractive reader never says anything
-unsupported, because it copies text, but most of its answers are fragments such
-as ``immunostaining'' or ``CHK2'' that do not answer the claim. Neither reader
+Table~\ref{tab:answers} shows a clear trade-off. The generative reader is more
+often right (correctness 0.84 against 0.48), but a third of its answers state
+something the cited passage does not say, such as calling albendazole ``an
+alkylating agent used for multiple myeloma''. The extractive reader never says
+anything unsupported, because it copies text, but mostly returns fragments such as
+``CHK2'' that do not answer the claim. Neither reader
 abstains: for the 9 claims whose gold abstract was not among the five passages,
 both returned an answer rather than ``Not enough evidence''. A retrieval signal
 could trigger abstention, but not cheaply: over all 300 test claims, the top
 cross-encoder score separates claims with a gold abstract among the five
 passages from those without one with an ROC AUC of 0.81 (top dense similarity:
 0.73), yet a threshold chosen on the development claims catches 68 of the 74
-misses only by also refusing 109 of the 226 answerable claims. Answer quality is
-therefore limited first by retrieval and then by the reader's faithfulness,
-which is why we report it separately from retrieval.
+misses only by also refusing 109 of the 226 answerable claims.
 
 \subsection{Cost}
-All costs were measured on the laptop described in Section~\ref{sec:setup} and
-varied between repetitions of the same run, so we give ranges. Building the BM25
-index over the 21{,}015 passages took 18 to 41~s with a pure-Python
-implementation. Encoding the passages took 53 to 130~s with MiniLM and 241~s
-with the twelve-layer BGE-small; either index occupies 32.3~MB (21{,}015 vectors
-of 384 dimensions), against 8.0~MB for whole abstracts. Per claim, BM25 took
-about 60 to 120~ms because it scores every passage, dense retrieval 16 to 32~ms,
-fusion roughly the sum of the two, and reranking 50 candidates added about 160
-to 260~ms with the MS~MARCO cross-encoder and about 1.2~s with the BGE reranker.
-Fine-tuning is a one-off cost of about ten minutes on the GPU, including an
-evaluation on the development claims after every epoch.
+Building the BM25 index over the 21{,}015 passages took 18 to 41~s and encoding
+them 53 to 130~s with MiniLM (241~s with BGE-small); the embedding index occupies
+32.3~MB, against 8.0~MB for whole abstracts. Per claim, BM25 took about 60 to
+120~ms because it scores every passage, dense retrieval 16 to 32~ms, and reranking
+50 candidates added 160 to 260~ms (about 1.2~s with the BGE reranker).
+Fine-tuning is a one-off cost of about ten minutes on the GPU.
 
 % ===========================================================================
 \section{Failure Analysis}
@@ -706,15 +590,13 @@ evaluation on the development claims after every epoch.
 % the gold passage and what was retrieved instead. Concrete examples are what an
 % examiner remembers.
 % Numbers: results/failure_analysis.csv and results/failure_summary.json.
-To see what still goes wrong, we examined the 40 test claims on which the full
-pipeline of the main configuration fails most clearly: those with no relevant
-abstract in its top ten, weighted towards claims where the reranker lost an
-abstract that fusion had found and claims on which BM25 and the dense retriever
-disagree (\texttt{scripts/failure\_analysis.py}). For each claim we read the
-gold abstract, the rank every variant gave it and the three abstracts ranked
-first, and assigned one of six categories fixed in advance: terminology
-mismatch, ambiguous claim, missing evidence, conflicting evidence, granularity
-(right abstract, wrong passage) and reranker error. The labels were assigned by
+We examined the 40 test claims on which the full pipeline fails most clearly
+(no relevant abstract in its top ten, weighted towards reranker losses and
+disagreements between the retrievers). For each we read the gold abstract, its
+rank in every variant and the abstracts ranked first, and assigned one of six
+categories fixed in advance: terminology mismatch, ambiguous claim, missing
+evidence, conflicting evidence, granularity (right abstract, wrong passage) and
+reranker error. The labels were assigned by
 an AI assistant (Claude) following these definitions and have not been
 validated by a second annotator.
 
@@ -743,24 +625,17 @@ activated by PPAR ligands''), and that abstract never mentions PPAR; claim 437,
 about myelodysplastic syndrome, is paired with an abstract on glioma models.
 With document-level judgements, such claims cap every retriever's score.
 
-Terminology mismatch accounts for 11 claims, and these have little word
-overlap with their evidence (median 0.25 of the claim's terms). The gold
-abstract for ``Aspirin inhibits the production of PGE2'' speaks only of COX
-inhibitors, so all three retrievers miss it. One claim reveals a corrupted
-abbreviation: ``SFM'' in a claim about Gabonese children is expanded as
-Schimmelpenning-Feuerstein-Mims syndrome, while its gold abstract is about
-children with malaria, where SFM most likely stands for severe falciparum
-malaria. Claim 535 shows how equal-weight fusion can hurt: the dense retriever
-ranks its gold abstract first, BM25 misses it because of different wording, and
-fusion lowers it to eleventh.
+Terminology mismatch accounts for 11 claims, with little word overlap with their
+evidence (median 0.25). The gold abstract for ``Aspirin inhibits the production
+of PGE2'' speaks only of COX inhibitors, so all three retrievers miss it; in one
+claim ``SFM'' is expanded as a rare syndrome while its abstract is about malaria.
+Claim 535 shows how equal-weight fusion can hurt: dense retrieval ranks its gold
+abstract first, BM25 misses it, and fusion lowers it to eleventh.
 
-The 8 reranker errors are cases where fusion had the gold abstract in its top
-ten and the cross-encoder pushed it out. For ``Ivermectin is used to treat
-onchocerciasis'', BM25 ranks the gold abstract first and fusion third, but the
-reranker drops it to seventeenth: the disease is only mentioned in passing in a
-broad policy abstract, and the reranker prefers unrelated abstracts about drug
-treatments. Errors of this kind are consistent with the reranker's lack of
-overall gain (Section~\ref{sec:results}). No failure was attributed to
+In the 8 reranker errors, fusion had the gold abstract in its top ten and the
+cross-encoder pushed it out: for ``Ivermectin is used to treat onchocerciasis'',
+BM25 ranks it first and fusion third, but the reranker drops it to seventeenth,
+consistent with the reranker's lack of overall gain. No failure was attributed to
 conflicting evidence or to granularity.
 
 % ===========================================================================
@@ -788,42 +663,27 @@ conflicting evidence or to granularity.
 % Drafted with AI assistance (Claude). Read every sentence before submitting:
 % the examiner may ask about any of them.
 % ---------------------------------------------------------------------------
-\paragraph{One dataset} All results come from SciFact: 300 English test claims
-about biomedical research and 5{,}183 abstracts. Whether the findings, in
-particular that fusion helps only when the two retrievers are of similar
-strength, hold on other domains or on longer documents is not established.
+\paragraph{Scope} All results come from SciFact (300 biomedical test claims,
+5{,}183 abstracts); other domains and longer documents are untested. Relevance is
+judged per abstract, so we cannot tell whether a retrieved passage is the one that
+holds the evidence.
 
-\paragraph{Document-level judgements} Relevance is judged per abstract, so we
-cannot tell whether the passage a retriever found is the one that holds the
-evidence. Because several passages share an abstract, the top 100 passages cover
-only about 50 abstracts, so our Recall@100 is recall within the top 100 passages
-and is not comparable across passage lengths; the @10 metrics are unaffected.
+\paragraph{Fusion design} Fusion operates on passages, so when the two retrievers
+rank different passages of one relevant abstract first, their evidence does not
+add up (claim 1259). The BM25 weight is one number tuned on 120 claims; per-claim
+weights are untested, and below about $61/160\approx0.38$ BM25 cannot add
+documents that the dense retriever missed.
 
-\paragraph{Fusion design} Fusion operates on passages: when BM25 and the dense
-retriever each rank a different passage of the same relevant abstract first,
-their evidence does not add up (claim 1259 in our test set is a concrete case).
-Fusing documents instead did not help on average (Section~\ref{sec:results}), so
-such cases remain. The BM25 weight is a single number tuned on 120 development
-claims; the subset analysis suggests the best weight differs from claim to
-claim, and weights chosen per claim are untested. Below a weight of about
-$61/160\approx0.38$, BM25 cannot add documents that the dense retriever missed,
-which matters most where the dense retriever is weak.
+\paragraph{Training} Only the dense encoder is fine-tuned, in one run with one
+seed, weak positive labels and in-batch negatives; the rerankers and readers are
+used off the shelf. The fine-tuned retriever's gain over the original full
+pipeline is not significant ($p=0.13$).
 
-\paragraph{Training} Only the dense encoder is fine-tuned, in a single run with
-one seed. Its positive passages are weak labels chosen by the pretrained model,
-and it sees only in-batch negatives; the rerankers and the reader are used
-without any training on SciFact. The fine-tuned retriever's gain over the
-original full pipeline is not significant ($p=0.13$), although its gains over
-each single retriever and over fusion are.
-
-\paragraph{Measurement} Latency was measured on one laptop with one claim at a
-time and varied by up to a factor of two between identical runs, so it supports
-comparisons across orders of magnitude only. We ran many significance tests
-without correcting for multiple comparisons, and the subgroup analysis uses the
-word overlap with the gold abstract, which describes the claims but is not
-available to a retriever; its results are exploratory. The failure categories
-and the answer scores were assigned by an AI assistant following fixed
-definitions, without a second annotator; the answer scoring is not blind.
+\paragraph{Measurement} Latency was measured on one laptop and varied up to
+twofold; the significance tests are not corrected for multiple comparisons; the
+overlap analysis uses the gold abstract and is exploratory; and the failure
+categories and answer scores were assigned by an AI assistant following fixed
+definitions, without a second annotator.
 
 % ===========================================================================
 \section{Conclusion}
@@ -842,14 +702,10 @@ missing.
 
 % ===========================================================================
 \section*{Reproducibility}
-Code, configuration and results:
-\url{https://github.com/Vivansh-07/hybrid-retrieval-qa}.
-All experiments run from a single configuration file; every number in this paper
-comes from the files in \texttt{results/}, which are produced by the scripts
-listed in the repository's README, and every run is recorded in its experiment
-log. A fresh clone reproduces the results exactly, including the fine-tuning: every
-epoch's development score, the chosen fusion weight and all test metrics of the
-best system are identical.
+Code, configuration, results and the experiment log are at
+\url{https://github.com/Vivansh-07/hybrid-retrieval-qa}. One configuration file
+drives every run, every number in this paper comes from \texttt{results/}, and a
+fresh clone reproduces all results exactly, including the fine-tuning.
 
 \section*{Acknowledgment}
 % TODO: thank your supervisor / course instructor here if appropriate.
