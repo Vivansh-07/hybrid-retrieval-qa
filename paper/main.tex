@@ -182,16 +182,16 @@ answers both for scientific claims.
   stage/.style={draw, rounded corners=2pt, align=center, inner sep=3pt, text width=#1},
   arr/.style={-{Stealth[length=2mm]}, thick}]
   \node[stage=1.0cm] (claim) at (0,0) {\textbf{Claim}\\$q$};
-  \node[stage=2.8cm] (bm25) at (2.7,0.8) {\textbf{Stage 1: BM25}\\inverted index,\\top 100 passages};
-  \node[stage=2.8cm] (dense) at (2.7,-0.8) {\textbf{Stage 2: dense}\\MiniLM bi-encoder\\+ FAISS, top 100};
+  \node[stage=2.8cm] (bm25) at (2.85,0.8) {\textbf{Stage 1: BM25}\\inverted index,\\top 100 passages};
+  \node[stage=2.8cm] (dense) at (2.85,-0.8) {\textbf{Stage 2: dense}\\MiniLM bi-encoder\\+ FAISS, top 100};
   \node[draw, dashed, rounded corners=3pt, inner sep=4pt, fit=(bm25)(dense)] (group) {};
-  \node[stage=6.0cm, fill=gray!12, above=5mm of group] (offline) {\textit{Offline, once:}
-    5{,}183 abstracts $\rightarrow$ 21{,}015 passages\\$\rightarrow$ BM25 index + passage embeddings};
-  \node[stage=2.6cm] (rrf) at (6.2,0) {\textbf{Stage 3: RRF}\\[1pt]
+  \node[stage=6.0cm, fill=gray!12, above=5mm of group] (offline) {\textit{Offline, once:}\\5{,}183 abstracts $\rightarrow$ 21{,}015 passages\\$\rightarrow$
+    BM25 index + passage embeddings};
+  \node[stage=2.6cm] (rrf) at (6.35,0) {\textbf{Stage 3: RRF}\\[1pt]
     $\displaystyle\sum_{s}\frac{w_s}{60+\mathrm{rank}_s(d)}$\\[1pt]$w_{\mathrm{BM25}}{=}0.3$ (best)};
-  \node[stage=3.0cm] (ce) at (9.55,0) {\textbf{Stage 4: reranker}\\cross-encoder,\\rescores top 50};
-  \node[stage=3.0cm] (reader) at (9.55,-2.7) {\textbf{Stage 5: reader}\\flan-t5-base,\\top 5 passages};
-  \node[stage=2.4cm] (answer) at (6.2,-2.7) {Answer citing\\passages [1]--[5]};
+  \node[stage=3.0cm] (ce) at (9.7,0) {\textbf{Stage 4: reranker}\\cross-encoder,\\rescores top 50};
+  \node[stage=3.0cm] (reader) at (9.7,-2.7) {\textbf{Stage 5: reader}\\flan-t5-base,\\top 5 passages};
+  \node[stage=2.4cm] (answer) at (6.35,-2.7) {Answer citing\\passages [1]--[5]};
   \draw[arr] (claim.east) -- ([xshift=3mm]claim.east) |- (bm25.west);
   \draw[arr] (claim.east) -- ([xshift=3mm]claim.east) |- (dense.west);
   \draw[arr] (bm25.east) -| ([xshift=-3mm]rrf.west) -- (rrf.west);
