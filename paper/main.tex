@@ -1,19 +1,15 @@
 % ---------------------------------------------------------------------------
 % Hybrid Sparse-Dense Retrieval for Scientific Question Answering
-% IEEE conference format (IEEEtran). IEEEtran.cls ships with Overleaf, TeX Live
-% and MiKTeX, so no extra files are needed.
+% Springer LNCS format (llncs class, splncs04 bibliography style), single column.
+% llncs.cls and splncs04.bst ship with TeX Live and Overleaf.
 % Compile:  pdflatex main && bibtex main && pdflatex main && pdflatex main
 %
-% Length: 5 tables and 2 figures (Fig. 1 diagram, overlap plot). The paper workflow on
-% GitHub builds it and reports the page count (Actions tab -> "paper" -> artifact).
-% Already cut to stay at 8 pages: the ablation bar chart (6 Oct), the reranking-depth
-% plot and the fine-tuning curve (7 Oct), and the passage-length details. Next, if needed:
-%   1. the answer-quality subsection: one example per reader;
-%   2. the failure analysis: two examples instead of four.
+% Length target: at most 12 pages including references (the course's Springer
+% limit). The paper workflow on GitHub builds it and reports the page count
+% (Actions tab -> "paper" -> artifact).
 % Never cut the ablation table, the significance tests or the failure-category table.
 % ---------------------------------------------------------------------------
-\documentclass[conference]{IEEEtran}
-\IEEEoverridecommandlockouts
+\documentclass[runningheads]{llncs}
 
 \usepackage{cite}
 \usepackage{amsmath,amssymb}
@@ -28,14 +24,14 @@
 
 \title{Hybrid Sparse--Dense Retrieval for Scientific Question Answering}
 
-\author{\IEEEauthorblockN{Vivansh Garg}
-\IEEEauthorblockA{\textit{Department of Computer Science and Engineering (Data Science)} \\
-\textit{Manipal University Jaipur}\\
-Jaipur, Rajasthan, India \\
-vivanshgarg05@gmail.com}
-% TODO: if your teacher wants the supervisor listed, add a second
-% \and \IEEEauthorblockN{...} block, or thank them in an Acknowledgment section.
-}
+\titlerunning{Hybrid Sparse--Dense Retrieval for Scientific QA}
+\author{Vivansh Garg}
+% TODO: if your teacher wants the supervisor listed, add "\and Name" here and a
+% matching line in \institute, or thank them in the acknowledgment.
+\authorrunning{V. Garg}
+\institute{Department of Computer Science and Engineering (Data Science),\\
+Manipal University Jaipur, Jaipur, Rajasthan, India\\
+\email{vivanshgarg05@gmail.com}}
 
 \maketitle
 
@@ -58,12 +54,11 @@ a claim and its evidence decides which retriever wins. The fine-tuned encoder
 fused with BM25 reaches 0.759, significantly above the original pipeline at about
 a third of its latency, and we show why its low BM25 weight lets BM25 only
 re-order the dense candidates.
-\end{abstract}
 
-\begin{IEEEkeywords}
-information retrieval, hybrid retrieval, BM25, dense retrieval, reciprocal rank
-fusion, cross-encoder reranking, retrieval-augmented generation, question answering
-\end{IEEEkeywords}
+\keywords{Information retrieval \and Hybrid retrieval \and BM25 \and Dense
+retrieval \and Reciprocal rank fusion \and Cross-encoder reranking \and
+Retrieval-augmented generation \and Question answering}
+\end{abstract}
 
 % ===========================================================================
 \section{Introduction}
@@ -180,45 +175,41 @@ answers both for scientific claims.
 % Drafted with AI assistance (Claude). Read every sentence before submitting:
 % the examiner may ask about any of them.
 % ---------------------------------------------------------------------------
-\begin{figure*}[t]
+\begin{figure}[t]
 \centering
-\resizebox{\textwidth}{!}{%
-\begin{tikzpicture}[font=\small,
-  stage/.style={draw, rounded corners=2pt, align=center, inner sep=4pt, text width=#1},
-  arr/.style={-{Stealth[length=2.2mm]}, thick}]
-  \node[stage=1.5cm] (claim) at (0,0) {\textbf{Claim}\\$q$};
-  \node[stage=3.1cm] (bm25) at (3.4,1.05) {\textbf{Stage 1: BM25}\\inverted index,
-    $k_1{=}0.9$, $b{=}0.4$\\top 100 passages};
-  \node[stage=3.1cm] (dense) at (3.4,-1.05) {\textbf{Stage 2: dense}\\MiniLM bi-encoder\\+ FAISS, top 100};
-  \node[draw, dashed, rounded corners=3pt, inner sep=5pt, fit=(bm25)(dense)] (group) {};
-  \node[stage=7.4cm, fill=gray!12, above=6mm of group] (offline) {\textit{Offline, once:}
-    5{,}183 abstracts $\rightarrow$ 21{,}015 passages (3-sentence windows)
-    $\rightarrow$ BM25 index + embeddings};
-  \node[stage=2.9cm] (rrf) at (7.4,0) {\textbf{Stage 3: RRF fusion}\\[2pt]
-    $\displaystyle\sum_{s} \frac{w_s}{60+\mathrm{rank}_s(d)}$\\[2pt]$w_{\mathrm{BM25}}{=}0.3$ in the best system};
-  \node[stage=2.8cm] (ce) at (10.8,0) {\textbf{Stage 4: reranker}\\cross-encoder,\\rescores the top 50};
-  \node[stage=2.5cm] (reader) at (14.0,0) {\textbf{Stage 5: reader}\\flan-t5-base,\\top 5 passages};
-  \node[stage=1.9cm] (answer) at (16.9,0) {Answer citing passages [1]--[5]};
-  \draw[arr] (claim.east) -- ([xshift=4mm]claim.east) |- (bm25.west);
-  \draw[arr] (claim.east) -- ([xshift=4mm]claim.east) |- (dense.west);
-  \draw[arr] (bm25.east) -| ([xshift=-4mm]rrf.west) -- (rrf.west);
-  \draw[arr] (dense.east) -| ([xshift=-4mm]rrf.west) -- (rrf.west);
+\begin{tikzpicture}[font=\footnotesize,
+  stage/.style={draw, rounded corners=2pt, align=center, inner sep=3pt, text width=#1},
+  arr/.style={-{Stealth[length=2mm]}, thick}]
+  \node[stage=1.2cm] (claim) at (0,0) {\textbf{Claim}\\$q$};
+  \node[stage=2.8cm] (bm25) at (3.0,0.8) {\textbf{Stage 1: BM25}\\inverted index,\\top 100 passages};
+  \node[stage=2.8cm] (dense) at (3.0,-0.8) {\textbf{Stage 2: dense}\\MiniLM bi-encoder\\+ FAISS, top 100};
+  \node[draw, dashed, rounded corners=3pt, inner sep=4pt, fit=(bm25)(dense)] (group) {};
+  \node[stage=4.6cm, fill=gray!12, above=5mm of group] (offline) {\textit{Offline, once:} 5{,}183
+    abstracts $\rightarrow$ 21{,}015 passages $\rightarrow$ BM25 index + embeddings};
+  \node[stage=2.6cm] (rrf) at (6.6,0) {\textbf{Stage 3: RRF}\\[1pt]
+    $\displaystyle\sum_{s}\frac{w_s}{60+\mathrm{rank}_s(d)}$\\[1pt]$w_{\mathrm{BM25}}{=}0.3$ (best)};
+  \node[stage=2.5cm] (ce) at (9.8,0) {\textbf{Stage 4: reranker}\\cross-encoder,\\rescores top 50};
+  \node[stage=2.5cm] (reader) at (9.8,-2.7) {\textbf{Stage 5: reader}\\flan-t5-base,\\top 5 passages};
+  \node[stage=2.4cm] (answer) at (6.6,-2.7) {Answer citing\\passages [1]--[5]};
+  \draw[arr] (claim.east) -- ([xshift=3mm]claim.east) |- (bm25.west);
+  \draw[arr] (claim.east) -- ([xshift=3mm]claim.east) |- (dense.west);
+  \draw[arr] (bm25.east) -| ([xshift=-3mm]rrf.west) -- (rrf.west);
+  \draw[arr] (dense.east) -| ([xshift=-3mm]rrf.west) -- (rrf.west);
   \draw[arr] (rrf) -- (ce);
   \draw[arr] (ce) -- (reader);
   \draw[arr] (reader) -- (answer);
-  \draw[arr, dashed] (offline.south) -- (group.north) node[midway, right, font=\footnotesize] {indexes};
-  \draw[arr, densely dotted] (rrf.south) -- ++(0,-0.75) -| (reader.south)
-    node[pos=0.27, below, font=\footnotesize] {best system (nDCG@10 0.759): no reranker};
-\end{tikzpicture}}
-\caption{System overview. Offline, the SciFact abstracts are split into
-overlapping three-sentence passages and indexed once for both retrievers. For
-each claim, BM25 and the dense bi-encoder each return their top 100 passages
-(Stages 1--2), RRF fuses the two rankings using ranks only (Stage 3), a
-cross-encoder rescores the top 50 (Stage 4), and a reader writes an answer that
-cites the top five passages (Stage 5). The best configuration, a fine-tuned
-encoder with BM25 weight 0.3, skips the reranker (dotted path).}
+  \draw[arr, dashed] (offline.south) -- (group.north) node[midway, right] {indexes};
+  \draw[arr, densely dotted] (rrf.south) -- ++(0,-0.75) -| ([xshift=-6mm]reader.north)
+    node[pos=0.25, below] {best system: no reranker};
+\end{tikzpicture}
+\caption{System overview. The abstracts are split into passages and indexed once,
+offline. For each claim, BM25 and the dense bi-encoder each return their top 100
+passages (Stages 1--2), RRF fuses the two rankings (Stage 3), a cross-encoder
+rescores the top 50 (Stage 4), and a reader answers, citing the top five passages
+(Stage 5). The best configuration (fine-tuned encoder, BM25 weight 0.3, nDCG@10
+0.759) skips the reranker (dotted path).}
 \label{fig:pipeline}
-\end{figure*}
+\end{figure}
 
 The system is a pipeline of five stages (Fig.~\ref{fig:pipeline}). A query is sent to a sparse and a dense
 retriever independently; their ranked lists are fused; the fused list is reranked
@@ -608,7 +599,7 @@ the weighted fusion lowers the score (0.745).
 
 \subsection{Which retriever helps which claim?}
 
-\begin{figure*}[t]
+\begin{figure}[t]
 \centering
 \includegraphics[width=\textwidth]{figures/overlap_split.png}
 \caption{nDCG@10 on claims whose terms overlap little (left group in each panel)
@@ -616,7 +607,7 @@ or much (right group) with their evidence abstract, split at the median overlap
 of 0.57, for the pretrained (left) and the fine-tuned (right) dense encoder.
 Dense retrieval wins on paraphrased claims; fusion gains on high-overlap claims.}
 \label{fig:overlap}
-\end{figure*}
+\end{figure}
 
 To see where the retrievers differ, we split the 300 test claims by properties
 computed from their text (\texttt{scripts/query\_subsets.py}). The property that
@@ -867,7 +858,7 @@ analyse experiments, assign the failure categories and answer scores
 (Sections~\ref{sec:results} and~\ref{sec:failures}), and draft the text. All
 results come from the code and logs in the repository.
 
-\bibliographystyle{IEEEtran}
+\bibliographystyle{splncs04}
 \bibliography{references}
 
 \end{document}
