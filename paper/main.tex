@@ -4,14 +4,13 @@
 % and MiKTeX, so no extra files are needed.
 % Compile:  pdflatex main && bibtex main && pdflatex main && pdflatex main
 %
-% Length: about 5,700 words of prose, 5 tables and 3 figures. The paper workflow on
+% Length: 5 tables and 2 figures (Fig. 1 diagram, overlap plot). The paper workflow on
 % GitHub builds it and reports the page count (Actions tab -> "paper" -> artifact).
-% The ablation bar chart was already cut (6 Oct). If an edit pushes it over 8 pages,
-% cut next, in this order:
-%   1. "Passage length": keep the first two sentences and the index size;
-%   2. "Reranking depth and fusion settings": one sentence per sweep;
-%   3. Related Work: one sentence per paragraph.
-% Never cut the ablation table, the significance tests or the failure analysis.
+% Already cut to stay at 8 pages: the ablation bar chart (6 Oct), the reranking-depth
+% plot and the fine-tuning curve (7 Oct), and the passage-length details. Next, if needed:
+%   1. the answer-quality subsection: one example per reader;
+%   2. the failure analysis: two examples instead of four.
+% Never cut the ablation table, the significance tests or the failure-category table.
 % ---------------------------------------------------------------------------
 \documentclass[conference]{IEEEtran}
 \IEEEoverridecommandlockouts
@@ -190,18 +189,15 @@ answers both for scientific claims.
   \node[stage=1.5cm] (claim) at (0,0) {\textbf{Claim}\\$q$};
   \node[stage=3.1cm] (bm25) at (3.4,1.05) {\textbf{Stage 1: BM25}\\inverted index,
     $k_1{=}0.9$, $b{=}0.4$\\top 100 passages};
-  \node[stage=3.1cm] (dense) at (3.4,-1.05) {\textbf{Stage 2: dense bi-encoder}\\all-MiniLM-L6-v2
-    (pretrained or fine-tuned) + FAISS, top 100};
+  \node[stage=3.1cm] (dense) at (3.4,-1.05) {\textbf{Stage 2: dense}\\MiniLM bi-encoder\\+ FAISS, top 100};
   \node[draw, dashed, rounded corners=3pt, inner sep=5pt, fit=(bm25)(dense)] (group) {};
-  \node[stage=6.4cm, fill=gray!12, above=7mm of group] (offline) {\textit{Offline, once:}
-    5{,}183 abstracts $\rightarrow$ 21{,}015 passages (3-sentence windows, stride 2)
-    $\rightarrow$ BM25 index and passage embeddings};
+  \node[stage=7.4cm, fill=gray!12, above=6mm of group] (offline) {\textit{Offline, once:}
+    5{,}183 abstracts $\rightarrow$ 21{,}015 passages (3-sentence windows)
+    $\rightarrow$ BM25 index + embeddings};
   \node[stage=2.9cm] (rrf) at (7.4,0) {\textbf{Stage 3: RRF fusion}\\[2pt]
     $\displaystyle\sum_{s} \frac{w_s}{60+\mathrm{rank}_s(d)}$\\[2pt]$w_{\mathrm{BM25}}{=}0.3$ in the best system};
-  \node[stage=2.8cm] (ce) at (10.8,0) {\textbf{Stage 4: cross-encoder}\\ms-marco-MiniLM-L-6-v2,
-    rescores the fused top 50};
-  \node[stage=2.5cm] (reader) at (14.0,0) {\textbf{Stage 5: reader}\\flan-t5-base, explains
-    using the top 5 passages};
+  \node[stage=2.8cm] (ce) at (10.8,0) {\textbf{Stage 4: reranker}\\cross-encoder,\\rescores the top 50};
+  \node[stage=2.5cm] (reader) at (14.0,0) {\textbf{Stage 5: reader}\\flan-t5-base,\\top 5 passages};
   \node[stage=1.9cm] (answer) at (16.9,0) {Answer citing passages [1]--[5]};
   \draw[arr] (claim.east) -- ([xshift=4mm]claim.east) |- (bm25.west);
   \draw[arr] (claim.east) -- ([xshift=4mm]claim.east) |- (dense.west);
@@ -516,49 +512,27 @@ reranking.
 
 \subsection{Reranking depth and fusion settings}
 
-\begin{figure*}[t]
-\centering
-\includegraphics[width=\textwidth]{figures/latency_accuracy.png}
-\caption{Effect of the reranking depth $N$ (number of fused candidates scored by
-the cross-encoder) on nDCG@10 (left) and latency (right). ``none'' is RRF fusion
-without reranking; dotted lines mark BM25 and dense alone. Accuracy is flat from
-$N=10$ to $N=100$ while latency grows with $N$.}
-\label{fig:latency}
-\end{figure*}
-
-Fig.~\ref{fig:latency} varies the number $N$ of fused passages that the
-cross-encoder rescores. Accuracy is flat: nDCG@10 stays between 0.716 and 0.722
-for $N$ from 10 to 100, against 0.710 without reranking, while latency grows
-from about 120~ms without reranking to about 470~ms at $N=100$. Scoring more
-candidates therefore buys cost, not accuracy. Fusion is equally insensitive to
-its constant: for $k\in\{10,30,60,100\}$, nDCG@10 lies between 0.709 and 0.714,
-so the fusion gain is not an artefact of the default $k=60$. Replacing RRF with
-min-max score fusion gives 0.717 against 0.710 ($p=0.27$). The two are tied on
-this data, so we keep RRF for its practical advantages, not for accuracy: it
-needs no score normalisation and no labelled data to tune.
-
-Fusion operates on passages, so when the two retrievers rank different passages
-of the same abstract first, their votes do not add up. Fusing documents instead,
-each represented by its best-ranked passage, does not help: nDCG@10 falls
-slightly with the pretrained encoder (0.706 against 0.710, $p=0.46$) and with
-the fine-tuned one (0.723 against 0.731, $p=0.12$), and with reranking on the
-fine-tuned encoder the drop is significant (0.709 against 0.725, $p=0.02$). A
-likely reason is that at passage level an abstract has several chances to rank
-high, one per passage, whereas at document level only one passage per abstract
-reaches the reranker.
+% The reranking-depth plot (figures/latency_accuracy.png) was dropped on 7 Oct to keep
+% 8 pages after adding Fig. 1; its numbers are in the paragraph below.
+Varying the number $N$ of fused passages that the cross-encoder rescores buys
+cost, not accuracy: nDCG@10 stays between 0.716 and 0.722 for $N$ from 10 to 100,
+against 0.710 without reranking, while latency grows from about 120~ms without
+reranking to about 470~ms at $N=100$. Fusion is equally insensitive to its
+constant ($k\in\{10,30,60,100\}$ gives 0.709 to 0.714), and min-max score fusion
+is tied with RRF (0.717 against 0.710, $p=0.27$); we keep RRF because it needs no
+score normalisation or labelled data. Fusing documents instead of passages, each
+represented by its best-ranked passage, does not help (0.706 against 0.710 with
+the pretrained encoder, $p=0.46$, and with reranking on the fine-tuned encoder a
+significant drop, 0.709 against 0.725, $p=0.02$), probably because at passage
+level an abstract has several chances to rank high.
 
 \subsection{Passage length}
 With whole abstracts instead of three-sentence passages
-(Table~\ref{tab:configs}), BM25 is unchanged ($+0.002$, $p=0.82$), but the two
-neural stages lose significantly: the dense retriever by 0.031 ($p=0.009$) and
-the full pipeline by 0.029 ($p=0.007$). For the dense retriever the cause is
-measurable: 71.6\% of the abstracts (median 317 tokens) exceed its 256-token
-input limit and are truncated, against 1.2\% of the passages (median 125
-tokens). BM25, which reads every word either way, is unaffected. Fusion still
-beats both single retrievers on whole abstracts ($p=0.0002$ against BM25,
-$p<10^{-4}$ against dense), so the fusion result does not depend on the passage
-split. The passages cost a four times larger embedding index (32.3 against
-8.0~MB).
+(Table~\ref{tab:configs}), BM25 is unchanged ($+0.002$, $p=0.82$), but the dense
+retriever loses 0.031 ($p=0.009$) and the full pipeline 0.029 ($p=0.007$): 71.6\%
+of the abstracts exceed the encoder's 256-token limit and are truncated, against
+1.2\% of the passages. Fusion still beats both single retrievers on whole
+abstracts, and the passages cost a four times larger index (32.3 against 8.0~MB).
 
 \subsection{Stronger and fine-tuned encoders}
 
@@ -587,21 +561,13 @@ Fine-tuned MiniLM           & 0.656 & 0.742$^{*}$ & 0.731$^{*}$ & 0.725 \\
 % (comparison.json in each folder holds the per-variant p-values).
 \end{table}
 
-\begin{figure}[t]
-\centering
-\includegraphics[width=\columnwidth]{figures/finetune_curve_all-MiniLM-L6-v2-scifact.png}
-\caption{Fine-tuning the dense encoder on SciFact training claims: training loss
-(top) and nDCG@10 on 120 held-out development claims (bottom) per epoch. Epoch 0
-is the pretrained model. Development accuracy rises from 0.691 to 0.770 and
-levels off after epoch 9; the weights of epoch 12 are kept.}
-\label{fig:finetune}
-\end{figure}
-
+% The fine-tuning curve (figures/finetune_curve_*.png) was dropped on 7 Oct to keep
+% 8 pages; the development scores it showed are in the text.
 Table~\ref{tab:configs} also reports two stronger encoders. The off-the-shelf
 BGE-small encoder raises dense retrieval to 0.723 ($+0.044$ over MiniLM,
 $p=0.002$), which is now significantly better than BM25 ($+0.067$, $p=0.0003$).
 Fine-tuning MiniLM on the SciFact training claims raises its nDCG@10 on the 120
-development claims from 0.691 to 0.770 (Fig.~\ref{fig:finetune}) and on the
+development claims from 0.691 to 0.770 (levelling off after epoch 9) and on the
 test claims from 0.679 to 0.742 ($+0.063$, $p<10^{-4}$), the best single retriever
 in this study. The fine-tuned retriever places a relevant abstract in its top ten for
 269 of the 300 claims, against 248 before fine-tuning, at no extra cost per
