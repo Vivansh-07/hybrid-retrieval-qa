@@ -201,7 +201,7 @@ answers both for scientific claims.
   \draw[arr] (reader) -- (answer);
   \draw[arr, dashed] (offline.south) -- (group.north) node[midway, right] {indexes};
   \draw[arr, densely dotted] (rrf.south) -- ++(0,-0.75) -| ([xshift=-6mm]reader.north)
-    node[pos=0.3, above, font=scriptsize] {best system: no reranker};
+    node[pos=0.3, above, font=\scriptsize] {best system: no reranker};
 \end{tikzpicture}
 \caption{System overview. The abstracts are split into passages and indexed once,
 offline. For each claim, BM25 and the dense bi-encoder each return their top 100
