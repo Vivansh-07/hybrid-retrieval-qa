@@ -299,18 +299,13 @@ are the abstracts holding evidence for or against them, judged per abstract. All
 300 test claims are evaluated (339 relevant abstracts, 1.13 per claim); the 809
 training claims, disjoint from them, are used only for fine-tuning.
 
-\paragraph{Models and configurations.} All models come from the Hugging Face Hub:
-the MiniLM bi-encoder; BGE-small (\texttt{bge-small-en-v1.5}, 33.4M parameters) as
-a stronger encoder; the MS~MARCO cross-encoder (22.7M) and \texttt{bge-reranker-base}
-(278M) as rerankers; and \texttt{flan-t5-base} (248M) and \texttt{roberta-base-squad2}
-(124M) as readers. The main configuration uses MiniLM and the MS~MARCO
-cross-encoder without any training on SciFact, the zero-shot setting of BEIR, and
-is evaluated in all four variants: BM25, dense, fusion, and fusion with reranking.
-Every further configuration changes one component: whole abstracts instead of
-passages, score fusion, document-level fusion, a BM25 weight of 0.3, BGE-small
-(with either reranker), and the fine-tuned encoder (with either weight). We also
-vary the reranking depth $N\in\{10,25,50,100\}$ and the RRF constant
-$k\in\{10,30,60,100\}$.
+\paragraph{Models and configurations.} Besides MiniLM we use BGE-small
+(\texttt{bge-small-en-v1.5}, 33.4M parameters), \texttt{bge-reranker-base} (278M)
+and, as readers, \texttt{flan-t5-base} (248M) and \texttt{roberta-base-squad2}
+(124M). The main configuration uses MiniLM and the MS~MARCO cross-encoder without
+training on SciFact (BEIR's zero-shot setting) in all four variants; every further
+configuration changes one component (Table~\ref{tab:configs}), and we vary the
+reranking depth $N\in\{10,25,50,100\}$ and the RRF constant $k\in\{10,30,60,100\}$.
 
 \paragraph{Hardware and latency.} All runs use one laptop (Intel Core i5-12450H,
 16~GB of RAM, NVIDIA RTX~3050 Laptop GPU with 4~GB) with PyTorch~2.6 and
@@ -402,19 +397,11 @@ against 0.710 without reranking, while latency grows from about 120~ms without
 reranking to about 470~ms at $N=100$. Fusion is equally insensitive to its
 constant ($k\in\{10,30,60,100\}$ gives 0.709 to 0.714), and min-max score fusion
 is tied with RRF (0.717 against 0.710, $p=0.27$); we keep RRF because it needs no
-score normalisation or labelled data. Fusing documents instead of passages, each
-represented by its best-ranked passage, does not help (0.706 against 0.710 with
-the pretrained encoder, $p=0.46$, and with reranking on the fine-tuned encoder a
-significant drop, 0.709 against 0.725, $p=0.02$), probably because at passage
-level an abstract has several chances to rank high.
-
-\subsection{Passage length}
-With whole abstracts instead of three-sentence passages
-(Table~\ref{tab:configs}), BM25 is unchanged ($+0.002$, $p=0.82$), but the dense
-retriever loses 0.031 ($p=0.009$) and the full pipeline 0.029 ($p=0.007$): 71.6\%
-of the abstracts exceed the encoder's 256-token limit and are truncated, against
-1.2\% of the passages. Fusion still beats both single retrievers on whole
-abstracts, and the passages cost a four times larger index (32.3 against 8.0~MB).
+score normalisation or labelled data. Fusing documents instead of passages does
+not help (0.706 against 0.710, $p=0.46$). With whole abstracts instead of passages
+(Table~\ref{tab:configs}), BM25 is unchanged but the dense retriever loses 0.031
+($p=0.009$): 71.6\% of the abstracts exceed its 256-token limit and are truncated,
+against 1.2\% of the passages.
 
 \subsection{Stronger and fine-tuned encoders}
 
@@ -505,14 +492,12 @@ exact wording still matters. Paraphrased claims are also much harder: in the
 main configuration no method exceeds 0.53 on them, against 0.86 to 0.92 on the
 others.
 
-The split also explains why fusion stops helping after fine-tuning. Fine-tuning
-raises dense retrieval by 0.106 on the low-overlap claims ($p<10^{-4}$) but only by
-0.016 on the high-overlap ones ($p=0.21$): it teaches the encoder the paraphrases
-that word matching misses. With the fine-tuned encoder, fusion still gains on
-high-overlap claims ($+0.040$, $p=0.0006$) but loses on low-overlap ones
-($-0.057$, $p=0.014$), where BM25 mostly contributes wrong candidates, and the two
-effects cancel. The overlap is computed with the gold abstract, so it describes
-the claims and is not available to a retriever.
+The split also explains why equal-weight fusion stops helping after fine-tuning:
+fine-tuning raises dense retrieval by 0.106 on low-overlap claims ($p<10^{-4}$) but
+only by 0.016 on high-overlap ones, and fusion then gains on high-overlap claims
+($+0.040$) but loses on low-overlap ones ($-0.057$), where BM25 contributes wrong
+candidates. The overlap uses the gold abstract, so it is not available to a
+retriever.
 
 \subsection{Answer quality}
 
@@ -615,11 +600,9 @@ definitions, without a second annotator.
 \section{Conclusion}
 \label{sec:conclusion}
 
-We built a hybrid retrieval pipeline for scientific claims and measured what
-each stage contributes. Fusing BM25 with dense retrieval pays off when the two
-retrievers are comparably strong, because they succeed on different claims;
-cross-encoder reranking added latency but no significant accuracy in any
-configuration we tried. The largest gain came from fine-tuning the dense encoder
+Fusing BM25 with dense retrieval pays off when the two retrievers are comparably
+strong, because they succeed on different claims; cross-encoder reranking added
+latency but no significant accuracy in any configuration we tried. The largest gain came from fine-tuning the dense encoder
 on in-domain training claims, which, fused with BM25 at a weight chosen on
 held-out claims, reached an nDCG@10 of 0.759 against 0.715 for the original
 pipeline. Natural next steps are fusion weights chosen per claim, a reranker
