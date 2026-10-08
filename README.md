@@ -161,13 +161,17 @@ scripts/
   tune_fusion.py         choose the BM25 fusion weight on held-out dev claims
   query_subsets.py       which retriever helps which kind of claim (overlap, numbers, rare terms)
   answer_sheet.py        blind sheet for hand-scoring the generated answers; --summarize
-tests/                   unit tests: metrics, fusion, config, significance, subsets, scoring
+tests/                   unit tests: metrics, fusion, config, significance, subsets, scoring,
+                         abstention; the paper's references and numbers; the review sheet
 paper/                   LaTeX source, bibliography, figures (GitHub builds the PDF: Actions → paper)
 docs/
   WORKFLOW.md            week-by-week plan through to the viva
   VIVA_PREP.md           expected questions with worked answers
   ANSWER_RUBRIC.md       how the generated answers are scored by hand (fixed in advance)
   RUN_AND_PRESENT.md     tested commands, expected output, presentation script, daily plan
+  ALGORITHMS.md          every algorithm: the idea, why it was chosen, settings, code
+  LITERATURE_SURVEY.md   the survey (40 references, 2022-2026 update); builds the .docx
+  FAILURE_REVIEW.md      the 40 failure labels as a review sheet (generated)
   SLIDES.md              the 12 slides: titles, what to say, where each number comes from
   Problem_Statement.pdf  the project explained in plain language
   EXPERIMENT_LOG.md      append one entry per run, including failed ones

@@ -10,7 +10,7 @@ Last updated: 2026-09-25.
 **Title:** Hybrid Sparse–Dense Retrieval for Scientific Question Answering (shortened on 2026-09-30; was "...with Cross-Encoder Reranking for Domain-Specific Question Answering")
 **Owner:** Vivansh Garg — B.Tech CSE (Data Science), 3rd year
 **Context:** Deep Learning course assignment. Deliverables are a **research paper (Springer LNCS, 12 pages; IEEE would be 6)**, a **10–12 slide presentation**, and a **viva**. Also meant to be a resume/portfolio project.
-**Timeline:** Started 2026-09-13 with a 4-week plan → paper/viva due roughly **mid-October 2026**.
+**Timeline:** Started 2026-09-13 with a 4-week plan → paper/viva due roughly **mid-October 2026** (8 Oct: assessment in 5-6 days, about 13 Oct).
 **Hardware:** Local GPU on Vivansh's Windows PC (code also runs on CPU, just slower).
 **Code location:** `D:\Deep Learning\Claude\hybrid-retrieval-qa` (repo name `hybrid-retrieval-qa`).
 
