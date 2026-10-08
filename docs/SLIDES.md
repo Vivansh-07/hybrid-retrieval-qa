@@ -16,15 +16,15 @@ Introduce yourself and the one question of the project: when a system answers a 
 
 ## 2. A reader can only cite what retrieval finds
 
-Systems that answer questions from documents work in two steps: first retrieve a few relevant passages, then write an answer from them with citations. The answer can only be as good as the retrieved evidence. The example on the right is a real SciFact claim from my failure analysis: the claim says aspirin, the paper that supports it says COX inhibitors, so a word-matching search never connects them, and in this case even the meaning-based search missed it. That is the problem the project studies: how to retrieve the right evidence for scientific claims.
+Systems that answer questions from documents first retrieve a few relevant passages, then write an answer from them with citations; the answer can only be as good as the retrieved evidence. There are two families of search. BM25 is keyword search: precise for names and numbers, blind to synonyms. Dense retrieval turns text into vectors so it can match meaning, but it was trained on general text. On SciFact the two are statistically tied overall but succeed on different claims, 73 against 60, which is why combining them should help. The example on the right is a real claim from my failure analysis: the claim says aspirin, its paper says COX inhibitors, and every method misses it.
 
-*Numbers:* `results/failure_analysis.csv` (the aspirin claim, a terminology-mismatch failure)
+*Numbers:* `results/failure_analysis.csv` (the aspirin claim); `results/significance.json` (dense vs BM25: +0.023, p = 0.25, better on 73 claims, worse on 60)
 
-## 3. BM25 and dense retrieval fail on different claims
+## 3. What recent work found (2022–2026)
 
-There are two families of search. BM25 is classic keyword search: it scores a passage by the query words it contains, weighting rare words more. It is precise for names and numbers but blind to synonyms. Dense retrieval turns the claim and every passage into a vector of 384 numbers with a small neural network, MiniLM, and returns the passages whose vectors are closest, so it can match meaning; but it was trained on general text and can blur specialised terms. On SciFact the two are statistically tied overall, but they succeed on different claims: dense is better on 73 claims, BM25 on 60. That difference is why combining them should help.
+I updated the literature survey to 2022 to 2026; it has 40 references, all checked against the publisher. Four findings matter for this project. First, hybrid retrieval helps because the two retrievers are complementary, but a 2026 PVLDB study across 11 datasets found a weakest-link effect: one weak retriever can drag fusion down. Second, rerankers keep getting more accurate but also more expensive; distilled cross-encoders match LLM rerankers while being up to 173 times faster. Third, DAT in 2025 sets the fusion weight per query with an LLM. Fourth, OpenScholar, published in Nature this year, answers scientific questions from 45 million papers with expert-level citations. The gap I address: nobody explains, claim by claim, why one retriever wins, or what a fusion weight actually does to the set of candidates.
 
-*Numbers:* `results/ablation.csv`; `results/significance.json` (dense vs BM25: +0.023, p = 0.25, better on 73 claims, worse on 60)
+*Numbers:* `docs/LITERATURE_SURVEY.md` (refs [17], [24], [27], [29], [23], [32])
 
 ## 4. SciFact: checking claims against 5,183 abstracts
 
@@ -68,14 +68,14 @@ Retrieval is only half of question answering, so I also scored the answers: 50 t
 
 *Numbers:* `results/answer_quality.json`, `docs/ANSWER_RUBRIC.md`
 
-## 11. What this study does not show
+## 11. What this project adds
 
-Be specific about limits; examiners reward it. Everything was measured on one dataset, so I cannot claim the same pattern holds in law or news. SciFact marks whole abstracts as relevant, so I cannot measure whether the best passage inside an abstract was found. The failure labels and answer scores came from a single annotator working with AI assistance, without a second annotator. And the reranker I used was trained on web search queries, so its lack of gain may say more about that training data than about reranking in general. Latency was also measured on one laptop GPU and varied up to two times between runs.
+This is what the project adds compared with the recent work on slide 3. It is an empirical study, so the novelty is in the findings. One: which retriever wins depends on how many words the claim shares with its evidence; dense wins on paraphrased claims. Two: I show from the fusion formula that below a BM25 weight of about 0.38, BM25 can only re-order what the dense model found, never add anything new; that explains how lowering the weight avoids the weakest-link effect. Three: fine-tuning a small encoder and fusing it at a tuned weight beats the reranked pipeline at a third of the cost. Four: a measured baseline for abstention, showing a retrieval score alone is not enough.
 
-*Numbers:* paper, Limitations section
+*Numbers:* `results/query_subsets.json`, paper Section V (weighted fusion), `results/dense_minilm_finetuned__fusion_weighted/`, `results/abstention.json`
 
-## 12. Three takeaways
+## 12. Takeaways and limits
 
-To sum up: combining keyword and meaning-based search helps when the two are of similar strength, because they fail on different claims. The cross-encoder reranker, the most expensive stage, gave no significant gain in any configuration I tried. The largest gain came from fine-tuning the dense encoder on in-domain training claims: 0.759 at about a third of the original pipeline's cost per claim. Next I would choose fusion weights per claim, try a reranker trained on scientific text, and make the reader say when the evidence is missing. Now switch to the demo, already started with python scripts/demo.py --best: pick the prepared claims and show the four strategies side by side with the cited answer.
+To sum up: combining keyword and meaning-based search helps when the two are of similar strength, because they fail on different claims. The cross-encoder reranker, the most expensive stage, gave no significant gain in any configuration. The largest gain came from fine-tuning the dense encoder on in-domain claims: 0.759 at about a third of the original pipeline's cost. The limits: one dataset; relevance judged per abstract; the failure labels and answer scores come from a single AI-assisted annotator; and the reranker was trained on web search. Next I would choose fusion weights per claim, try a reranker trained on scientific text, and make the reader abstain when evidence is missing. Now switch to the demo, already started with python scripts/demo.py --best, and use the four claim buttons.
 
-*Numbers:* paper, Conclusion
+*Numbers:* paper, Conclusion and Limitations
