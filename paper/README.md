@@ -1,7 +1,9 @@
 # Paper
 
-`main.tex` is a skeleton, not a draft: every section has a comment describing what
-belongs in it, and `TODO` marks every place a number from `results/` has to be pasted.
+`main.tex` is the full paper in **Springer LNCS** format (`llncs` class, `splncs04`
+references). Both ship with TeX Live and Overleaf, so no extra files are needed. GitHub
+also builds the PDF on every pull request that changes `paper/` (see
+`docs/RUN_AND_PRESENT.md`, Step 9).
 
 ## Build
 
@@ -26,5 +28,7 @@ Overleaf works too — upload `main.tex`, `references.bib` and `figures/`.
 
 ## Length
 
-Aim for 6–8 pages in this two-column format. If a section will not fill its space
-honestly, the fix is more analysis, not more adjectives.
+The course allows Springer (12 pages) or IEEE (strictly 6). The paper uses Springer:
+the body ends on page 12 and the references follow on pages 13–14 (8 Oct build). If your
+teacher counts references inside the 12 pages, about two more pages have to go; the
+header of `main.tex` says what to cut first.

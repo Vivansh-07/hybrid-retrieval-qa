@@ -214,9 +214,9 @@ python scripts/make_plots.py
 **Writes:** `paper/figures/ablation_ndcg.png`, `recall_curve.png`, `latency_accuracy.png`.
 Click them in the VS Code file explorer to view. These go into the paper and slides.
 
-- `ablation_ndcg.png` and `recall_curve.png` are drawn 3.5 inches wide, exactly one IEEE
-  column, so the text prints at full size. `latency_accuracy.png` is two panels spanning
-  both columns (`figure*` in `main.tex`).
+- The plots are drawn small (3.5 inches wide) so their text stays legible when printed.
+  The paper itself now uses only Fig. 1 (the system diagram, drawn in LaTeX) and
+  `overlap_split.png`; the others are shown in the demo's Results tab and in the slides.
 - Lines differ by dash pattern and marker shape, not only colour, so they still read on a
   black-and-white printout.
 - In `latency_accuracy.png`, "none" means fusion without the reranker, and the dotted lines
@@ -313,8 +313,9 @@ on GitHub, **Actions → paper → the latest run → Artifacts → paper**, or 
 ```
 gh run download --name paper --dir data\paper_pdf
 ```
-which saves `main.pdf` into `data\paper_pdf\` (the latest run's). The 4 Oct build was
-exactly **8 pages**. Overleaf works as before (upload `paper_overleaf.zip`); use it to
+which saves `main.pdf` into `data\paper_pdf\` (the latest run's). Since 8 Oct the paper
+is in **Springer LNCS** format: the body ends on page 12 and the references take pages
+13–14. Overleaf works as before (upload `paper_overleaf.zip`); use it to
 edit and preview, and use the GitHub build to check that what is in the repository
 compiles.
 
