@@ -9,7 +9,7 @@ Last updated: 2026-09-25.
 
 **Title:** Hybrid Sparse–Dense Retrieval for Scientific Question Answering (shortened on 2026-09-30; was "...with Cross-Encoder Reranking for Domain-Specific Question Answering")
 **Owner:** Vivansh Garg — B.Tech CSE (Data Science), 3rd year
-**Context:** Deep Learning course assignment. Deliverables are a **6–8 page research paper**, a **10–12 slide presentation**, and a **viva**. Also meant to be a resume/portfolio project.
+**Context:** Deep Learning course assignment. Deliverables are a **research paper (Springer LNCS, 12 pages; IEEE would be 6)**, a **10–12 slide presentation**, and a **viva**. Also meant to be a resume/portfolio project.
 **Timeline:** Started 2026-09-13 with a 4-week plan → paper/viva due roughly **mid-October 2026**.
 **Hardware:** Local GPU on Vivansh's Windows PC (code also runs on CPU, just slower).
 **Code location:** `D:\Deep Learning\Claude\hybrid-retrieval-qa` (repo name `hybrid-retrieval-qa`).
@@ -287,6 +287,14 @@ plus RAG/FiD and attribution (ALCE). **Three research gaps** this project addres
   "best result" claim and the "assistant produced the answers" wording (#3). Abstention
   helpers moved to `src/hybridqa/abstention.py` with tests (#5); README badges and findings
   (#6). 72 tests pass.
+- **2026-10-07/08:** Teacher's feedback: know the algorithms and why; state the novelty;
+  abstract under 200 words (why, method, output); a labelled diagram; a latest survey; tools
+  SciSpace/ResearchRabbit/Consensus/NotebookLM and PhD theses. Done: survey update
+  (`docs/LITERATURE_SURVEY.md` -> `paper/Literature_Survey.docx`, 40 refs incl. 3 Waterloo
+  PhD theses, all verified; #12), abstract (184 words), TikZ system diagram, explicit novelty
+  and research gap (#13). Paper moved to Springer LNCS (IEEE is strictly 6 pages, Springer
+  12): body ends on p. 12, references pp. 13-14 (#14). Open: does the teacher count
+  references in the 12? Vivansh cross-checks the survey in ResearchRabbit/Consensus.
 - **2026-10-01 (evening):** answer rubric (`docs/ANSWER_RUBRIC.md`, written before generating),
   `scripts/answer_sheet.py` + `hybridqa/scoring.py` (shuffled sheet, hidden key, `--summarize`),
   50 answers per reader generated (`results/answers.json`, `results/set_answer.mode=extractive/`):
