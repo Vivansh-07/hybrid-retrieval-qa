@@ -136,7 +136,7 @@ def footer(canvas, doc):
 story = [
     Paragraph("Hybrid Sparse&ndash;Dense Retrieval for<br/>Scientific Question Answering", title),
     Paragraph("Problem Statement &middot; Deep Learning Course Project", subtitle),
-    Paragraph("Vivansh Garg &middot; B.Tech CSE (Data Science), 3rd year &middot; 1 October 2026", subtitle),
+    Paragraph("Vivansh Garg &middot; B.Tech CSE (Data Science), 3rd year &middot; 1 October 2026, updated 8 October 2026", subtitle),
     Spacer(1, 10),
 
     Paragraph("1. The project in one sentence", h1),
@@ -241,29 +241,49 @@ story = [
     Paragraph("9. Scope and deliverables", h1),
     Paragraph("<b>Scope:</b> English scientific abstracts (SciFact); pretrained models plus one model fine-tuned "
               "by us; everything runs on a laptop GPU.", body),
-    Paragraph("<b>Deliverables:</b> a working system with a live web demo; a research paper in IEEE format; "
-              "a presentation; the code on GitHub with a log of every experiment.", body),
+    Paragraph("<b>Deliverables:</b> a working system with a live web demo; a research paper in Springer LNCS "
+              "format (12 pages); a literature survey (40 references, updated with 2022&ndash;2026 work); a "
+              "12-slide presentation; the code on GitHub with a log of every experiment.", body),
 
     KeepTogether([
-        Paragraph("10. Progress so far (as of 30 September 2026)", h1),
+        Paragraph("10. Results (300 test claims)", h1),
         grid([
             ["Search setup", "nDCG@10"],
             ["Keyword search only (BM25)", "0.656"],
             ["Meaning search only (pretrained MiniLM)", "0.679"],
             ["Both combined (fusion)", "0.710"],
-            ["Combined + reranker", "0.715"],
-            ["<b>Meaning search, fine-tuned by us</b>", "<b>0.742</b>"],
-        ], [11 * cm, 6 * cm]),
+            ["Combined + reranker (the original full system)", "0.715"],
+            ["Meaning search, fine-tuned by us", "0.742"],
+            ["<b>Fine-tuned meaning search + keyword search, weight 0.3 (best)</b>", "<b>0.759</b>"],
+        ], [13 * cm, 4 * cm]),
         Spacer(1, 6),
         bullets([
             "Combining the two searches is <b>significantly better</b> than either one alone.",
-            "The reranker <b>triples the time per question</b> without a significant accuracy gain.",
-            "Fine-tuning the neural model on scientific data gives the <b>largest improvement</b>.",
-            "Still to do: hand analysis of failures, scoring the generated answers, the paper and the slides.",
+            "The reranker <b>almost triples the time per question</b> without a significant accuracy gain.",
+            "Fine-tuning the neural model on scientific data gives the <b>largest improvement</b>; the best "
+            "system beats the original one (0.759 against 0.715) at about a third of its time per question.",
+            "Of the 40 hardest misses, 42% are claims whose marked evidence does not actually state them.",
+            "The answer generator is right more often than a copy-a-sentence baseline, but less faithful to its "
+            "sources.",
         ]),
     ]),
 
-    Paragraph("11. Key terms", h1),
+    KeepTogether([
+        Paragraph("11. What is new", h1),
+        Paragraph("Compared with recent studies of hybrid search (2022&ndash;2026), this project:", body),
+        bullets([
+            "explains <b>claim by claim</b> which search wins: it depends on how many words the claim shares with "
+            "its evidence;",
+            "shows what a <b>fusion weight</b> really does: below a keyword weight of about 0.38, keyword search can "
+            "only re-order what meaning search found;",
+            "finds a <b>cheaper alternative to reranking</b>: fine-tuning plus weighted fusion;",
+            "measures whether a search score can tell the answer generator <b>when not to answer</b>: only at a "
+            "high cost.",
+        ]),
+    ]),
+
+    KeepTogether([
+    Paragraph("12. Key terms", h1),
     grid([
         ["Term", "Meaning"],
         ["BM25", "Classic keyword-matching score used by search engines."],
@@ -273,7 +293,9 @@ story = [
         ["RAG", "Retrieval-Augmented Generation: find documents first, then answer from them."],
         ["Fine-tuning", "Further training of a pretrained model on data from our own domain."],
         ["Ablation", "Removing or changing one part at a time to see what each part contributes."],
+        ["nDCG@10", "How well the right papers are ranked in the top 10 (1 = perfect)."],
     ], [4.3 * cm, 12.7 * cm]),
+    ]),
 ]
 
 OUT.parent.mkdir(parents=True, exist_ok=True)
