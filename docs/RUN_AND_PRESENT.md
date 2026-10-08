@@ -412,18 +412,21 @@ so don't make them.
   0.81, but no cheap threshold); tests for the paper's references and numbers (66 tests).
   The Fri 9 Oct fresh-clone pass is still worth doing yourself: it is your evidence.
 
-### Day-by-day plan to the deadline (about 10 Oct), 2–3 commits a day
+### Day-by-day plan to the assessment (about 13 Oct)
 
-Commit after **each** row item, not once per day.
+Everything the teacher asked for on 7 Oct is in place (survey, novelty, abstract,
+diagram, algorithms, Springer format). What is left is **your** part, about 12–15 hours.
+One pull request per row (Section 4), so GitHub checks the tests and the page count.
 
-| Date | Work, one commit each | Commit message idea |
+| Date | Work | Commit / PR idea |
 |---|---|---|
-| Wed 7 Oct | (1) Review the 40 failure labels with [FAILURE_REVIEW.md](FAILURE_REVIEW.md): tick each one you agree with; change any you don't in `results/failure_analysis.csv`<br>(2) Score 20 answers of `results/answer_scoring.csv` yourself, without looking at the scores, then compare | `Failure analysis: reviewed all 40 labels`<br>`Answer scoring: own check of 20 answers` |
-| Thu 8 Oct | (1) Read the paper (PDF from Step 9) section by section; rewrite every sentence you could not defend in the viva, in a PR<br>(2) Practise the slides with [SLIDES.md](SLIDES.md); download the deck as PowerPoint and PDF | `Paper: method and results in my words`<br>`Slides: notes in my words` |
-| Fri 9 Oct | (1) Fresh-clone test: clone into a new folder **on D:**, follow this file from step 1, fix what breaks<br>(2) Viva rehearsal with `docs/VIVA_PREP.md`; write down what you stumbled on | `Reproducibility pass`<br>`Viva prep notes` |
-| Sat 10 Oct | (1) Final read-through; put the final PDF (GitHub build or Overleaf export) into `paper/`<br>(2) Buffer | `Final paper PDF` |
+| Thu 8 Oct | (1) Ask the teacher: **do references count in the 12 Springer pages?** (If yes, say so: a 12-pages-with-references version is ready as a draft PR.)<br>(2) Review failure labels 1–20 with [FAILURE_REVIEW.md](FAILURE_REVIEW.md) | `Failure analysis: reviewed labels 1-20` |
+| Fri 9 Oct | (1) Labels 21–40, then `python scripts/failure_analysis.py --summarize` and `--markdown`<br>(2) Score 20 answers of `results/answer_scoring.csv` yourself, without looking at the scores, then compare | `Failure analysis: reviewed labels 21-40`<br>`Answer scoring: own check of 20 answers` |
+| Sat 10 Oct | (1) Cross-check the survey: put the 40 references into **ResearchRabbit** (citation map) and ask **Consensus** the research question; add anything important to `docs/LITERATURE_SURVEY.md`, then `python scripts/make_survey_docx.py`<br>(2) Read paper Sections 1–4 (PDF: Step 9); rewrite every sentence you could not defend | `Survey: cross-checked with ResearchRabbit and Consensus`<br>`Paper: sections 1-4 in my words` |
+| Sun 11 Oct | (1) Paper Sections 5–8 in your own words; the PR build must stay at 12 pages<br>(2) Upload `paper_overleaf.zip` to Overleaf and compile | `Paper: sections 5-8 in my words` |
+| Mon 12 Oct | (1) Rehearse slides + demo twice, with a timer (about 9 + 3 minutes); download the deck as PowerPoint and PDF<br>(2) Fresh-clone test: clone into a new folder **on D:** and follow this file from step 1<br>(3) **NotebookLM**: load the paper, `LITERATURE_SURVEY.md`, `ALGORITHMS.md` and `VIVA_PREP.md`, and let it quiz you | `Reproducibility pass`<br>`Viva prep notes` |
+| Tue 13 Oct | Buffer. Final read-through; the final PDF into `paper/`; tag the submitted version (`git tag v1.0`, `git push --tags`) | `Final paper PDF` |
 
-The review and rewriting planned for 3–6 Oct moved to 7–8 Oct; the rest is unchanged.
 If you change a label or a score, run `--summarize` again (and `--markdown` for a label)
 and update the numbers in the paper (Failure Analysis and Answer Quality) and on slides 9
 and 10. The tests catch a paper number that no longer matches `results/`.
