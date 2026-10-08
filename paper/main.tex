@@ -299,10 +299,9 @@ are the abstracts holding evidence for or against them, judged per abstract. All
 300 test claims are evaluated (339 relevant abstracts, 1.13 per claim); the 809
 training claims, disjoint from them, are used only for fine-tuning.
 
-\paragraph{Models and configurations.} Besides MiniLM we use BGE-small
-(\texttt{bge-small-en-v1.5}, 33.4M parameters), \texttt{bge-reranker-base} (278M)
-and, as readers, \texttt{flan-t5-base} (248M) and \texttt{roberta-base-squad2}
-(124M). The main configuration uses MiniLM and the MS~MARCO cross-encoder without
+\paragraph{Models and configurations.} We also use the BGE-small encoder (33.4M
+parameters), the BGE reranker (278M) and two readers, \texttt{flan-t5-base} (248M)
+and \texttt{roberta-base-squad2} (124M). The main configuration uses MiniLM and the MS~MARCO cross-encoder without
 training on SciFact (BEIR's zero-shot setting) in all four variants; every further
 configuration changes one component (Table~\ref{tab:configs}), and we vary the
 reranking depth $N\in\{10,25,50,100\}$ and the RRF constant $k\in\{10,30,60,100\}$.
