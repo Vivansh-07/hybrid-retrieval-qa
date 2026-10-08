@@ -5,6 +5,46 @@ scaffolding — say them in your own words, and replace every bracketed placehol
 your actual number. An examiner can tell the difference between a memorised answer and
 an understood one, and the tell is usually that you cannot handle the follow-up.
 
+For "explain this algorithm" questions, [ALGORITHMS.md](ALGORITHMS.md) has every
+algorithm with the idea, why it was chosen and a one-sentence answer.
+
+---
+
+## Your teacher's checklist (7 Oct): novelty, survey, algorithms
+
+**What is novel in your work?**
+It is an empirical study, so the novelty is in what it shows, not a new model. Four things
+the recent hybrid-retrieval papers (2022–2026) don't do:
+(1) explain *per claim* which retriever wins: the word overlap between claim and evidence
+decides it (dense wins on paraphrased claims, BM25 on claims worded like the evidence);
+(2) show what a fusion weight does: below a BM25 weight of 61/160 ≈ 0.38, BM25 can only
+re-order the dense candidates, never add new ones, which explains how down-weighting avoids
+the "weakest link" effect that Wang et al. (PVLDB 2026) observed;
+(3) a cheaper alternative to reranking: fine-tuning a 22M-parameter encoder on 689 claims
+and fusing at a tuned weight gives 0.759, better than the reranked pipeline (0.715) at about
+a third of the latency; and (4) a measured abstention baseline: the reranker's score has
+AUC 0.81 but no cheap threshold. Say it as "what this paper adds", not "the first ever".
+
+**What does the latest research say, and where does your work fit?**
+(`docs/LITERATURE_SURVEY.md`, 40 references, 25 from 2022–2026.) Recent studies agree
+hybrid retrieval helps, but the best design depends on the data: a 2026 PVLDB study across 11
+datasets found no single best configuration and a "weakest link" effect; a 2026 benchmark on
+financial documents found hybrid plus reranking best and BM25 beating dense there; DAT (2025)
+sets the fusion weight per query with an LLM. In scientific QA, OpenScholar (*Nature* 2026)
+answers from 45 million papers with expert-level citation accuracy. My work isolates the
+retrieval stage on scientific claims and explains *why* fusion helps or hurts.
+
+**How did you do the survey? Did you use the tools I suggested?**
+Searched Semantic Scholar, arXiv, the ACL Anthology and Crossref for 2022–2026 work; read
+each abstract; checked every reference against the publisher. Then say honestly which of
+ResearchRabbit, Consensus, SciSpace and NotebookLM *you* used and what they added. Also:
+three PhD theses from Waterloo's IR group, which produced BEIR (Thakur 2026, Lin 2024,
+Pradeep 2025).
+
+**Why Springer format?**
+The course allows IEEE (6 pages) or Springer (12 pages). Springer's single column gives the
+diagram and tables room; the body is 12 pages and the references follow.
+
 ---
 
 ## Tier 1 — You will almost certainly be asked these
