@@ -219,6 +219,23 @@ python -m pytest tests/ -q
 subset, scoring and abstention code, and that the paper's references, figures and
 headline numbers still match `results/`. GitHub runs them on every pull request.
 
+## Data and models
+
+The code is MIT-licensed (below); the data and models it uses keep their own licences.
+`results/` and `docs/FAILURE_REVIEW.md` quote SciFact claims and abstract excerpts.
+
+| What | Source | Licence |
+|---|---|---|
+| SciFact claims and evidence annotations | Wadden et al., EMNLP 2020 ([allenai/scifact](https://github.com/allenai/scifact)), used via BEIR | CC BY 4.0 |
+| SciFact abstracts | Semantic Scholar S2ORC | ODC-By 1.0 |
+| `sentence-transformers/all-MiniLM-L6-v2` | Hugging Face Hub | Apache 2.0 |
+| `cross-encoder/ms-marco-MiniLM-L-6-v2` | Hugging Face Hub | Apache 2.0 |
+| `google/flan-t5-base` | Hugging Face Hub | Apache 2.0 |
+| `deepset/roberta-base-squad2` | Hugging Face Hub | CC BY 4.0 |
+| `BAAI/bge-small-en-v1.5`, `BAAI/bge-reranker-base` | Hugging Face Hub | MIT |
+
+Licences as stated by each source on 9 Oct 2026.
+
 ## License
 
 MIT — see [LICENSE](LICENSE).
