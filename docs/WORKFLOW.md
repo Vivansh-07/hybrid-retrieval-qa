@@ -1,6 +1,12 @@
-# Four-week workflow
+# Four-week workflow (the original plan, 13 September)
 
-Target: a working pipeline, a 6–8 page paper, a slide deck, and enough
+> This is the plan the project started from. What actually happened, run by run, is in
+> [RESULTS.md](../RESULTS.md) and the [experiment log](EXPERIMENT_LOG.md); the plan for the
+> last days is in [RUN_AND_PRESENT.md](RUN_AND_PRESENT.md), Section 4. Two things changed
+> since: the paper is in Springer LNCS format (12 pages; IEEE would allow only 6), and the
+> project went further than planned (fine-tuning, weighted fusion, a literature survey update).
+
+Target: a working pipeline, a research paper, a slide deck, and enough
 understanding to survive a viva. Dataset is SciFact (BEIR), hardware is your local GPU.
 
 The ordering is deliberate. Most student projects fail the viva not because the
