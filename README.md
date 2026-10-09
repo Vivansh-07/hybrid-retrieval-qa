@@ -141,6 +141,7 @@ rubrics (see the paper and `docs/ANSWER_RUBRIC.md`).
 ## Repository layout
 
 ```
+RESULTS.md               every experiment in order: command, output, decision
 configs/scifact.yaml     every hyperparameter for every stage, in one file
 src/hybridqa/
   config.py              YAML loading, dotted-path lookup, single-key override
@@ -149,6 +150,8 @@ src/hybridqa/
   dense.py               bi-encoder + FAISS flat inner-product index, cached embeddings
   fusion.py              Reciprocal Rank Fusion, plus a score-fusion baseline
   rerank.py              cross-encoder reranking over the fused candidate pool
+  abstention.py          AUC and threshold for the abstention check
+  scoring.py, subsets.py, significance.py   answer scores, claim subsets, paired tests
   answer.py              extractive / generative answering with citations
   metrics.py             Recall@k, P@k, MRR, nDCG@k, paired bootstrap
   pipeline.py            builds indexes once, serves all four ablation variants
@@ -156,8 +159,8 @@ src/hybridqa/
 scripts/
   run_ablation.py        the four variants + rerank-depth and RRF-k sweeps
   make_plots.py          results/*.json → paper/figures/*.png
-  failure_analysis.py    the 40 hardest claims as a worksheet for manual labelling; --summarize
-  demo.py                Gradio web demo: one question, all four variants side by side; --best
+  failure_analysis.py    the 40 hardest claims as a worksheet; --summarize; --markdown (review sheet)
+  demo.py                Gradio web demo: one question, all four variants side by side; --best, --offline
   pick_demo_claims.py    claims worth showing in the demo (where the variants disagree)
   abstention.py          could retrieval confidence tell the reader to abstain? (AUC, threshold)
   finetune_dense.py      contrastive fine-tuning of the dense encoder on SciFact train claims
@@ -166,13 +169,16 @@ scripts/
   tune_fusion.py         choose the BM25 fusion weight on held-out dev claims
   query_subsets.py       which retriever helps which kind of claim (overlap, numbers, rare terms)
   answer_sheet.py        blind sheet for hand-scoring the generated answers; --summarize
+  make_survey_docx.py    docs/LITERATURE_SURVEY.md → paper/Literature_Survey.docx
+  make_problem_statement.py  builds docs/Problem_Statement.pdf
 tests/                   unit tests: metrics, fusion, config, significance, subsets, scoring,
                          abstention; the paper's references and numbers; the review sheet
 paper/                   LaTeX source, bibliography, figures (GitHub builds the PDF: Actions → paper)
 docs/
-  WORKFLOW.md            week-by-week plan through to the viva
+  WORKFLOW.md            the original four-week plan (13 Sep)
   VIVA_PREP.md           expected questions with worked answers
   ANSWER_RUBRIC.md       how the generated answers are scored by hand (fixed in advance)
+  DEPLOY.md              run it on your own computer, step by step (tested)
   RUN_AND_PRESENT.md     tested commands, expected output, presentation script, daily plan
   ALGORITHMS.md          every algorithm: the idea, why it was chosen, settings, code
   LITERATURE_SURVEY.md   the survey (40 references, 2022-2026 update); builds the .docx
@@ -180,6 +186,7 @@ docs/
   SLIDES.md              the 12 slides: titles, what to say, where each number comes from
   Problem_Statement.pdf  the project explained in plain language
   EXPERIMENT_LOG.md      append one entry per run, including failed ones
+  GIT_FOR_BEGINNERS.md   the daily git routine and common errors
 ```
 
 ---
