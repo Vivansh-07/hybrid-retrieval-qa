@@ -274,6 +274,12 @@ fused with BM25 at the weight chosen on the dev claims. The header shows
 ```
 python scripts/demo.py --best
 ```
+**No Wi-Fi in the room?** Add `--offline`: SciFact and every model are then read from
+`data\hf_cache` only, with no internet access at all (checked 9 Oct: same startup time,
+same results):
+```
+python scripts/demo.py --best --offline
+```
 Startup takes about 2 minutes (measured 3 Oct). `--best` needs the folder
 `data\models\all-MiniLM-L6-v2-scifact` (from `python scripts/finetune_dense.py --epochs 12`)
 and `results\fusion_weights_all-MiniLM-L6-v2-scifact.json` (from `scripts/tune_fusion.py`);
@@ -330,6 +336,9 @@ compiles.
    short: 269, 1303 and 660 cover fusion, dense and a failure.
 3. Take screenshots of the ablation table, the figures and the demo, as a backup in
    case anything fails in class.
+4. Prepare for no internet in the room: download the slides as PowerPoint and PDF (the
+   online deck needs internet), keep the paper PDF on the laptop, and try the demo once
+   with Wi-Fi switched off: `python scripts/demo.py --best --offline`.
 
 **In class (about 12 minutes):** present the 12 slides (about 9 minutes; what to say for
 each is in [SLIDES.md](SLIDES.md)), then the live demo (about 3 minutes). Start the demo

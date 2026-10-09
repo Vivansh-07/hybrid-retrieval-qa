@@ -3,6 +3,7 @@
     python scripts/demo.py              # opens http://127.0.0.1:7860 in the browser
     python scripts/demo.py --best       # the best system (0.759 nDCG@10): fine-tuned encoder,
                                         # BM25 fused at the weight chosen on dev claims
+    python scripts/demo.py --best --offline   # no internet: use only the downloaded copies
 
 Builds the same indexes as the ablation (first launch downloads SciFact and the
 models; dense embeddings are then cached in data/indexes/), and for any question
@@ -25,6 +26,14 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
+
+# --offline: never contact the Hugging Face Hub (e.g. no Wi-Fi in the classroom); SciFact
+# and the models are read from data/hf_cache only. The libraries read these variables once,
+# when they are imported, so this has to happen before the imports below.
+if "--offline" in sys.argv:
+    for _var in ("HF_HUB_OFFLINE", "HF_DATASETS_OFFLINE", "TRANSFORMERS_OFFLINE"):
+        os.environ[_var] = "1"
+    os.environ["GRADIO_ANALYTICS_ENABLED"] = "False"
 
 # hybridqa first: it points the Hugging Face cache at data/hf_cache, and gradio
 # imports huggingface_hub, which reads that setting once at import time.
@@ -227,6 +236,8 @@ def main() -> None:
                    help="change one config value, e.g. dense.model=BAAI/bge-small-en-v1.5 (repeatable)")
     p.add_argument("--best", action="store_true",
                    help="run the best system: the fine-tuned encoder with the tuned BM25 fusion weight")
+    p.add_argument("--offline", action="store_true",
+                   help="no internet: load SciFact and the models from data/hf_cache only")
     args = p.parse_args()
     overrides = (best_overrides() if args.best else []) + args.overrides
     build_app(args.config, args.device, overrides).launch(server_port=args.port, inbrowser=not args.no_browser)
