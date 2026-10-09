@@ -1,7 +1,8 @@
 # Git and GitHub, from zero
 
-Written for someone who has never used git. Follow it top to bottom once; after that
-you only need the "Daily routine" section.
+Written for someone who has never used git. The setup is done; day to day you only need
+the "Daily routine" section. Since 3 Oct every change goes through a pull request: the
+routine for that is in [RUN_AND_PRESENT.md](RUN_AND_PRESENT.md), Section 4.
 
 **The mental model in three sentences.** Git keeps a history of your folder on your own
 computer. GitHub is a website that stores a copy of that history online. You take a
@@ -9,82 +10,13 @@ snapshot locally (*commit*), then upload the new snapshots (*push*).
 
 ---
 
-## Part 1 — One-time setup (about 10 minutes)
+## Part 1 — Setup (already done)
 
-### 1.1 Install Git
+The repository exists: <https://github.com/Vivansh-07/hybrid-retrieval-qa>. Git is installed,
+your name and email are set (use the email of your GitHub account, so the commits count on
+your profile), and the GitHub CLI `gh` is logged in, so `git push` needs no password.
 
-Download **Git for Windows** from <https://git-scm.com/download/win> and run the
-installer. Click Next on every screen — the defaults are correct.
-
-To check it worked, open **Command Prompt** (press `Win`, type `cmd`, press Enter) and run:
-
-```cmd
-git --version
-```
-
-You should see something like `git version 2.47.0`. If you instead see
-*"'git' is not recognized"*, close Command Prompt, open a new one, and try again — the
-installer only adds git to new windows.
-
-### 1.2 Tell git who you are
-
-Git stamps your name and email on every commit. Run these two commands once, ever:
-
-```cmd
-git config --global user.name "Vivansh Garg"
-git config --global user.email "vivanshgarg05@gmail.com"
-```
-
-Use the same email as your GitHub account, otherwise your commits won't be linked to
-your profile — and the green contribution squares are part of why you're doing this.
-
-### 1.3 Create the GitHub repository
-
-1. Sign in at <https://github.com> (make an account if you don't have one).
-2. Click the **+** in the top-right corner → **New repository**.
-3. Repository name: `hybrid-retrieval-qa`
-4. Description: *Hybrid sparse–dense retrieval with cross-encoder reranking for domain-specific QA*
-5. Choose **Public** (recruiters can't see private repos, and this one is for your resume).
-6. **Do not tick** "Add a README", "Add .gitignore", or "Choose a license" — your folder
-   already has all three, and ticking them causes a merge conflict on your first push.
-7. Click **Create repository**.
-
-You'll land on a page with setup instructions. Ignore it; the next section is easier.
-
-### 1.4 Make a Personal Access Token
-
-GitHub stopped accepting your account password from the command line in 2021. You need a
-token instead — think of it as a password that only works for git.
-
-1. Go to <https://github.com/settings/tokens?type=beta> → **Generate new token**.
-2. Token name: `laptop-git`
-3. Expiration: 90 days (long enough for this project).
-4. Repository access: **Only select repositories** → pick `hybrid-retrieval-qa`.
-5. Permissions → Repository permissions → **Contents** → change to **Read and write**.
-6. Click **Generate token**.
-7. **Copy the token now** and paste it somewhere safe. GitHub shows it exactly once. It
-   looks like `github_pat_11ABC...`.
-
-> Treat the token like a password. Never paste it into a file inside the repo — if you
-> commit a token, GitHub detects it and revokes it automatically.
-
-### 1.5 First push
-
-Open Command Prompt and run:
-
-```cmd
-cd "<your project folder>\hybrid-retrieval-qa"
-init_and_push.bat vivanshgarg05
-```
-
-The script does everything: initialises the repo, makes the first commit, and pushes.
-When it asks for a **username**, type `vivanshgarg05`. When it asks for a **password**,
-paste the token (right-click pastes in Command Prompt; nothing appears on screen as you
-paste — that's normal). Press Enter.
-
-Refresh your GitHub page. Your code is there.
-
-> Windows will remember the token in Credential Manager, so you only type it once.
+To get a working copy on another computer, follow [DEPLOY.md](DEPLOY.md), step 1.
 
 ---
 
@@ -215,8 +147,8 @@ Harmless Windows line-ending noise. Ignore it.
 - **Tag the version your paper reports**, so the numbers stay findable:
 
   ```cmd
-  git tag -a v1.0-paper -m "Results reported in the submitted paper"
-  git push origin v1.0-paper
+  git tag -a v1.0 -m "Version submitted for assessment"
+  git push origin v1.0
   ```
 
 - **Put the repo link in the paper** (Reproducibility section) and in your resume.
