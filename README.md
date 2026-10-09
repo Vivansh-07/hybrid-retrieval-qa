@@ -45,7 +45,7 @@ python -m pip install torch --index-url https://download.pytorch.org/whl/cu126  
 python -m pip install -r requirements.txt
 python -m pip install -e .
 
-python -m pytest tests/ -q                           # 73 tests
+python -m pytest tests/ -q                           # 74 tests
 
 # full four-way ablation + sweeps (downloads SciFact + models on first run, ~13 min on an RTX 3050)
 python scripts/run_ablation.py --sweep-depth 10 25 50 100 --sweep-fusion-k 10 30 60 100
@@ -227,7 +227,7 @@ model), so changing any of them re-embeds automatically.
 python -m pytest tests/ -q
 ```
 
-73 tests check the metrics against hand-worked values, the fusion, config, significance,
+74 tests check the metrics against hand-worked values, the fusion, config, significance,
 subset, scoring and abstention code, and that the paper's references, figures and
 headline numbers still match `results/`, and that the failure review sheet matches its
 worksheet. GitHub runs them on every pull request.
