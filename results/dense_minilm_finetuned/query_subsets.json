@@ -1,6 +1,6 @@
 {
   "metric": "nDCG@10",
-  "results": "D:\\Deep Learning\\Claude\\hybrid-retrieval-qa\\results\\dense_minilm_finetuned",
+  "results": "results/dense_minilm_finetuned",
   "splits": {
     "number": {
       "median_cut": null,

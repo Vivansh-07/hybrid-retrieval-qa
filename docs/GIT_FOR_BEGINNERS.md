@@ -73,7 +73,7 @@ token instead — think of it as a password that only works for git.
 Open Command Prompt and run:
 
 ```cmd
-cd "D:\Deep Learning\Claude\hybrid-retrieval-qa"
+cd "<your project folder>\hybrid-retrieval-qa"
 init_and_push.bat vivanshgarg05
 ```
 
@@ -93,7 +93,7 @@ Refresh your GitHub page. Your code is there.
 This is the whole loop. Three commands, at the end of every working session.
 
 ```cmd
-cd "D:\Deep Learning\Claude\hybrid-retrieval-qa"
+cd "<your project folder>\hybrid-retrieval-qa"
 
 git add .
 git commit -m "Add BM25 baseline results for SciFact"
@@ -157,7 +157,7 @@ installed it. Close it, open a new one.
 
 ### "fatal: not a git repository"
 
-You're in the wrong folder. Run `cd "D:\Deep Learning\Claude\hybrid-retrieval-qa"` first.
+You're in the wrong folder. Run `cd "<your project folder>\hybrid-retrieval-qa"` first.
 Note the quotes — the path has spaces in it, and without quotes Windows reads it as three
 separate arguments.
 

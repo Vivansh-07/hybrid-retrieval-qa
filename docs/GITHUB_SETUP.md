@@ -13,7 +13,7 @@ in the history.
 3. Double-click `init_and_push.bat` in this folder, or from a terminal:
 
    ```cmd
-   cd "D:\Deep Learning\Claude\hybrid-retrieval-qa"
+   cd "<your project folder>\hybrid-retrieval-qa"
    init_and_push.bat <your-github-username>
    ```
 
@@ -28,7 +28,7 @@ repository. Copy it immediately; it is shown once.
 ## Manual path
 
 ```cmd
-cd "D:\Deep Learning\Claude\hybrid-retrieval-qa"
+cd "<your project folder>\hybrid-retrieval-qa"
 git init
 git add .
 git commit -m "Initial commit: hybrid retrieval pipeline, evaluation harness, paper skeleton"

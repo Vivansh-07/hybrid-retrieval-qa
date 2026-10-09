@@ -13,7 +13,7 @@ VS Code's built-in terminal **is** a terminal, so every command below works ther
 exactly as in Command Prompt. For the presentation, VS Code is the better choice:
 code, terminal and output files are all in one window.
 
-1. Open VS Code → **File → Open Folder…** → `D:\Deep Learning\Claude\hybrid-retrieval-qa`
+1. Open VS Code → **File → Open Folder…** → the `hybrid-retrieval-qa` folder
 2. Use **Command Prompt** as the terminal (PowerShell blocks the activation script):
    `Ctrl+Shift+P` → **Terminal: Select Default Profile** → **Command Prompt**.
 3. Open the terminal: **Terminal → New Terminal** (or press ``Ctrl+` ``).
@@ -440,8 +440,8 @@ If you change a label or a score, run `--summarize` again (and `--markdown` for 
 and update the numbers in the paper (Failure Analysis and Answer Quality) and on slides 9
 and 10. The tests catch a paper number that no longer matches `results/`.
 
-If a day slips, drop items in the order listed in `CLAUDE.md` §7 ("If behind, cut in
-this order"), never the four-row ablation, the failure analysis or the significance test.
+If a day slips, drop the optional parts first (extra analyses, extra examples), never the
+four-row ablation, the failure analysis or the significance test.
 
 ### How to label the failure worksheet
 

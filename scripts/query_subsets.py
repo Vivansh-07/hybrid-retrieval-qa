@@ -59,7 +59,8 @@ def main() -> None:
     key = f"nDCG@{cfg.get_path('evaluation.primary_k', 10)}"
     seed = cfg.get_path("evaluation.seed", 42)
     variants = [v for v in ("bm25", "dense", "fusion", "fusion+rerank") if v in per_query]
-    payload = {"metric": key, "results": str(results), "splits": {}}
+    payload = {"metric": key, "results": results.relative_to(REPO).as_posix() if results.is_relative_to(REPO)
+               else str(results), "splits": {}}
 
     print(f"\n{key} by claim subset   ({results})\n")
     print(f"{'split':<11}{'group':<27}{'n':>4}  " + "".join(f"{v:>14}" for v in variants)
