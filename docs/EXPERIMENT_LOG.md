@@ -458,7 +458,7 @@ Next:        hand-score results/answer_scoring.csv with docs/ANSWER_RUBRIC.md.
 ---
 
 ### 2026-10-02 — Reproducibility check from a fresh clone
-Commit:      23f64aa (cloned from GitHub into D:\Deep Learning\Claude\_repro_check)
+Commit:      23f64aa (cloned from GitHub into a separate folder, _repro_check, on D:)
 Config:      unchanged
 Command:     `git clone https://github.com/Vivansh-07/hybrid-retrieval-qa.git _repro_check`, then in
              the clone `python -m pytest tests/ -q` and
@@ -598,7 +598,7 @@ Next:        none planned; added to the paper (Results, Limitations) and viva pr
 ---
 
 ### 2026-10-03 — Reproducibility of the best system from a fresh clone
-Commit:      72ba527 (cloned from GitHub into D:\Deep Learning\Claude\_repro_best)
+Commit:      72ba527 (cloned from GitHub into a separate folder, _repro_best, on D:)
 Config:      fine-tuned MiniLM, BM25 weight from tune_fusion.py, otherwise unchanged
 Command:     in the clone: `python -m pytest tests -q`;
              `python scripts/finetune_dense.py --epochs 12`;

@@ -1,6 +1,6 @@
 {
   "metric": "nDCG@10",
-  "results": "D:\\Deep Learning\\Claude\\hybrid-retrieval-qa\\results",
+  "results": "results",
   "splits": {
     "number": {
       "median_cut": null,
