@@ -1,0 +1,58 @@
+# Publishes the submitted version as a GitHub release.
+#
+# When a version tag is pushed (git tag -a v1.0 -m "..." && git push origin v1.0), this
+# compiles the paper and creates a release on the repository page with three files
+# attached: the paper PDF, the problem statement and the literature survey.
+# On a pull request that changes this file it does a dry run: it builds and collects the
+# files (kept as the "release-files" artifact) but creates no release.
+name: release
+
+on:
+  push:
+    tags: ["v*"]
+  pull_request:
+    paths: [".github/workflows/release.yml"]
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Compile the paper
+        uses: xu-cheng/latex-action@v3
+        with:
+          root_file: main.tex
+          working_directory: paper
+
+      - name: Collect the files
+        run: |
+          mkdir -p release
+          cp paper/main.pdf release/Hybrid_Sparse_Dense_Retrieval_paper.pdf
+          cp docs/Problem_Statement.pdf release/Problem_Statement.pdf
+          cp paper/Literature_Survey.docx release/Literature_Survey.docx
+          ls -l release
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: release-files
+          path: release/
+
+      - name: Publish the release
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: release/*
+          body: |
+            The version of the project submitted for assessment.
+
+            - **Paper** (Springer LNCS): `Hybrid_Sparse_Dense_Retrieval_paper.pdf`
+            - **Problem statement**: `Problem_Statement.pdf`
+            - **Literature survey**: `Literature_Survey.docx`
+
+            What was run and what came out: [RESULTS.md](RESULTS.md).
+            How to run it locally: [docs/DEPLOY.md](docs/DEPLOY.md).
