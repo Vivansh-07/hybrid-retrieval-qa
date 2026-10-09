@@ -37,3 +37,6 @@ paper/*.toc
 Thumbs.db
 .vscode/
 .idea/
+
+# Assistant working notes (kept locally, not part of the project)
+CLAUDE.md
