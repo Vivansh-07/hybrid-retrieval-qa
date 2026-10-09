@@ -6,6 +6,9 @@
 A multi-stage retrieval pipeline for question answering over a specialised corpus,
 evaluated with a controlled ablation on **SciFact** (BEIR).
 
+**[RESULTS.md](RESULTS.md)**: every experiment in order, with its command, its output and the
+decision it led to.
+
 ```
 query
   ├── BM25 over an inverted index ─────────┐
