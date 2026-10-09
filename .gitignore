@@ -10,6 +10,8 @@ indexes/
 # Results: keep the small JSON/CSV summaries, drop bulky run files
 results/**/runs/
 results/**/*.trec
+# local re-runs (e.g. the live check in docs/DEPLOY.md, step 7) are never committed
+results/_*/
 
 # Python
 __pycache__/

@@ -8,6 +8,8 @@ evaluated with a controlled ablation on **SciFact** (BEIR).
 
 **[RESULTS.md](RESULTS.md)**: every experiment in order, with its command, its output and the
 decision it led to.
+**[docs/DEPLOY.md](docs/DEPLOY.md)**: run it on your own computer, step by step (tested in a
+fresh copy).
 
 ```
 query
