@@ -102,3 +102,18 @@ def test_keep_tail_false_keeps_the_existing_embedding_cache(cfg):
     off = RetrievalPipeline(cfg, verbose=False).embedding_cache_path()
     on = RetrievalPipeline(apply_overrides(cfg, ["chunking.keep_tail=true"]), verbose=False).embedding_cache_path()
     assert RetrievalPipeline(without, verbose=False).embedding_cache_path() == off != on
+
+
+@pytest.mark.parametrize("weights", ["model.safetensors", "pytorch_model.bin"])
+def test_embedding_cache_follows_retrained_weights(cfg, tmp_path, weights):
+    # issue #47: retraining a local model into the same folder must not reuse old vectors
+    import os
+
+    model = tmp_path / "my-model"
+    model.mkdir()
+    (model / weights).write_bytes(b"weights")
+    local = apply_overrides(cfg, [f"dense.model={model}"])
+    before = RetrievalPipeline(local, verbose=False).embedding_cache_path()
+    later = (model / weights).stat().st_mtime_ns + 10**9
+    os.utime(model / weights, ns=(later, later))
+    assert RetrievalPipeline(local, verbose=False).embedding_cache_path() != before

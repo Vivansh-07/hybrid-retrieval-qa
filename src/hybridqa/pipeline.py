@@ -124,8 +124,10 @@ class RetrievalPipeline:
         if local.is_dir():
             # a fine-tuned model can be retrained into the same folder: tie the cache to
             # the saved weights, so stale embeddings from the previous training are not reused
+            # (weights in either format: model.safetensors or pytorch_model.bin)
             keyed["dense.model_saved_at"] = max(
-                (p.stat().st_mtime_ns for p in local.rglob("*.safetensors")), default=0)
+                (p.stat().st_mtime_ns for p in local.rglob("*") if p.suffix in {".safetensors", ".bin"}),
+                default=0)
         digest = hashlib.sha1(json.dumps(keyed, sort_keys=True, default=str).encode()).hexdigest()[:10]
         safe_name = re.sub(r"[^A-Za-z0-9._-]+", "__", model)
         return resolve(self.cfg, "index_dir") / f"{safe_name}__{digest}.npy"

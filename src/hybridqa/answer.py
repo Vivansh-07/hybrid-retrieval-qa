@@ -168,7 +168,9 @@ class AnswerGenerator:
 
         out = self._generate(PROMPT.format(passages=numbered, question=query))
         cited_idx = {int(m) for m in re.findall(r"\[(\d+)\]", out) if 1 <= int(m) <= len(selected)}
-        cited = [selected[i - 1][0] for i in sorted(cited_idx)] or [selected[0][0]]
+        # no [n] in the answer: credit passage 1, unless the reader abstained (it cited nothing)
+        abstained = "not enough evidence" in out.lower()
+        cited = [selected[i - 1][0] for i in sorted(cited_idx)] or ([] if abstained else [selected[0][0]])
         return Answer(query_id, query, out.strip(), cited, selected)
 
 
