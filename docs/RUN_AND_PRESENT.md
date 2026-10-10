@@ -419,7 +419,21 @@ so don't make them.
   (BM25 only re-orders dense's candidates); the best system rerun from a fresh clone,
   fine-tuning included, with identical results; abstention check (reranker score AUC
   0.81, but no cheap threshold); tests for the paper's references and numbers (66 tests).
-  The Fri 9 Oct fresh-clone pass is still worth doing yourself: it is your evidence.
+- 6 Oct: one-click claim buttons in the demo; the failure labels as a review sheet
+  ([FAILURE_REVIEW.md](FAILURE_REVIEW.md)); related work on domain adaptation, fusion
+  analysis and abstention.
+- 7–8 Oct, after the teacher's inputs: the literature survey updated to 2022–2026 (40
+  references, 3 PhD theses); a labelled system diagram (Fig. 1), an abstract under 200
+  words and an explicit novelty list in the paper; the paper moved to Springer LNCS (body
+  12 pages, then references); [ALGORITHMS.md](ALGORITHMS.md); viva answers on novelty,
+  survey, tools and format; the problem statement and slides 3 and 11 updated.
+- 9–10 Oct: `demo.py --offline`; data and model licences in the README;
+  [RESULTS.md](../RESULTS.md) (each experiment, its output and the decision it led to);
+  [DEPLOY.md](DEPLOY.md), tested by the AI assistant in a clean clone in
+  `D:\Projects\hybrid-retrieval-qa` with the same numbers (RESULTS.md step 14); a GitHub
+  release when you tag `v1.0`; every number on the slides checked against `results/`
+  (one wording fix, on slide 9 and in the paper); 77 tests. The Mon 12 Oct fresh-clone
+  pass is still worth doing yourself: it is your evidence.
 
 ### Day-by-day plan to the assessment (about 13 Oct)
 
