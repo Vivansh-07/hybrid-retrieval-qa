@@ -140,3 +140,10 @@ def test_dev_split_is_deterministic_and_disjoint():
     assert [q["query_id"] for q in dev_a] == [q["query_id"] for q in dev_b]
     assert len(dev_a) == 10 and len(train_a) == 40
     assert not {q["query_id"] for q in dev_a} & {q["query_id"] for q in train_a}
+
+
+def test_top_k_zero_means_an_empty_list_and_none_no_cut():
+    runs = [[("a", 3.0), ("b", 2.0)], [("b", 0.9), ("c", 0.8)]]
+    assert reciprocal_rank_fusion(runs, top_k=0) == []
+    assert len(reciprocal_rank_fusion(runs, top_k=None)) == 3
+    assert normalized_score_fusion(runs, top_k=0) == []

@@ -22,10 +22,11 @@ Qrels = Dict[str, Dict[str, int]]
 
 
 def recall_at_k(ranked: Sequence[str], relevant: Dict[str, int], k: int) -> float:
-    if not relevant:
+    n_relevant = sum(1 for grade in relevant.values() if grade > 0)  # a 0-grade judgment is not relevant
+    if not n_relevant:
         return 0.0
     hits = sum(1 for d in ranked[:k] if relevant.get(d, 0) > 0)
-    return hits / len(relevant)
+    return hits / n_relevant
 
 
 def precision_at_k(ranked: Sequence[str], relevant: Dict[str, int], k: int) -> float:
