@@ -142,6 +142,20 @@ def test_dev_split_is_deterministic_and_disjoint():
     assert not {q["query_id"] for q in dev_a} & {q["query_id"] for q in train_a}
 
 
+def test_bm25_ranks_ties_in_index_order():
+    # issue #48: numpy's stable argsort must give exactly the order of the old Python sort
+    from hybridqa.config import Config
+    from hybridqa.data import Chunk
+    from hybridqa.sparse import BM25Retriever
+
+    texts = ["aspirin cox", "aspirin cox", "statin fracture", "aspirin", "aspirin cox"]
+    chunks = [Chunk(f"d{i}#0", f"d{i}", "", t) for i, t in enumerate(texts)]
+    bm25 = BM25Retriever(Config({"sparse": {"top_k": 5}})).index(chunks)
+    scores = bm25._bm25.get_scores(bm25._tok("aspirin cox"))
+    old = [bm25.chunk_ids[i] for i in sorted(range(len(scores)), key=lambda i: -scores[i])]
+    assert [cid for cid, _ in bm25.search("aspirin cox")] == old
+
+
 def test_top_k_zero_means_an_empty_list_and_none_no_cut():
     runs = [[("a", 3.0), ("b", 2.0)], [("b", 0.9), ("c", 0.8)]]
     assert reciprocal_rank_fusion(runs, top_k=0) == []

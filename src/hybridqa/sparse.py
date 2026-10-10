@@ -12,6 +12,7 @@ from __future__ import annotations
 import re
 from typing import Dict, List, Sequence, Tuple
 
+import numpy as np
 from rank_bm25 import BM25Okapi
 
 from .data import Chunk
@@ -80,7 +81,8 @@ class BM25Retriever:
             raise RuntimeError("call .index(chunks) before .search()")
         top_k = top_k or self.top_k
         scores = self._bm25.get_scores(self._tok(query))
-        ranked = sorted(range(len(scores)), key=lambda i: -scores[i])[:top_k]
+        # stable: equal scores keep index order, exactly as the earlier Python sort did
+        ranked = np.argsort(-np.asarray(scores), kind="stable")[:top_k]
         return [(self.chunk_ids[i], float(scores[i])) for i in ranked]
 
     def search_batch(self, queries: Sequence[str], top_k: int | None = None) -> List[List[Tuple[str, float]]]:
