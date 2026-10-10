@@ -7,7 +7,7 @@ import pytest
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
 
-from hybridqa.config import apply_overrides, load_config, output_dir  # noqa: E402
+from hybridqa.config import Config, apply_overrides, load_config, output_dir  # noqa: E402
 from hybridqa.pipeline import RetrievalPipeline  # noqa: E402
 
 
@@ -94,3 +94,11 @@ def test_local_model_folder_is_resolved_and_tied_to_its_weights(cfg, tmp_path):
     after = RetrievalPipeline(local_cfg, verbose=False).embedding_cache_path()
     assert before != after  # stale embeddings from the old weights are not reused
     assert ":" not in before.name  # Windows drive letters are sanitised out of the file name
+
+
+def test_keep_tail_false_keeps_the_existing_embedding_cache(cfg):
+    # issue #45: adding the setting must not rename caches built before it existed
+    without = Config({**cfg, "chunking": {k: v for k, v in cfg["chunking"].items() if k != "keep_tail"}})
+    off = RetrievalPipeline(cfg, verbose=False).embedding_cache_path()
+    on = RetrievalPipeline(apply_overrides(cfg, ["chunking.keep_tail=true"]), verbose=False).embedding_cache_path()
+    assert RetrievalPipeline(without, verbose=False).embedding_cache_path() == off != on

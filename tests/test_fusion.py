@@ -122,3 +122,17 @@ def test_dev_split_is_deterministic_and_disjoint():
     assert [q["query_id"] for q in dev_a] == [q["query_id"] for q in dev_b]
     assert len(dev_a) == 10 and len(train_a) == 40
     assert not {q["query_id"] for q in dev_a} & {q["query_id"] for q in train_a}
+
+
+def test_short_window_drops_the_rest_unless_keep_tail():
+    # issue #45: short sentences in the middle of an abstract ("Design. Setting. ...")
+    long = [f"Long sentence {i} carries enough words to stand as evidence on its own." for i in range(1, 6)]
+    sents = long[:3] + ["Design.", "Setting.", "Methods."] + long[3:]
+    text = " ".join(sents)
+
+    default = " ".join(c.text for c in chunk_document("d", "T", text, window=3, stride=2, min_chars=120))
+    assert long[-1] not in default  # the behaviour every reported result uses
+
+    kept = chunk_document("d", "T", text, window=3, stride=2, min_chars=120, keep_tail=True)
+    assert all(s in " ".join(c.text for c in kept) for s in sents)
+    assert [c.chunk_id for c in kept] == [f"d#{i}" for i in range(len(kept))]
