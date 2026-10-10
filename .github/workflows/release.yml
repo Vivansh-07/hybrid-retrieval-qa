@@ -54,5 +54,5 @@ jobs:
             - **Problem statement**: `Problem_Statement.pdf`
             - **Literature survey**: `Literature_Survey.docx`
 
-            What was run and what came out: [RESULTS.md](RESULTS.md).
-            How to run it locally: [docs/DEPLOY.md](docs/DEPLOY.md).
+            What was run and what came out: [RESULTS.md](${{ github.server_url }}/${{ github.repository }}/blob/${{ github.ref_name }}/RESULTS.md).
+            How to run it locally: [docs/DEPLOY.md](${{ github.server_url }}/${{ github.repository }}/blob/${{ github.ref_name }}/docs/DEPLOY.md).
