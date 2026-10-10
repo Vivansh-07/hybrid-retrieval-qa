@@ -587,8 +587,9 @@ Fine-tuning is a one-off cost of about ten minutes on the GPU.
 % examiner remembers.
 % Numbers: results/failure_analysis.csv and results/failure_summary.json.
 We examined the 40 test claims on which the full pipeline fails most clearly
-(no relevant abstract in its top ten, weighted towards reranker losses and
-disagreements between the retrievers). For each we read the gold abstract, its
+(for 39, no relevant abstract in its top ten; for one, the second of its two
+missing; weighted towards reranker losses and disagreements between the
+retrievers). For each we read the gold abstract, its
 rank in every variant and the abstracts ranked first, and assigned one of six
 categories fixed in advance: terminology mismatch, ambiguous claim, missing
 evidence, conflicting evidence, granularity (right abstract, wrong passage) and
