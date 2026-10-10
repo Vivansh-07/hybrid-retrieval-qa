@@ -58,7 +58,7 @@ deleted once everything is installed.
 ```
 python -m pytest tests/ -q
 ```
-Expect `74 passed` (about 30 s). The tests check the metrics against values worked out by hand, the
+Expect `76 passed` (about 30 s). The tests check the metrics against values worked out by hand, the
 fusion and the statistics code, and that the paper's numbers match the files in `results/`.
 
 ## 5. Get the models: choose A or B
