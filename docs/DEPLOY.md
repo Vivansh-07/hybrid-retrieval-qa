@@ -127,6 +127,23 @@ fusion vs dense   delta=+0.0307  p=0.0191    better/worse/same = 70/34/196  (sig
 ```
 `results/_live` is never committed.
 
+## 8. Update a copy you set up earlier
+
+When the repository has changed since you set up the folder (for example, the morning of
+the presentation), open Command Prompt in the folder and run:
+```
+.venv\Scripts\activate
+set TMP=%CD%\data\tmp
+set TEMP=%CD%\data\tmp
+git pull
+pip install -r requirements.txt
+python -m pytest tests/ -q
+```
+`pip install` only adds packages that were added to `requirements.txt` since; for a copy
+set up on 9 Oct that is `pypdfium2`, a small PDF reader the tests use (checked on 10 Oct
+in the test folder). The models in `data\` are kept. The tests should pass with the count
+given in step 4.
+
 ---
 
 ## What a deployment writes, and where
