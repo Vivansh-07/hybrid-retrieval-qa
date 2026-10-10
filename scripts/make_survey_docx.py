@@ -73,7 +73,8 @@ def blocks(markdown: str):
         yield kind, lines
 
 
-def main() -> None:
+def build():
+    """The survey as a Word document, built from the Markdown source."""
     doc = Document()
     style = doc.styles["Normal"]
     style.font.name = "Times New Roman"
@@ -135,7 +136,11 @@ def main() -> None:
                 p.paragraph_format.first_line_indent = Pt(-24)
                 add_inline(p, l, size=10)
 
-    doc.save(TARGET)
+    return doc
+
+
+def main() -> None:
+    build().save(TARGET)
     print(f"written to {TARGET.relative_to(REPO)}")
 
 

@@ -298,10 +298,18 @@ story = [
     ]),
 ]
 
-OUT.parent.mkdir(parents=True, exist_ok=True)
-doc = SimpleDocTemplate(str(OUT), pagesize=A4, leftMargin=2 * cm, rightMargin=2 * cm,
-                        topMargin=1.6 * cm, bottomMargin=1.9 * cm,
-                        title="Problem Statement: Hybrid Sparse-Dense Retrieval for Scientific Question Answering",
-                        author="Vivansh Garg")
-doc.build(story, onFirstPage=footer, onLaterPages=footer)
-print("written", OUT)
+
+
+def build(out: Path = OUT) -> None:
+    """Write the PDF to `out` (tests build it into a temporary folder and compare)."""
+    out.parent.mkdir(parents=True, exist_ok=True)
+    doc = SimpleDocTemplate(str(out), pagesize=A4, leftMargin=2 * cm, rightMargin=2 * cm,
+                            topMargin=1.6 * cm, bottomMargin=1.9 * cm,
+                            title="Problem Statement: Hybrid Sparse-Dense Retrieval for Scientific Question Answering",
+                            author="Vivansh Garg")
+    doc.build(story, onFirstPage=footer, onLaterPages=footer)
+
+
+if __name__ == "__main__":
+    build()
+    print("written", OUT)
