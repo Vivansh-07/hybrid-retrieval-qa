@@ -5,6 +5,7 @@ that changes a number in the text (or a rerun that changes a result) fails here 
 the two agree again.
 """
 
+import csv
 import json
 from pathlib import Path
 
@@ -63,3 +64,12 @@ def test_failure_counts_in_paper():
         n = counts[category]
         row = f"{n:>2} ({round(100 * n / total)}\\%)".strip()
         assert row in TEXTS["paper/main.tex"], f"failure table should show {category} as '{row}'"
+
+
+def test_failure_selection_described_in_paper():
+    """The paper says how many of the analysed claims have no relevant abstract in the top ten."""
+    with open(RESULTS / "failure_analysis.csv", newline="", encoding="utf-8-sig") as fh:
+        ranks = [row["gold_rank_fusion_rerank"] for row in csv.DictReader(fh)]
+    # the rank of the best-ranked gold abstract; ">N" means none was retrieved
+    none_in_top10 = sum(r.startswith(">") or int(r) > 10 for r in ranks)
+    assert f"for {none_in_top10}, no relevant abstract in its top ten" in TEXTS["paper/main.tex"]
