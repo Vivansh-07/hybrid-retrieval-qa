@@ -3,6 +3,8 @@
 import sys
 from pathlib import Path
 
+import pytest
+
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
 
 from hybridqa.data import chunk_document, chunk_to_doc, split_sentences  # noqa: E402
@@ -111,6 +113,22 @@ def test_post_hoc_attribution_credits_the_passage_the_sentence_came_from():
     assert attribute("Vitamin D supplementation reduced respiratory infections.", passages) == 2
     assert attribute("Something unrelated entirely.", passages) == 1   # no overlap: top passage
     assert attribute("vitamin d", passages) == 2                        # tie: the higher-ranked passage
+
+
+@pytest.mark.parametrize("reply, cited", [
+    ("Not enough evidence.", []),          # an abstention cites nothing (issue #46)
+    ("It does [2].", ["p2"]),
+    ("Yes, it does.", ["p1"]),             # no marker: credited to the top passage
+])
+def test_cite_inline_citations(monkeypatch, reply, cited):
+    from hybridqa.answer import AnswerGenerator, faithfulness_signals
+    from hybridqa.config import Config
+
+    gen = AnswerGenerator(Config({"answer": {"prompt_style": "cite_inline"}}))
+    monkeypatch.setattr(gen, "_generate", lambda prompt: reply)   # no model needed
+    ans = gen.answer("q", "claim", [("p1", 1.0), ("p2", 0.5)], {"p1": "first", "p2": "second"})
+    assert ans.cited_chunk_ids == cited
+    assert faithfulness_signals(ans)["has_citation"] == float(bool(cited))
 
 
 def test_dev_split_is_deterministic_and_disjoint():
