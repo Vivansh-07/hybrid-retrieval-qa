@@ -1,0 +1,18 @@
+{
+  "metric": "nDCG@10",
+  "baseline": "results/dense_minilm_finetuned__fusion_weighted",
+  "other": "results/dense_minilm_finetuned__fusion_weighted__keep_tail",
+  "variants": {
+    "fusion": {
+      "baseline": 0.7587,
+      "other": 0.7586,
+      "delta": -0.0001,
+      "p_value": 0.6303,
+      "better": 0,
+      "worse": 1,
+      "same": 299,
+      "baseline_docs_per_query": 47.6,
+      "other_docs_per_query": 47.5
+    }
+  }
+}

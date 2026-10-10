@@ -1,0 +1,51 @@
+{
+  "metric": "nDCG@10",
+  "baseline": "results",
+  "other": "results/set_chunking.keep_tail=true",
+  "variants": {
+    "bm25": {
+      "baseline": 0.6562,
+      "other": 0.6562,
+      "delta": 0.0,
+      "p_value": 1.0,
+      "better": 0,
+      "worse": 0,
+      "same": 300,
+      "baseline_docs_per_query": 58.0,
+      "other_docs_per_query": 57.9
+    },
+    "dense": {
+      "baseline": 0.6789,
+      "other": 0.678,
+      "delta": -0.001,
+      "p_value": 0.6293,
+      "better": 0,
+      "worse": 1,
+      "same": 299,
+      "baseline_docs_per_query": 46.8,
+      "other_docs_per_query": 46.7
+    },
+    "fusion": {
+      "baseline": 0.7097,
+      "other": 0.7097,
+      "delta": 0.0,
+      "p_value": 1.0,
+      "better": 0,
+      "worse": 0,
+      "same": 300,
+      "baseline_docs_per_query": 52.8,
+      "other_docs_per_query": 52.7
+    },
+    "fusion+rerank": {
+      "baseline": 0.7154,
+      "other": 0.7152,
+      "delta": -0.0002,
+      "p_value": 0.6148,
+      "better": 1,
+      "worse": 1,
+      "same": 298,
+      "baseline_docs_per_query": 52.8,
+      "other_docs_per_query": 52.7
+    }
+  }
+}
