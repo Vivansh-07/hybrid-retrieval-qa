@@ -649,4 +649,28 @@ Next:        one sentence in the paper (Answer quality) and a viva answer.
 
 ---
 
+### 2026-10-09/10 — Clean local deployment following docs/DEPLOY.md
+Commit:      7c8ca4c (cloned from GitHub into a new folder, D:\Projects\hybrid-retrieval-qa);
+             pulled to 41eed51 before the live re-run
+Config:      unchanged; models built from scratch (DEPLOY.md step 5, option B)
+Command:     DEPLOY.md steps 1-7, ending with
+             `python scripts/run_ablation.py --variants bm25 dense fusion --out results/_live`
+Hardware:    NVIDIA GeForce RTX 3050 Laptop GPU (4 GB), Windows 11, Python 3.13
+
+Result:      Install: PyTorch (CUDA) 32 min, other packages 22 min; environment 5.0 GB.
+             Fine-tuning: dev nDCG@10 per epoch identical to the committed history
+             (0.6912 before training, 0.7704 at epoch 12); weight 0.3 chosen again (dev 0.7879).
+             Live re-run (10 Oct): all 63 metric values of bm25, dense and fusion identical
+             to results/ablation.csv; significance identical (fusion vs bm25 +0.0534,
+             p < 0.0001; fusion vs dense +0.0307, p = 0.0191; dense vs bm25 +0.0227, p = 0.2473).
+Latency:     bm25 109.7 ms/query (committed 79.8), dense 21.9 (21.9), fusion 122.8 (119.3);
+             live re-run 4 min 7 s; demo first start 11 min, later about 2 min, also offline
+
+Observation: The deployment guide works as written from a fresh clone, and every number
+             except timing reproduces. Timing varies between runs, which is why the paper
+             calls its ms/query figures approximate.
+Next:        RESULTS.md step 14; on the day, follow docs/DEPLOY.md and docs/RUN_AND_PRESENT.md.
+
+---
+
 <!-- add new entries above this line, newest last -->
