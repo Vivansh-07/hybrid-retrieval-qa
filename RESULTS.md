@@ -26,6 +26,7 @@ relevant abstract ranked at the top), and *p* is a paired bootstrap test (10,000
 | 11 | 2 Oct | Tuned fusion weight (0.3) | **0.759**, best (p = 0.003 vs original) | Final system |
 | 12 | 2–3 Oct | Failure analysis, answer scoring, abstention | 42% missing evidence; AUC 0.81 | Limits and future work |
 | 13 | 2–3 Oct | Reproduce from a fresh clone | identical, training included | Results are reproducible |
+| 14 | 9–10 Oct | Clean local deployment, following the guide | same numbers, demo runs offline | The guide is [docs/DEPLOY.md](docs/DEPLOY.md) |
 
 ---
 
@@ -207,6 +208,34 @@ definitions (`docs/ANSWER_RUBRIC.md`); see the paper and the experiment log.
 A fresh clone from GitHub, with nothing cached, reproduced all the retrieval numbers exactly
 and, on 3 Oct, the whole best system *including the fine-tuning*: every epoch's development
 score, the chosen weight (0.3) and all 21 test metrics were identical.
+
+## 14. A clean local deployment, following the guide (9–10 Oct)
+
+Step 13 checked the numbers; this checked the whole deployment the way someone else would
+do it. The repository was cloned from GitHub (commit `7c8ca4c`) into a new folder,
+`D:\Projects\hybrid-retrieval-qa`, and [docs/DEPLOY.md](docs/DEPLOY.md) was followed step by
+step: a new Python environment, the packages, the tests, the models built from scratch
+(fine-tuning included), the demo, and finally the live re-run of the guide's step 7:
+```
+python scripts/run_ablation.py --variants bm25 dense fusion --out results/_live
+```
+Output (10 Oct, 4 minutes):
+```
+dense vs bm25     delta=+0.0227  p=0.2473    better/worse/same = 73/60/167  (not significant)
+fusion vs bm25    delta=+0.0534  p=< 0.0001  better/worse/same = 76/22/202  (significant)
+fusion vs dense   delta=+0.0307  p=0.0191    better/worse/same = 70/34/196  (significant)
+```
+All 63 metric values of the three variants were identical to `results/ablation.csv`; only
+the time per claim differed (BM25 110 ms instead of 80). Earlier in the same deployment,
+fine-tuning printed the same development scores epoch by epoch (0.6912 before training,
+0.7704 at epoch 12), the weight search chose 0.3 again, and the demo ran with `--best`,
+also with `--offline` and no internet.
+
+**What it told us.** Anyone with the repository and the guide gets the same numbers and a
+working demo; only the timings change between runs. The run also measured what the guide
+now states: about 55 minutes to install the packages, 11 minutes for the demo's first start
+(it downloads two models), about 2 minutes after that, and that `git status` shows the
+fine-tuning history as changed only because its training time differs.
 
 ---
 
