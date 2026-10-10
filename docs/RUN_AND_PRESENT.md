@@ -336,12 +336,16 @@ In Overleaf: **New Project → Upload Project**, choose the zip, then **Recompil
 
 **At home, the day before (needs internet the first time):**
 1. Run steps 1–6 above so `results/` and `paper/figures/` are filled with your numbers.
-2. Start `python scripts/demo.py --best` and click the four claim buttons ("Claims to
+2. Present from the deployed copy, `D:\Projects\hybrid-retrieval-qa` (set up with
+   [DEPLOY.md](DEPLOY.md)), not from the folder you develop in: bring it up to date with
+   DEPLOY.md step 8 (`git pull`, `pip install -r requirements.txt`, the tests), then run
+   everything below in that folder.
+3. Start `python scripts/demo.py --best` and click the four claim buttons ("Claims to
    show", Step 8) once, so you have seen what each column shows. Pick three if time is
    short: 269, 1303 and 660 cover fusion, dense and a failure.
-3. Take screenshots of the ablation table, the figures and the demo, as a backup in
+4. Take screenshots of the ablation table, the figures and the demo, as a backup in
    case anything fails in class.
-4. Prepare for no internet in the room: download the slides as PowerPoint and PDF (the
+5. Prepare for no internet in the room: download the slides as PowerPoint and PDF (the
    online deck needs internet), keep the paper PDF on the laptop, and try the demo once
    with Wi-Fi switched off: `python scripts/demo.py --best --offline`.
 
