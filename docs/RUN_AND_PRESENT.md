@@ -323,7 +323,12 @@ which saves `main.pdf` into `data\paper_pdf\` (the latest run's). Since 8 Oct th
 is in **Springer LNCS** format: the body ends on page 12 and the references take pages
 13–14. Overleaf works as before (upload `paper_overleaf.zip`); use it to
 edit and preview, and use the GitHub build to check that what is in the repository
-compiles.
+compiles. The zip is not in git; after any change to the paper, make a fresh one from the
+project folder (Windows' built-in `tar`, in Command Prompt):
+```
+tar -a -c -f paper_overleaf.zip -C paper main.tex references.bib figures
+```
+In Overleaf: **New Project → Upload Project**, choose the zip, then **Recompile**.
 
 ---
 
