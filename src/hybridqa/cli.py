@@ -75,15 +75,16 @@ def cmd_answer(args) -> None:
         records.append({**ans.as_dict(), "signals": faithfulness_signals(ans)})
         print(f"- {q['query_id']}: {ans.text[:120]}")
 
+    metrics = citation_accuracy(answers, pipe.qrels)
     out = output_dir(cfg, args.out, args.overrides) / "answers.json"
     out.write_text(
         json.dumps(
-            {"citation_metrics": citation_accuracy(answers, pipe.qrels), "answers": records},
+            {"citation_metrics": metrics, "answers": records},
             indent=2,
         ),
         encoding="utf-8",
     )
-    print(f"\ncitation metrics: {citation_accuracy(answers, pipe.qrels)}")
+    print(f"\ncitation metrics: {metrics}")
     print(f"written to {out}")
 
 
