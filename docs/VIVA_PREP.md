@@ -324,7 +324,7 @@ If you cannot explain a line, delete it or rewrite it in a way you can. Code you
 defend is worse than code you do not have.
 
 **How do you know your code computes what you say it does?**
-Three layers. (1) 77 unit tests: the metrics are compared with values worked out by hand
+Three layers. (1) 82 unit tests: the metrics are compared with values worked out by hand
 from their definitions, RRF with a hand-computed fusion, the AUC with scikit-learn's.
 (2) External agreement: my BM25 gives 0.656 on SciFact where the BEIR paper reports
 0.665, so the data loading and evaluation behave as expected. (3) GitHub runs all the
