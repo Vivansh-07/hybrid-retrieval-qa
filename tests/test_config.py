@@ -94,3 +94,18 @@ def test_local_model_folder_is_resolved_and_tied_to_its_weights(cfg, tmp_path):
     after = RetrievalPipeline(local_cfg, verbose=False).embedding_cache_path()
     assert before != after  # stale embeddings from the old weights are not reused
     assert ":" not in before.name  # Windows drive letters are sanitised out of the file name
+
+
+@pytest.mark.parametrize("weights", ["model.safetensors", "pytorch_model.bin"])
+def test_embedding_cache_follows_retrained_weights(cfg, tmp_path, weights):
+    # issue #47: retraining a local model into the same folder must not reuse old vectors
+    import os
+
+    model = tmp_path / "my-model"
+    model.mkdir()
+    (model / weights).write_bytes(b"weights")
+    local = apply_overrides(cfg, [f"dense.model={model}"])
+    before = RetrievalPipeline(local, verbose=False).embedding_cache_path()
+    later = (model / weights).stat().st_mtime_ns + 10**9
+    os.utime(model / weights, ns=(later, later))
+    assert RetrievalPipeline(local, verbose=False).embedding_cache_path() != before

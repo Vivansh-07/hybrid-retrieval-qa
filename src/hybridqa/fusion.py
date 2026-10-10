@@ -37,7 +37,7 @@ def reciprocal_rank_fusion(
             fused[doc_id] = fused.get(doc_id, 0.0) + w / (k + rank)
 
     ordered = sorted(fused.items(), key=lambda kv: (-kv[1], kv[0]))
-    return ordered[:top_k] if top_k else ordered
+    return ordered if top_k is None else ordered[:top_k]
 
 
 def min_max_normalize(run: Run) -> Run:
@@ -63,7 +63,7 @@ def normalized_score_fusion(
         for doc_id, score in min_max_normalize(run):
             fused[doc_id] = fused.get(doc_id, 0.0) + w * score
     ordered = sorted(fused.items(), key=lambda kv: (-kv[1], kv[0]))
-    return ordered[:top_k] if top_k else ordered
+    return ordered if top_k is None else ordered[:top_k]
 
 
 def fuse(runs: Sequence[Run], cfg) -> Run:

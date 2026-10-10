@@ -59,3 +59,9 @@ def test_evaluate_run_macro_average():
 def test_bootstrap_identical_runs_not_significant():
     a = {"q1": 0.5, "q2": 0.5, "q3": 0.5}
     assert paired_bootstrap(a, dict(a), n_samples=500) == 1.0
+
+
+def test_recall_ignores_zero_grade_judgments():
+    # issue #49: a document judged 0 is not relevant, so it is not counted as missed
+    assert recall_at_k(["d2"], {"d2": 1, "d7": 0}, 10) == 1.0
+    assert recall_at_k(["d2"], {"d7": 0}, 10) == 0.0
