@@ -56,8 +56,16 @@ def chunk_document(
     window: int = 3,
     stride: int = 2,
     min_chars: int = 120,
+    keep_tail: bool = False,
 ) -> List[Chunk]:
-    """Sliding sentence window. Overlap keeps evidence that straddles a boundary retrievable."""
+    """Sliding sentence window. Overlap keeps evidence that straddles a boundary retrievable.
+
+    A window shorter than `min_chars` is too short to stand alone. With `keep_tail` its
+    sentences are folded into the previous chunk and the window moves on. Without it
+    (the default, which every reported result uses) the document stops there, so the
+    sentences after a short window are never indexed: on SciFact 414 sentences of 42
+    abstracts (issue #45). The default changes after the assessment, with all results rerun.
+    """
     sents = split_sentences(text)
     if not sents:
         return []
@@ -65,15 +73,21 @@ def chunk_document(
         return [Chunk(f"{doc_id}#0", doc_id, title, " ".join(sents))]
 
     chunks: List[Chunk] = []
+    covered = 0  # sentences[:covered] are in some chunk
     step = max(1, stride)
     for i in range(0, len(sents), step):
-        piece = " ".join(sents[i : i + window])
+        end = min(i + window, len(sents))
+        piece = " ".join(sents[i:end])
         if len(piece) < min_chars and chunks:
-            # too short to stand alone: fold it into the previous chunk instead of
-            # creating a fragment that pollutes the index
-            break
-        chunks.append(Chunk(f"{doc_id}#{len(chunks)}", doc_id, title, piece))
-        if i + window >= len(sents):
+            if not keep_tail:
+                break
+            if end > covered:
+                last = chunks[-1]
+                chunks[-1] = Chunk(last.chunk_id, doc_id, title, " ".join([last.text, *sents[covered:end]]))
+        else:
+            chunks.append(Chunk(f"{doc_id}#{len(chunks)}", doc_id, title, piece))
+        covered = max(covered, end)
+        if end >= len(sents):
             break
     return chunks
 
@@ -84,6 +98,7 @@ def build_chunks(corpus: Dict[str, dict], cfg) -> List[Chunk]:
     window = cfg.get_path("chunking.window_sentences", 3)
     stride = cfg.get_path("chunking.stride_sentences", 2)
     min_chars = cfg.get_path("chunking.min_chars", 120)
+    keep_tail = cfg.get_path("chunking.keep_tail", False)
 
     chunks: List[Chunk] = []
     for doc_id, doc in corpus.items():
@@ -92,7 +107,7 @@ def build_chunks(corpus: Dict[str, dict], cfg) -> List[Chunk]:
         if strategy == "none":
             chunks.append(Chunk(f"{doc_id}#0", doc_id, title, text))
         else:
-            chunks.extend(chunk_document(doc_id, title, text, window, stride, min_chars))
+            chunks.extend(chunk_document(doc_id, title, text, window, stride, min_chars, keep_tail))
     return chunks
 
 

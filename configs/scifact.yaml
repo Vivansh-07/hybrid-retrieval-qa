@@ -9,7 +9,9 @@ chunking:
   strategy: sentence_window    # one of: none | sentence_window
   window_sentences: 3          # sentences per chunk
   stride_sentences: 2          # overlap = window - stride
-  min_chars: 120               # drop chunks shorter than this
+  min_chars: 120               # a window shorter than this is not a chunk of its own
+  keep_tail: false             # false (all reported results): the rest of that abstract is
+                               # dropped; true: folded into the previous chunk (issue #45)
 
 sparse:
   method: bm25

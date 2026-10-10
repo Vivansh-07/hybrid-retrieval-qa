@@ -115,6 +115,10 @@ class RetrievalPipeline:
             "dataset.name", "dataset.max_docs", "chunking",
             "dense.model", "dense.max_seq_length", "dense.normalize",
         )}
+        # keep_tail: false is the behaviour from before the setting existed, so it must not
+        # rename the caches built then (the demo would re-embed every passage on start)
+        if isinstance(keyed["chunking"], dict) and not keyed["chunking"].get("keep_tail"):
+            keyed["chunking"] = {k: v for k, v in keyed["chunking"].items() if k != "keep_tail"}
         model = self.cfg.get_path("dense.model", "model")
         local = Path(resolve_model(model))
         if local.is_dir():
