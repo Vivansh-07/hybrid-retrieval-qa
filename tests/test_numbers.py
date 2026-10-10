@@ -1,4 +1,5 @@
-"""The headline numbers in the paper and README match the result files they come from.
+"""The headline numbers in the paper, README, RESULTS.md, the slides' speaker notes and the
+problem statement match the result files they come from.
 
 Every number is read from results/ and rounded the way the text reports it, so an edit
 that changes a number in the text (or a rerun that changes a result) fails here until
@@ -73,3 +74,29 @@ def test_failure_selection_described_in_paper():
     # the rank of the best-ranked gold abstract; ">N" means none was retrieved
     none_in_top10 = sum(r.startswith(">") or int(r) > 10 for r in ranks)
     assert f"for {none_in_top10}, no relevant abstract in its top ten" in TEXTS["paper/main.tex"]
+
+
+# The main ablation and the best system, as the other documents quote them: the slides'
+# speaker notes and the problem statement (its generator's source) to three decimals,
+# RESULTS.md to four, as the scripts print them.
+QUOTED_IN = {
+    "docs/SLIDES.md": 3,
+    "scripts/make_problem_statement.py": 3,
+    "RESULTS.md": 4,
+}
+MAIN = [
+    ("BM25", _variant("", "bm25")),
+    ("dense (pretrained MiniLM)", _variant("", "dense")),
+    ("RRF fusion", _variant("", "fusion")),
+    ("fusion + rerank", _variant("", "fusion+rerank")),
+    ("dense (fine-tuned MiniLM)", _variant("dense_minilm_finetuned", "dense")),
+    ("best system nDCG@10", _variant("dense_minilm_finetuned__fusion_weighted", "fusion")),
+]
+
+
+@pytest.mark.parametrize("what, value", MAIN, ids=[m[0] for m in MAIN])
+def test_main_numbers_in_slides_problem_statement_and_results_page(what, value):
+    for name, decimals in QUOTED_IN.items():
+        shown = f"{value:.{decimals}f}"
+        assert shown in (REPO / name).read_text(encoding="utf-8"), (
+            f"{name} does not mention {what} = {shown} (from results/)")

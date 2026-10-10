@@ -247,6 +247,7 @@ fine-tuning history as changed only because its training time differs.
 | 28 Sep | Changing the passage settings could reuse stale embeddings from the cache | Code review of the cache | Cache file named by a hash of every relevant setting |
 | 30 Sep | Latency included loading the model into the first timed claim (the BGE reranker run recorded 3.9 s per claim) | The same run timed very differently twice | One untimed warm-up claim before timing; main run re-timed on 1 Oct: dense 85 → 22 ms |
 | 1 Oct | The answer generator replied with a citation only | Reading its 50 answers | New prompt chosen on training claims (step 10) |
+| 10 Oct | The paper and slide 9 said none of the 40 analysed claims had a relevant abstract in the top ten; claim 70 has one of its two there | Checking every number on the slides against `results/` | Wording corrected (39 of the 40 have none); a test now derives that count from `results/failure_analysis.csv` |
 
 ## Where to find the outputs
 

@@ -249,6 +249,18 @@ as a syndrome when its malaria abstract means severe falciparum malaria. 8 (20%)
 errors: for "Ivermectin is used to treat onchocerciasis" BM25 ranks the gold 1st, fusion 3rd,
 the reranker 17th.
 
+**How did you choose those 40? Isn't that cherry-picking?**
+By a fixed rule, before any labelling (`scripts/failure_analysis.py`): every test claim gets
+a priority of 2 × (1 − Recall@10 of the full pipeline), plus 1.5 if the reranker lost an
+abstract that fusion had found, plus the gap between BM25's and dense's Recall@10; the 40
+highest are analysed. So it is deliberately the *hardest* claims, not a random sample, and
+the 42% describes hard failures, not all errors. The full pipeline has no relevant abstract
+in its top ten for 46 of the 300 claims; 39 of them are among the 40. The 40th, claim 70
+("Activation of PPM1D suppresses p53 function"), has two relevant abstracts: the pipeline
+ranks one 1st and the reranker pushed the other out. The 7 complete misses left out are
+missed by every variant, tie at the cut-off, and were cut by claim order. Weaknesses to
+admit: one (AI-assisted) annotator, and the rule leans towards reranker losses.
+
 **How good are the generated answers?**
 Scored on 0-2 with a rubric fixed before generating (by the AI assistant; not blind). The
 generative reader is right more often (correctness 0.84 vs 0.48) but a third of its answers
@@ -324,7 +336,7 @@ If you cannot explain a line, delete it or rewrite it in a way you can. Code you
 defend is worse than code you do not have.
 
 **How do you know your code computes what you say it does?**
-Three layers. (1) 82 unit tests: the metrics are compared with values worked out by hand
+Three layers. (1) 88 unit tests: the metrics are compared with values worked out by hand
 from their definitions, RRF with a hand-computed fusion, the AUC with scikit-learn's.
 (2) External agreement: my BM25 gives 0.656 on SciFact where the BEIR paper reports
 0.665, so the data loading and evaluation behave as expected. (3) GitHub runs all the
