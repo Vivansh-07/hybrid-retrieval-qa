@@ -673,4 +673,31 @@ Next:        RESULTS.md step 14; on the day, follow docs/DEPLOY.md and docs/RUN_
 
 ---
 
+### 2026-10-10 — Chunker bug: sentences after a short window were never indexed
+Commit:      be840e4 (branch fix/chunker-keep-tail; issue #45)
+Config:      changed: chunking.keep_tail=true (default false = every reported result)
+Command:     `python scripts/run_ablation.py --set chunking.keep_tail=true`;
+             `python scripts/run_ablation.py --set dense.model=data/models/all-MiniLM-L6-v2-scifact
+             --set "fusion.weights=[0.3, 1.0]" --set chunking.keep_tail=true --variants dense fusion
+             --out results/dense_minilm_finetuned__fusion_weighted__keep_tail`;
+             `python scripts/compare_runs.py` on each folder
+Hardware:    NVIDIA GeForce RTX 3050 Laptop GPU (4 GB)
+
+Result:      Found by a code review: chunk_document stopped at the first window shorter than
+             min_chars (120), so 414 sentences of 42 abstracts were never indexed; one is the
+             gold abstract of test claim 1290 (every variant still has it in the top ten).
+             With keep_tail: 21,133 passages instead of 21,015.
+             nDCG@10, keep_tail vs reported (paired bootstrap):
+               bm25 0.6562 -> 0.6562 (same on 300/300)   dense 0.6789 -> 0.6780 (p = 0.63)
+               fusion 0.7097 -> 0.7097 (same on 300/300) fusion+rerank 0.7154 -> 0.7152 (p = 0.61)
+               fine-tuned dense 0.7416 -> 0.7416         best system 0.7587 -> 0.7586 (p = 0.63)
+Latency:     main ablation 6 min 36 s (dense index rebuilt: 141 s); best system 2 min 40 s
+
+Observation: The bug is real but its effect is negligible: no comparison changes and no
+             difference is significant. The reported numbers keep the original behaviour so
+             they stay reproducible; keep_tail becomes the default after the assessment.
+Next:        RESULTS.md "Problems found"; viva answer; issue #45 stays the record.
+
+---
+
 <!-- add new entries above this line, newest last -->

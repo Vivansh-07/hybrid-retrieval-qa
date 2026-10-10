@@ -313,12 +313,26 @@ consistent with their reason for training a calibrator.
 No, and I am careful about that in the paper. Citation precision measures whether the cited
 documents are gold documents. It does not verify that the sentence is actually supported by
 the cited passage — a model can cite the right document and still state something it does
-not say. That is why I also annotated [50] answers manually for faithfulness.
+not say. That is why 100 answers (50 claims, two readers) were also scored for faithfulness
+with a fixed rubric, with AI assistance (say so).
 
 **What is the biggest weakness of your work?**
 Have a real answer ready; "nothing" is the worst possible response. Candidates: one dataset
-so generality is unestablished; single annotator on the answer quality scores; document-level
-judgements mean chunk-level precision is not directly measured; no in-domain fine-tuning.
+so generality is unestablished; a single AI-assisted annotator for the failure labels and
+answer scores; document-level judgements mean chunk-level precision is not directly
+measured; the reranker was trained on web search, not science.
+
+**Did you find bugs in your own code?**
+Yes, and I measured them rather than hiding them. A code review on 10 Oct found that the
+chunker stopped at the first window shorter than 120 characters, so 414 sentences of 42
+abstracts were never indexed (one of them the evidence abstract of test claim 1290, which
+every variant still finds). I fixed it behind a setting, `chunking.keep_tail`, and reran
+everything with it on: BM25 and fusion identical on all 300 claims, dense −0.001, the best
+system 0.7587 → 0.7586 (p = 0.63). So no conclusion changes; the reported numbers keep the
+original behaviour so they stay reproducible, and the fix becomes the default afterwards.
+The review's other fixes (an abstaining answer credited a citation in the unused
+`cite_inline` style; an embedding-cache key; recall with 0-grade judgments) change no
+reported number. All are GitHub issues #45–#50.
 
 ---
 
