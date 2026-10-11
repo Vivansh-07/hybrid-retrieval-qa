@@ -58,7 +58,7 @@ deleted once everything is installed.
 ```
 python -m pytest tests/ -q
 ```
-Expect `98 passed` (about 30 s). The tests check the metrics against values worked out by hand, the
+Expect `100 passed` (about 30 s). The tests check the metrics against values worked out by hand, the
 fusion and the statistics code, and that the paper's numbers match the files in `results/`.
 
 ## 5. Get the models: choose A or B
@@ -125,7 +125,13 @@ dense vs bm25     delta=+0.0227  p=0.2473    better/worse/same = 73/60/167  (not
 fusion vs bm25    delta=+0.0534  p=< 0.0001  better/worse/same = 76/22/202  (significant)
 fusion vs dense   delta=+0.0307  p=0.0191    better/worse/same = 70/34/196  (significant)
 ```
-`results/_live` is never committed.
+Then check every number against the committed results:
+```
+python scripts/check_rerun.py results/_live
+```
+It ends with `Every metric and every significance test is identical to the committed results.`
+(21 of 21 metrics per variant, 3 of 3 tests; only the time per claim differs; checked on 11 Oct
+in the test folder). `results/_live` is never committed.
 
 ## 8. Update a copy you set up earlier
 

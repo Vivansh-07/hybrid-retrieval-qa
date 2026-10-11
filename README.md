@@ -45,7 +45,7 @@ python -m pip install torch --index-url https://download.pytorch.org/whl/cu126  
 python -m pip install -r requirements.txt
 python -m pip install -e .
 
-python -m pytest tests/ -q                           # 98 tests
+python -m pytest tests/ -q                           # 100 tests
 
 # full four-way ablation + sweeps (downloads SciFact + models on first run, ~13 min on an RTX 3050)
 python scripts/run_ablation.py --sweep-depth 10 25 50 100 --sweep-fusion-k 10 30 60 100
@@ -166,6 +166,7 @@ scripts/
   finetune_dense.py      contrastive fine-tuning of the dense encoder on SciFact train claims
   significance.py        recompute significance.json from saved runs
   compare_runs.py        paired comparison of a one-change run against the main results
+  check_rerun.py         is a re-run (e.g. results/_live) identical to the committed results?
   tune_fusion.py         choose the BM25 fusion weight on held-out dev claims
   query_subsets.py       which retriever helps which kind of claim (overlap, numbers, rare terms)
   answer_sheet.py        blind sheet for hand-scoring the generated answers; --summarize
@@ -227,7 +228,7 @@ model), so changing any of them re-embeds automatically.
 python -m pytest tests/ -q
 ```
 
-98 tests check the metrics against hand-worked values, the fusion, config, significance,
+100 tests check the metrics against hand-worked values, the fusion, config, significance,
 subset, scoring and abstention code; that the paper's references and figures are intact and
 its headline numbers (also those in RESULTS.md, the slides and the problem statement) still
 match `results/`; that the generated documents (failure review sheet, problem statement,
