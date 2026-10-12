@@ -85,7 +85,7 @@ models (~100 MB–1 GB each) once, into `data\hf_cache\`. After that it works of
 ```
 python -m pytest tests/ -q
 ```
-**Expect:** `100 passed`.
+**Expect:** `101 passed`.
 **What it shows:** the metrics (Recall, MRR, nDCG) and RRF are implemented correctly;
 the tests compare them to hand-worked answers. They also check the config overrides,
 the embedding-cache naming and the significance comparisons, that the paper's references

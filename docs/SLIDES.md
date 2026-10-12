@@ -4,6 +4,16 @@ The deck (12 slides) is at <https://claude.ai/artifact/GEbH9cU6oLxKbpxAtDsCMC>. 
 claude.ai. Its menu has **Present** and **Download** (PowerPoint or PDF); download a
 copy before the presentation in case the classroom has no internet.
 
+The downloaded PowerPoint names the deck's web fonts (Source Serif 4, IBM Plex) without
+embedding them, so on a PC without those fonts some text renders badly (checked on 11 Oct:
+the formula on slide 5 ran together). Make a copy that uses fonts every Windows PC has, and
+present from the copy:
+```
+python scripts/fix_slide_fonts.py "<downloaded deck>.pptx" Slides.pptx
+```
+The PDF download is the speaker-notes version (each slide small, with its notes below):
+good for rehearsing, too small to project.
+
 Below: each slide's title, what to say (the same text as the deck's speaker notes) and
 where its numbers come from. Every number on the slides is taken from `results/`.
 Say it in your own words; don't read it out.
