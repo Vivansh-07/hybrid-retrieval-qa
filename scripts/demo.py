@@ -123,7 +123,7 @@ def build_app(cfg_path: str, device: str | None, overrides: list[str] | None = N
 
     def render_ranking(variant: str, ranked, gold: set, ms: float) -> str:
         # Evaluation is per document, so the demo collapses chunks to documents too.
-        lines = [f"### {LABELS[variant]}", f"*{ms:.0f} ms*", ""]
+        lines = [f"### {LABELS[variant]}", f"*{ms:.0f} ms for this question*", ""]
         seen = set()
         for cid, _score in ranked:
             chunk = chunks[cid]
@@ -168,7 +168,8 @@ def build_app(cfg_path: str, device: str | None, overrides: list[str] | None = N
         if qid:
             note = f"SciFact test claim **{qid}** — gold evidence doc(s): {', '.join(sorted(gold))} (marked ✅)"
         else:
-            note = "Free-text question: no relevance judgements, so nothing is marked ✅."
+            note = ("Free-text question: searched in the same 5,183 biomedical abstracts (this is not a "
+                    "web search). It has no relevance judgements, so nothing is marked ✅.")
         answer = render_answer(question, final_ranking) if want_answer else ""
         return panels + [note, answer]
 
@@ -189,7 +190,12 @@ def build_app(cfg_path: str, device: str | None, overrides: list[str] | None = N
                     f"Dense encoder: `{cfg.get_path('dense.model')}` · "
                     f"Reranker: `{cfg.get_path('rerank.model')}` · "
                     f"Fusion: `{cfg.get_path('fusion.method')}`, weights BM25 / dense = "
-                    f"`{' / '.join(str(w) for w in cfg.get_path('fusion.weights', [1.0, 1.0]))}`")
+                    f"`{' / '.join(str(w) for w in cfg.get_path('fusion.weights', [1.0, 1.0]))}`"
+                    + ("  \n**Column 3 (fusion) is the best system in the paper.**"
+                       if cfg.get_path("dense.model") == BEST_MODEL else "")
+                    + "\n\nEach column shows the top five abstracts and the time that strategy took "
+                    "for this one question; single timings vary, and the averages over all 300 test "
+                    "claims are on the Results tab.")
         with gr.Tab("Live demo"):
             with gr.Row():
                 claim_picker = gr.Dropdown(claims, label="Pick a SciFact test claim (gold evidence is known)",
