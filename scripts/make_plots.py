@@ -232,6 +232,47 @@ def plot_overlap_split() -> None:
     plt.close(fig)
 
 
+def plot_fusion_weights() -> None:
+    """Development nDCG@10 against the BM25 fusion weight, one panel per dataset (tune_fusion.py).
+
+    The dashed line is the break-even weight (k + 1)/(k + K) = 61/160 of Proposition 1: below it,
+    BM25 can only re-order the dense candidates. The chosen weight is circled. Panels have their
+    own y-axis because the datasets' scores differ by a factor of two.
+    """
+    k, depth = 60, 100
+    breakeven = (k + 1) / (k + depth)
+    panels = [("SciFact", RESULTS / "fusion_weights_all-MiniLM-L6-v2-scifact.json"),
+              ("NFCorpus", RESULTS / "fusion_weights_all-MiniLM-L6-v2-nfcorpus.json")]
+    panels = [(t, p) for t, p in panels if p.exists()]
+    if not panels:
+        print("  skipped fusion_weight_curve.png: run scripts/tune_fusion.py first")
+        return
+
+    fig, axes = plt.subplots(1, len(panels), figsize=(3.5 * len(panels), 2.4), squeeze=False)
+    for ax, (title, path) in zip(axes[0], panels):
+        run = json.loads(path.read_text(encoding="utf-8"))
+        ws = [row["bm25_weight"] for row in run["grid"]]
+        ys = [row["nDCG@10"] for row in run["grid"]]
+        ax.axvspan(0, breakeven, color="#e4e7eb", zorder=0)
+        ax.axvline(breakeven, color=INK, linestyle="--", linewidth=1)
+        ax.plot(ws, ys, color=ACCENT, marker="o", markersize=3.5, linewidth=1.5)
+        chosen = run["chosen"]["bm25_weight"]
+        ax.scatter([chosen], [ys[ws.index(chosen)]], s=80, facecolors="none", edgecolors=INK, linewidths=1.2,
+                   zorder=3)
+        ax.annotate(f"chosen: w = {chosen}", (chosen, ys[ws.index(chosen)]), textcoords="offset points",
+                    xytext=(8, 4), fontsize=7)
+        ax.text(breakeven + 0.04, min(ys), f"break-even\n61/160 = {breakeven:.3f}", fontsize=7, va="bottom")
+        ax.text(0.02, min(ys), "BM25 only\nre-orders", fontsize=7, va="bottom")
+        ax.margins(y=0.15)
+        ax.set_title(title, loc="left", fontweight="bold")
+        ax.set_xlabel("BM25 weight $w$ in fusion")
+        ax.set_xlim(0, max(ws) + 0.05)
+    axes[0][0].set_ylabel("development nDCG@10")
+    fig.tight_layout()
+    fig.savefig(FIGDIR / "fusion_weight_curve.png")
+    plt.close(fig)
+
+
 def main() -> None:
     FIGDIR.mkdir(parents=True, exist_ok=True)
     data = load_metrics()
@@ -240,6 +281,7 @@ def main() -> None:
     plot_latency_accuracy(data)
     plot_finetune_curve()
     plot_overlap_split()
+    plot_fusion_weights()
     print(f"figures written to {FIGDIR}")
 
 

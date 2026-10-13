@@ -120,7 +120,19 @@ R@10 & 0.887 & 0.887 & 0.887 & \textbf{0.912} & 0.896 & 0.904 & 0.883 & 0.867 & 
 \end{tabular}
 \end{table}
 
-Table~\ref{tab:weights} shows the search on the development claims. The score rises from the
+\begin{figure}[t]
+\centering
+\includegraphics[width=\textwidth]{fusion_weight_curve.png}
+\caption{Development nDCG@10 against the BM25 weight $w$, with the fine-tuned encoder on each
+dataset. The dashed line is the break-even weight $(k + 1)/(k + K) = 61/160 = 0.381$ of
+Proposition~1; in the shaded region BM25 can only re-order the dense candidates. The circled
+point is the weight chosen on the development set and used on the test set. The y-axes differ.}
+\label{fig:weights}
+\end{figure}
+
+Table~\ref{tab:weights} shows the search on the development claims, and
+Figure~\ref{fig:weights} plots it next to the same search on NFCorpus
+(Section~\ref{sec:res-nfcorpus}). On SciFact the score rises from the
 encoder alone ($w = 0$) to a maximum at $w = 0.3$, stays nearly flat up to $w = 0.7$, and
 falls once BM25 weighs as much as the dense retriever or more. Proposition~1 explains the
 maximum: at $w = 0.3$, below the break-even weight of 0.381, BM25 cannot bring any passage into
@@ -186,7 +198,8 @@ it does on SciFact; it matches it, and makes the reranker unnecessary in both ca
 \paragraph{Weighted fusion transfers; fine-tuning helps less.} The weighted-fusion part of the
 recipe transfers cleanly. The weight chosen on the development queries is 0.2, again below the
 break-even weight of 0.381, and fusing at that weight improves on the fine-tuned encoder alone
-($+0.014$, $p < 10^{-4}$). The development curve also follows Proposition~1 more sharply than on
+($+0.014$, $p < 10^{-4}$). The development curve (Figure~\ref{fig:weights}, right panel) also
+follows Proposition~1 more sharply than on
 SciFact: it peaks at $w = 0.2$ (0.385) and falls steadily once the weight exceeds the break-even
 point (0.376 at $w = 0.5$, 0.357 at $w = 1$, 0.335 at $w = 2$). As the proposition predicts, the
 improved retriever's Recall@100 equals that of the fine-tuned encoder (0.293): below the
