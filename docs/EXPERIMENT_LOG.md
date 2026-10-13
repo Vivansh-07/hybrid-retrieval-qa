@@ -700,4 +700,42 @@ Next:        RESULTS.md "Problems found"; viva answer; issue #45 stays the recor
 
 ---
 
+### 2026-10-13 — The improvement on a second dataset: NFCorpus (BEIR)
+Commit:      84e0efd (main with finetune_dense.py --max-pairs-per-query, PR #59)
+Config:      changed: dataset.hf_id=BeIR/nfcorpus, dataset.name=nfcorpus; otherwise unchanged
+Command:     run_ablation.py (standard, results/nfcorpus); finetune_dense.py --name
+             all-MiniLM-L6-v2-nfcorpus --epochs 12 --max-pairs-per-query 3; tune_fusion.py with
+             the fine-tuned model; run_ablation.py --variants dense fusion with w = 0.2
+             (results/nfcorpus_finetuned__fusion_weighted) and --variants fusion+rerank
+             (..._rerank); the SciFact encoder with w = 0.3 (results/nfcorpus_scifact_encoder__
+             fusion_weighted); scripts/significance_nfcorpus.py
+Hardware:    NVIDIA GeForce RTX 3050 Laptop GPU (4 GB)
+
+Result:      Corpus 3,633 abstracts -> 16,574 passages; 323 test queries, 38.2 judged each
+             (grades 1-2); training: 2,590 queries (2,470 train / 120 dev), 42.7 judged each,
+             all grade 1, first 3 per query used -> 6,917 pairs.
+             Fine-tuning: dev nDCG@10 0.3597 -> 0.3732 (best epoch 8 of 12).
+             Weight on dev: 0 .3732, 0.1 .3832, 0.2 .3850 (chosen), 0.3 .3833, 0.5 .3757,
+             0.7 .3648, 1.0 .3567, 1.5 .3373, 2.0 .3345.
+             Test nDCG@10 (P@10, R@100, ms):
+               BM25 0.312 (0.227, 0.201, 12)        dense 0.330 (0.251, 0.252, 13)
+               fusion w=1 0.340 (0.253, 0.254, 31)  fusion+rerank 0.358 (0.260, 0.254, 168)
+               fine-tuned dense 0.336 (0.258, 0.293, 13)
+               improved, w=0.2 0.350 (0.267, 0.293, 29)   + rerank 0.358 (0.266, 0.293, 171)
+               SciFact encoder, w=0.3 0.343 (0.253, 0.253, 29)
+             Paired bootstrap: improved vs standard pipeline -0.008, p = 0.35; improved vs
+             fine-tuned dense +0.014, p < 0.0001; fine-tuned vs pretrained dense +0.006,
+             p = 0.49; improved + rerank vs improved +0.008, p = 0.23; SciFact encoder vs
+             standard fusion +0.003, p = 0.56. Standard: rerank vs fusion +0.019, p = 0.0045.
+Latency:     fine-tuning 18 min 23 s (1,102.7 s); weight search ~1 min; each test run ~1 min
+
+Observation: The fusion half of the improvement transfers (weight again below the
+             break-even 0.381; R@100 of the improved retriever equals the encoder's, as
+             Proposition 1 predicts), and the reranker is again unnecessary. Fine-tuning helps
+             little: lay queries and weak, same-grade labels. The improvement matches rather
+             than beats the reranked pipeline on NFCorpus, at a sixth of the time.
+Next:        full paper Section 5.4 and RQ4; RESULTS.md step 15.
+
+---
+
 <!-- add new entries above this line, newest last -->

@@ -168,6 +168,7 @@ scripts/
   compare_runs.py        paired comparison of a one-change run against the main results
   check_rerun.py         is a re-run (e.g. results/_live) identical to the committed results?
   fix_slide_fonts.py     downloaded deck → a copy with fonts every Windows PC has (docs/SLIDES.md)
+  significance_nfcorpus.py  paired tests of the improvement on the second dataset (NFCorpus)
   tune_fusion.py         choose the BM25 fusion weight on held-out dev claims
   query_subsets.py       which retriever helps which kind of claim (overlap, numbers, rare terms)
   answer_sheet.py        blind sheet for hand-scoring the generated answers; --summarize

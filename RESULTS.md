@@ -27,6 +27,7 @@ relevant abstract ranked at the top), and *p* is a paired bootstrap test (10,000
 | 12 | 2–3 Oct | Failure analysis, answer scoring, abstention | 42% missing evidence; AUC 0.81 | Limits and future work |
 | 13 | 2–3 Oct | Reproduce from a fresh clone | identical, training included | Results are reproducible |
 | 14 | 9–10 Oct | Clean local deployment, following the guide | same numbers, demo runs offline | The guide is [docs/DEPLOY.md](docs/DEPLOY.md) |
+| 15 | 13 Oct | The improvement on a second dataset (NFCorpus) | level with the reranked pipeline (0.350 vs 0.358, p = 0.35) at 1/6 of the time | Fusion part transfers; fine-tuning depends on the labels |
 
 ---
 
@@ -236,6 +237,35 @@ working demo; only the timings change between runs. The run also measured what t
 now states: about 55 minutes to install the packages, 11 minutes for the demo's first start
 (it downloads two models), about 2 minutes after that, and that `git status` shows the
 fine-tuning history as changed only because its training time differs.
+
+## 15. The improvement on a second dataset: NFCorpus (13 Oct)
+
+For the full paper, the improved recipe (fine-tune the encoder on the domain's training
+queries, choose the BM25 weight on held-out queries, drop the reranker) was applied unchanged
+to NFCorpus, a second biomedical BEIR dataset: 3,633 abstracts, 323 test queries written for
+the general public, about 38 judged abstracts per query.
+```
+python scripts/run_ablation.py --set dataset.hf_id=BeIR/nfcorpus --set dataset.name=nfcorpus --out results/nfcorpus
+python scripts/finetune_dense.py --set dataset.hf_id=BeIR/nfcorpus --set dataset.name=nfcorpus --name all-MiniLM-L6-v2-nfcorpus --epochs 12 --max-pairs-per-query 3
+python scripts/tune_fusion.py --set dataset.hf_id=BeIR/nfcorpus --set dataset.name=nfcorpus --set dense.model=data/models/all-MiniLM-L6-v2-nfcorpus
+python scripts/run_ablation.py ... --set "fusion.weights=[0.2, 1.0]" --variants dense fusion --out results/nfcorpus_finetuned__fusion_weighted
+python scripts/significance_nfcorpus.py
+```
+Output (nDCG@10 on the 323 test queries; p from the paired bootstrap):
+```
+standard pipeline (fusion + reranker)    0.358   168 ms
+improved (fine-tuned + BM25 at w = 0.2)  0.350    29 ms   vs standard: -0.008, p = 0.35 (level)
+improved + reranker                      0.358   171 ms   vs improved: +0.008, p = 0.23
+fine-tuned vs pretrained dense           0.336 vs 0.330   p = 0.49
+weighted fusion vs fine-tuned dense      +0.014           p < 0.0001
+dev weight search: best w = 0.2 (0.385); 0.376 at 0.5, 0.357 at 1.0
+```
+**What it told us.** The fusion part of the improvement transfers: the weight is again chosen
+below the break-even point of 0.38, it again beats the encoder alone, and the reranker again
+becomes unnecessary (the improved retriever matches the reranked pipeline at a sixth of the
+time). Fine-tuning helps far less than on SciFact, because NFCorpus's lay queries and its many
+same-grade training judgements are weaker training labels. **Next:** the full paper's
+Section 5.4 and the answer to its RQ4.
 
 ---
 
