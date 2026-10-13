@@ -18,9 +18,7 @@ and abstention. It ends with a comparative summary and the research gap.
 BM25, formalised within the probabilistic relevance framework by
 \textcite{robertson2009bm25}, remains the reference point for first-stage retrieval. It
 scores a passage by the query terms it contains, weighting rare terms more and normalising
-for length, over an inverted index (Section~\ref{sec:bm25}). Learned sparse retrieval keeps
-the inverted index but learns the term weights: SPLADE \parencite{formal2021splade} predicts
-sparse weights with expansion to related vocabulary.
+for length, over an inverted index (Section~\ref{sec:bm25}).
 
 Recent benchmarks show that BM25's standing depends on the domain. On financial documents
 that mix text and tables, BM25 outperforms state-of-the-art dense retrieval
@@ -37,17 +35,12 @@ query and a passage are encoded separately and compared by an inner product. Den
 retrieval \parencite{karpukhin2020dpr} trained such encoders for open-domain question
 answering with in-batch negatives, the training scheme adapted here
 (Section~\ref{sec:finetune}). Contriever \parencite{izacard2022contriever} showed that
-contrastive pre-training without labels already beats BM25 on many datasets, and ColBERT
-\parencite{khattab2020colbert} keeps one vector per token for finer matching, at a much larger
-index.
+contrastive pre-training without labels already beats BM25 on many datasets.
 
-Three recent directions matter for this paper. \emph{Multi-function embedders}: BGE-M3
-\parencite{chen2024m3} produces dense, sparse and multi-vector representations from one model,
-so a single encoder can serve hybrid retrieval. \emph{Domain-specific training}: MedCPT
+Two recent directions matter for this paper. \emph{Domain-specific training}: MedCPT
 \parencite{jin2023medcpt} trains a retriever and a reranker on 255 million PubMed search logs
-and sets the state of the art on six biomedical retrieval tasks, while GPL
-\parencite{wang2022gpl} adapts a dense retriever to a new domain without labels by generating
-queries for its documents. \emph{Robustness}: \textcite{lin2024thesis} devotes a doctoral
+and sets the state of the art on six biomedical retrieval tasks.
+\emph{Robustness}: \textcite{lin2024thesis} devotes a doctoral
 thesis to building robust retrieval systems from dense models. The improvement in this paper
 takes the supervised route that SciFact allows, at the opposite end of the scale from MedCPT:
 it fine-tunes a 22-million-parameter encoder on 689 labelled claims.
@@ -61,9 +54,7 @@ datasets, BM25 is a robust zero-shot baseline that many dense models fail to bea
 5,183 scientific abstracts with claims written by experts. SciFact-Open
 \parencite{wadden2022scifactopen} scales the corpus to 500,000 abstracts and finds that
 claim-verification systems built on the small corpus lose at least 15 points of F1 there,
-which shows how much verification depends on retrieval. BRIGHT \parencite{su2025bright}
-shows the limit of surface and semantic matching: the leading embedder on standard benchmarks,
-at 59.0 nDCG@10, falls to 18.3 on reasoning-intensive queries. \textcite{thakur2026thesis},
+which shows how much verification depends on retrieval. \textcite{thakur2026thesis},
 the lead author of BEIR, collects benchmarks and evaluation methods for robust retrieval and
 retrieval-augmented generation across domains and languages. This paper uses a second BEIR
 dataset, NFCorpus, to test whether its improvement transfers (Section~\ref{sec:results}).
@@ -102,13 +93,11 @@ to the candidate set. Proposition~1 of this paper does, for weighted RRF.
 
 \textcite{nogueira2019passage} introduced the cross-encoder reranker: query and passage are
 read together with full attention, which is accurate but costs one forward pass per
-candidate. monoT5 \parencite{nogueira2020document} casts relevance as sequence-to-sequence
-generation. Large language models are the newest rerankers: RankGPT
+candidate. Large language models are the newest rerankers: RankGPT
 \parencite{sun2023rankgpt} showed that instructed models such as GPT-4 rank passages as well
 as or better than supervised methods, and that the ranking can be distilled into a smaller
-model. Two follow-ups temper this on cost. \textcite{dejean2024thorough} find traditional
-cross-encoders very competitive with GPT-4 listwise reranking, and Rank-DistiLLM
-\parencite{schlatt2025rankdistillm} trains cross-encoders that match LLM rerankers while
+model. Rank-DistiLLM \parencite{schlatt2025rankdistillm} tempers this on cost: it trains
+cross-encoders that match LLM rerankers while
 being up to 173 times faster and 24 times more memory-efficient. \textcite{pradeep2025thesis}
 covers open rerankers and scalable evaluation of retrieval-augmented generation. The common
 thread is that reranking is the most expensive stage of a retrieval pipeline; this paper asks
@@ -117,10 +106,8 @@ whether a cheaper change to an earlier stage can replace it.
 \subsection{Retrieval-augmented generation for the scientific literature}
 \label{sec:lit-rag}
 
-Retrieval-augmented generation \parencite{lewis2020rag} and Fusion-in-Decoder
-\parencite{izacard2021fid} condition a generator on retrieved passages, and
-\textcite{gao2023ragsurvey} survey the field's progression from ``naive'' to ``modular''
-pipelines. Attribution is the sharper evaluation target: ALCE \parencite{gao2023enabling}
+Retrieval-augmented generation \parencite{lewis2020rag} conditions a generator on retrieved
+passages. Attribution is the sharper evaluation target: ALCE \parencite{gao2023enabling}
 measures whether citations actually support the generated text. Scientific literature is now
 a flagship application. OpenScholar \parencite{asai2026openscholar} answers scientific
 questions from 45 million open-access papers; its 8-billion-parameter model is more often
@@ -128,9 +115,8 @@ correct than GPT-4o on an expert-written benchmark, and its citation accuracy ma
 human experts, whereas GPT-4o hallucinates citations in 78--90\% of cases. PaperQA2
 \parencite{skarlinski2024paperqa}, a language-model agent, matches or exceeds subject-matter
 experts at literature search, summarisation and contradiction detection, and LitSearch
-\parencite{ajith2024litsearch} provides 597 realistic literature-search questions. For claims
-specifically, MultiVerS \parencite{wadden2022multivers} improves scientific claim verification
-with weak supervision and full-document context. All of these systems depend on a first-stage
+\parencite{ajith2024litsearch} provides 597 realistic literature-search questions. All of these
+systems depend on a first-stage
 retriever, and SciFact-Open shows how much claim verification degrades as the corpus grows.
 
 \subsection{Literature assistants in practice}
@@ -156,9 +142,7 @@ answering model should abstain under domain shift. Self-RAG \parencite{asai2024s
 trains a language model to decide when to retrieve and to critique the retrieved passages and
 its own output with special reflection tokens. CRAG \parencite{yan2024crag} adds a lightweight
 retrieval evaluator whose confidence triggers corrective actions, such as discarding the
-retrieved documents and searching elsewhere. \textcite{wen2025abstention} survey abstention in
-large language models from the perspectives of the query, the model and human values. These
-methods all train a component; this paper measures how far the untrained retrieval score goes
+retrieved documents and searching elsewhere. These methods all train a component; this paper measures how far the untrained retrieval score goes
 (Section~\ref{sec:abstention}).
 
 \subsection{Comparative summary}
@@ -197,8 +181,6 @@ Work & Setting & Key finding & Relation to this paper \\
 \textcite{asai2026openscholar} & 45M papers & Citation accuracy at expert level & Full scientific RAG; we isolate and improve its retrieval stage \\
 \addlinespace
 \textcite{skarlinski2024paperqa} & Literature tasks & An agent matches or exceeds experts & Same goal at agent scale \\
-\addlinespace
-\textcite{su2025bright} & 1,384 reasoning queries & Best embedder falls from 59.0 to 18.3 nDCG@10 & Limits of surface and semantic matching \\
 \addlinespace
 \textcite{asai2024selfrag}; \textcite{yan2024crag} & QA, fact verification & Trained signals decide when to retrieve or correct & We measure the untrained baseline \\
 \bottomrule
