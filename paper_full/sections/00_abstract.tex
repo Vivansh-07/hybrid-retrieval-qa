@@ -1,0 +1,22 @@
+% ===========================================================================
+% Abstract (under 250 words): why, method, results, and what is new.
+% Drafted with AI assistance (Claude). Rewrite in your own words before submitting.
+% ===========================================================================
+\begin{abstract}
+\noindent
+% TODO (chapter PR): final abstract, written after the results chapter, including the
+% second dataset.
+Literature assistants such as SciSpace and Consensus answer scientific questions with
+citations, but every answer depends on one step they do not expose: finding the right
+evidence. This paper takes only that step and improves it. A small sentence encoder is
+fine-tuned on scientific claims and fused with keyword search (BM25) at a weight chosen on
+held-out claims; we prove that below a BM25 weight of $61/160 \approx 0.38$, reciprocal rank
+fusion can only re-order the dense candidates, which explains why the chosen weight works.
+On SciFact (300 test claims with known evidence) the improved retrieval reaches an nDCG@10
+of 0.759 against 0.715 for a standard hybrid pipeline with a cross-encoder reranker
+($p = 0.003$), at about a third of the time per claim and without the reranker.
+
+\medskip
+\noindent\textbf{Keywords:} evidence retrieval; scientific claim verification; hybrid
+retrieval; reciprocal rank fusion; dense retrieval; fine-tuning; cross-encoder reranking
+\end{abstract}

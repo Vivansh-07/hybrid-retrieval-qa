@@ -1,0 +1,41 @@
+% ===========================================================================
+% 3 Methodology (about 10 pages): every algorithm with its equations (symbols defined,
+% working shown) and pseudocode. Concise, but complete.
+% Drafted with AI assistance (Claude). Rewrite in your own words before submitting.
+% ===========================================================================
+\section{Methodology}
+\label{sec:method}
+
+\subsection{System overview}
+% TODO: the five-stage pipeline figure (from the short paper) and notation table.
+
+\subsection{Corpus preparation: sentence-window passages}
+% TODO: Algorithm 1 (sliding sentence window).
+
+\subsection{Stage 1: sparse retrieval with BM25}
+% TODO: Eq. BM25 score, IDF, term-frequency saturation, length normalisation; Algorithm 2.
+
+\subsection{Stage 2: dense retrieval with a bi-encoder}
+% TODO: Eq. mean pooling, normalisation, cosine = inner product; FAISS exact search; Algorithm 3.
+
+\subsection{In-domain fine-tuning of the dense encoder}
+% TODO: Eq. multiple-negatives ranking loss (in-batch softmax); Algorithm 4 with early stopping.
+
+\subsection{Stage 3: reciprocal rank fusion}
+\label{sec:rrf}
+% TODO: Eq. weighted RRF; Proposition 1 (break-even weight 61/160) with proof; Algorithm 5.
+
+\subsection{Stage 4: cross-encoder reranking}
+% TODO: Eq. relevance score from the [CLS] representation; Algorithm 6.
+
+\subsection{Stage 5: grounded answer generation}
+% TODO: explain-then-cite prompt, post-hoc attribution (Eq. term overlap); Algorithm 7.
+
+\subsection{Evaluation metrics}
+% TODO: Eqs. Recall@k, Precision@k, reciprocal rank, DCG, IDCG, nDCG, with a worked example.
+
+\subsection{Statistical significance: paired bootstrap}
+% TODO: Eq. mean difference, centred resampling, p-value; Algorithm 8.
+
+\subsection{Abstention analysis}
+% TODO: Eq. ROC AUC as the Mann-Whitney statistic; threshold chosen on development claims.
