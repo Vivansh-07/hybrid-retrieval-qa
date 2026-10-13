@@ -40,25 +40,16 @@ jobs:
           sed 's/onlychapter}{}/onlychapter}{05_results}/' paper_full/main.tex > paper_full/main_onechapter.tex
           grep -c 'onlychapter}{05_results}' paper_full/main_onechapter.tex
 
-      # latexmk -time reports the processing time of each run: first the build from scratch,
-      # then a recompile after an edit to the chapter, which is what each Recompile in Overleaf does.
+      # latexmk -time prints the processing time: the build from scratch, then a forced
+      # recompile, which is what each Recompile in Overleaf does after an edit. Both must stay
+      # well under Overleaf's 10 seconds (13 Oct: 6.5 s and 2.4 s).
       - name: Compile the one-chapter version (with timings)
         uses: xu-cheng/latex-action@v3
         with:
           root_file: main_onechapter.tex
           working_directory: paper_full
           args: -pdf -file-line-error -halt-on-error -interaction=nonstopmode -time
-          post_compile: |
-            for v in base nomicrotype draft; do
-              case $v in
-                base) cp main_onechapter.tex t_$v.tex ;;
-                nomicrotype) sed '/usepackage{microtype}/d' main_onechapter.tex > t_$v.tex ;;
-                draft) sed 's/12pt,a4paper/12pt,a4paper,draft/' main_onechapter.tex > t_$v.tex ;;
-              esac
-              echo "TIMING $v from scratch: $(latexmk -pdf -interaction=nonstopmode -time t_$v.tex 2>&1 | grep 'Processing time' | tail -1)"
-              echo "TIMING $v forced recompile: $(latexmk -pdf -interaction=nonstopmode -time -g t_$v.tex 2>&1 | grep 'Processing time' | tail -1)"
-              echo "TIMING $v one pdflatex pass: $(latexmk -pdf -interaction=nonstopmode -time -g -norc -e '$max_repeat=1' t_$v.tex 2>&1 | grep 'Processing time' | tail -1)"
-            done
+          post_compile: latexmk -pdf -interaction=nonstopmode -time -g main_onechapter.tex | grep 'Processing time'
 
       - name: One-chapter page count
         run: |
