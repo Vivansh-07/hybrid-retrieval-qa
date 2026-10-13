@@ -1,0 +1,42 @@
+# Builds the full-length paper (paper_full/main.tex, APA references with biber) into a
+# PDF on GitHub's machines whenever it changes, and reports its page count.
+# The PDF and the log are attached to the run as the "paper_full" artifact:
+#   gh run download <run id> -n paper_full
+name: paper_full
+
+on:
+  pull_request:
+    paths: ["paper_full/**", "paper/figures/**", ".github/workflows/paper_full.yml"]
+  push:
+    branches: [main]
+    paths: ["paper_full/**", "paper/figures/**", ".github/workflows/paper_full.yml"]
+  workflow_dispatch:
+
+jobs:
+  pdf:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Compile with latexmk (pdflatex + biber)
+        uses: xu-cheng/latex-action@v3
+        with:
+          root_file: main.tex
+          working_directory: paper_full
+
+      - name: Page count and warnings
+        if: always()
+        run: |
+          pages=$(grep -ao "/Type */Page[^s]" paper_full/main.pdf | wc -l)
+          echo "pages: $pages"
+          echo "### Full paper: $pages pages" >> "$GITHUB_STEP_SUMMARY"
+          grep -E "LaTeX Warning|Overfull|Underfull|undefined|Biber" paper_full/main.log | sort | uniq -c | sort -rn | head -40 || true
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: paper_full
+          path: |
+            paper_full/main.pdf
+            paper_full/main.log

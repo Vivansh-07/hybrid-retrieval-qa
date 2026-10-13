@@ -1,0 +1,41 @@
+% ===========================================================================
+% 2 Literature Review (about 9 pages): the 2022-2026 survey, 40-50 references.
+% Drafted with AI assistance (Claude). Rewrite in your own words before submitting.
+% ===========================================================================
+\section{Literature Review}
+\label{sec:literature}
+
+\subsection{Lexical retrieval}
+% TODO: BM25, probabilistic relevance framework; learned sparse (SPLADE).
+
+\subsection{Dense retrieval}
+% TODO: bi-encoders (Sentence-BERT, DPR), contrastive pre-training (Contriever),
+% late interaction (ColBERT), general embedding models (BGE, M3), biomedical (MedCPT).
+
+\subsection{Domain shift and benchmarks}
+% TODO: BEIR, SciFact, SciFact-Open, LitSearch, BRIGHT; domain adaptation (GPL).
+
+\subsection{Hybrid retrieval and rank fusion}
+% TODO: RRF, analysis of fusion functions, zero-shot hybrid, the weakest-link effect
+% (PVLDB 2026), dynamic weights (DAT), small embeddings with reranking.
+
+\subsection{Neural reranking}
+% TODO: monoBERT, monoT5, LLM rerankers, distilled cross-encoders, cost.
+
+\subsection{Retrieval-augmented generation for the scientific literature}
+% TODO: RAG, Fusion-in-Decoder, citations (ALCE), Self-RAG, CRAG, OpenScholar, PaperQA2.
+
+\subsection{Literature assistants in practice}
+% TODO: SciSpace, Consensus, ResearchRabbit: what they do, what they do not publish.
+
+\subsection{Knowing when not to answer}
+% TODO: selective QA, abstention survey, MultiVerS.
+
+\subsection{Comparative summary}
+% TODO: table of the surveyed approaches (task, data, strength, limitation).
+
+\subsection{Research gap}
+\label{sec:gap}
+% TODO: aggregate scores only; no claim-level explanation of which retriever wins; no
+% analysis of what a fusion weight does; reranking cost rarely weighed against
+% in-domain fine-tuning; tools closed. This paper addresses each (Section~\ref{sec:novelty}).

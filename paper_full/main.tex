@@ -1,0 +1,78 @@
+% ---------------------------------------------------------------------------
+% Hybrid Sparse-Dense Retrieval for Scientific Question Answering
+% Full-length research paper (about 40 pages), APA 7th edition references.
+%
+% The 12-page Springer LNCS version is in ../paper/. This version is written for the
+% course's general research paper: complete methodology, every algorithm as
+% pseudocode, every equation with its symbols defined and its working shown, and
+% 40-50 references in APA style.
+%
+% Compile: pdflatex main, biber main, pdflatex main, pdflatex main
+%          (latexmk -pdf main does all four; Overleaf does it automatically).
+% One file per chapter in sections/, so each chapter can be written and reviewed
+% in its own pull request.
+% ---------------------------------------------------------------------------
+\documentclass[12pt,a4paper]{article}
+
+\usepackage[T1]{fontenc}
+\usepackage{newtxtext,newtxmath}            % Times-like text and maths
+\usepackage[margin=2.5cm]{geometry}
+\usepackage{setspace}
+\onehalfspacing
+\usepackage{amsmath}                        % newtxmath already provides the amssymb symbols
+\usepackage{graphicx}
+\graphicspath{{../paper/figures/}}          % the figures are shared with the short paper
+\usepackage{booktabs,tabularx,multirow}
+\usepackage{tikz}
+\usetikzlibrary{arrows.meta,fit,positioning}
+\usepackage{algorithm}
+\usepackage[noend]{algpseudocode}
+\usepackage{microtype}
+\usepackage[hyphens]{url}
+\usepackage{csquotes}                       % required by biblatex-apa
+\usepackage[style=apa,backend=biber]{biblatex}
+\addbibresource{references.bib}
+\usepackage[hidelinks]{hyperref}
+
+\setlength{\emergencystretch}{1em}
+\renewcommand{\algorithmicrequire}{\textbf{Input:}}
+\renewcommand{\algorithmicensure}{\textbf{Output:}}
+
+\title{\textbf{Improving Evidence Retrieval for Scientific Claim Verification:\\
+In-Domain Fine-Tuning with Analytically Weighted Rank Fusion}}
+\author{Vivansh Garg\\[2pt]
+\normalsize Department of Computer Science and Engineering (Data Science)\\
+\normalsize Manipal University Jaipur, Jaipur, Rajasthan, India\\
+\normalsize \texttt{vivanshgarg05@gmail.com}}
+\date{October 2026}
+
+\begin{document}
+\maketitle
+
+\input{sections/00_abstract}
+
+\clearpage
+\tableofcontents
+\listofalgorithms
+\clearpage
+
+\input{sections/01_introduction}
+\input{sections/02_literature_review}
+\input{sections/03_methodology}
+\input{sections/04_experimental_setup}
+\input{sections/05_results}
+\input{sections/06_failure_analysis}
+\input{sections/07_discussion}
+\input{sections/08_limitations_conclusion}
+
+\section*{Acknowledgment}
+\addcontentsline{toc}{section}{Acknowledgment}
+% TODO: thank your supervisor / course instructor here if appropriate.
+AI assistance (Claude, Anthropic) was used to write and debug code, run and
+analyse experiments, assign the failure categories and answer scores, and draft
+the text. All results come from the code and logs in the repository.
+
+\clearpage
+\printbibliography[heading=bibintoc,title={References}]
+
+\end{document}
