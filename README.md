@@ -2,14 +2,56 @@
 
 [![tests](https://github.com/Vivansh-07/hybrid-retrieval-qa/actions/workflows/tests.yml/badge.svg)](https://github.com/Vivansh-07/hybrid-retrieval-qa/actions/workflows/tests.yml)
 [![paper](https://github.com/Vivansh-07/hybrid-retrieval-qa/actions/workflows/paper.yml/badge.svg)](https://github.com/Vivansh-07/hybrid-retrieval-qa/actions/workflows/paper.yml)
+[![full paper](https://github.com/Vivansh-07/hybrid-retrieval-qa/actions/workflows/paper_full.yml/badge.svg)](https://github.com/Vivansh-07/hybrid-retrieval-qa/actions/workflows/paper_full.yml)
 
-A multi-stage retrieval pipeline for question answering over a specialised corpus,
-evaluated with a controlled ablation on **SciFact** (BEIR).
+**The paper:** *Improving Evidence Retrieval for Scientific Claim Verification: In-Domain
+Fine-Tuning with Analytically Weighted Rank Fusion*. The source is in [`paper_full/`](paper_full/):
+about 40 pages, APA 7 references, pseudocode for every algorithm and a worked example for every
+equation. GitHub builds the PDF (Actions → paper_full → artifact). A shorter 12-page version of
+the earlier ablation is in [`paper/`](paper/).
 
 **[RESULTS.md](RESULTS.md)**: every experiment in order, with its command, its output and the
 decision it led to.
 **[docs/DEPLOY.md](docs/DEPLOY.md)**: run it on your own computer, step by step (tested in a
 fresh copy).
+
+## The one thing this project improves
+
+Literature assistants such as SciSpace, ResearchRabbit and Consensus answer questions or map
+papers. ResearchRabbit maps citations and does not answer questions. Consensus and SciSpace do
+answer with citations, but they are closed products that publish neither how their retrieval
+works nor how often it misses the evidence. Every assistant of this kind depends on one step:
+**retrieving the passages that contain the evidence**. An answer can be no better than what
+was retrieved. This project takes only that step, improves it, explains why the improvement
+works, and measures it openly, stage by stage, with a significance test for every comparison.
+It runs offline on a laptop with a 4 GB GPU.
+
+**The improvement.** It has two parts, and no reranker is needed:
+
+1. Fine-tune the small dense encoder (all-MiniLM-L6-v2) on the dataset's own training claims.
+2. Fuse it with BM25 by weighted Reciprocal Rank Fusion. The BM25 weight is set *below* the
+   break-even weight (k + 1)/(k + K) = 61/160 ≈ 0.38, which is derived in the paper
+   (Proposition 1). Below it, BM25 cannot add a passage to the list; it can only re-order the
+   encoder's candidates.
+
+| nDCG@10 on the test queries | SciFact (300 claims) | NFCorpus (323 queries) |
+|---|---|---|
+| Standard pipeline: BM25 + dense fusion, then a cross-encoder reranker | 0.715 (329 ms) | 0.358 (168 ms) |
+| **Improved:** fine-tuned encoder + BM25 below break-even, no reranker | **0.759** (114 ms) | 0.350 (29 ms) |
+| Difference (paired bootstrap) | +0.043, p = 0.003 | −0.008, p = 0.35 (level) |
+
+On SciFact the improved retriever is significantly better than the standard pipeline at about a
+third of the cost. On NFCorpus, the second dataset, it is statistically level with the reranked
+pipeline at about a sixth of the cost. Fine-tuning helps less there because NFCorpus's
+plain-language queries are weaker training labels, while the weighted fusion transfers
+unchanged. On both datasets the weight chosen on development queries falls below the
+break-even line:
+
+![Development nDCG@10 against the BM25 fusion weight on SciFact and NFCorpus](paper/figures/fusion_weight_curve.png)
+
+---
+
+## The pipeline and the ablation behind it
 
 ```
 query
@@ -26,10 +68,11 @@ query
                                               Grounded answer with citations
 ```
 
-**The question this project answers:** which retrieval strategy helps which kind of
-question, and what does each stage cost? The contribution is the ablation — BM25 alone,
-dense alone, fusion, fusion + reranking — over one fixed corpus and index, plus a manual
-failure analysis of what still goes wrong.
+This is the standard pipeline that the improvement replaces. The improvement came out of an
+ablation of it on SciFact: BM25 alone, dense alone, fusion, and fusion + reranking, over one
+fixed corpus and index, which asks which retrieval strategy helps which kind of question and
+what each stage costs. A manual failure analysis of what still goes wrong completes it. The
+ablation's results are [below](#ablation-results-scifact).
 
 ---
 
@@ -59,6 +102,8 @@ python -m hybridqa.cli query "Does vitamin D supplementation reduce respiratory 
 # interactive web demo: four strategies side by side + cited answer (http://127.0.0.1:7860)
 python scripts/demo.py
 python scripts/demo.py --best                        # the best system (fine-tuned encoder + weighted fusion)
+
+# the second dataset (NFCorpus): the five commands are in RESULTS.md, step 15
 ```
 
 Downloads (SciFact, models) are cached inside the project in `data/hf_cache/`, not in
@@ -70,7 +115,7 @@ dense indexing step to take a few minutes instead of seconds.
 
 ---
 
-## Results
+## Ablation results (SciFact)
 
 SciFact test set, 300 claims, from `results/ablation.csv` (RTX 3050 Laptop GPU). Latency
 is approximate: it varied up to about 2x between identical runs.
@@ -247,13 +292,14 @@ The code is MIT-licensed (below); the data and models it uses keep their own lic
 |---|---|---|
 | SciFact claims and evidence annotations | Wadden et al., EMNLP 2020 ([allenai/scifact](https://github.com/allenai/scifact)), used via BEIR | CC BY 4.0 |
 | SciFact abstracts | Semantic Scholar S2ORC | ODC-By 1.0 |
+| NFCorpus queries, abstracts and judgements | Boteva et al., ECIR 2016, used via BEIR (`BeIR/nfcorpus`) | CC BY-SA 4.0 (BEIR Hub card) |
 | `sentence-transformers/all-MiniLM-L6-v2` | Hugging Face Hub | Apache 2.0 |
 | `cross-encoder/ms-marco-MiniLM-L-6-v2` | Hugging Face Hub | Apache 2.0 |
 | `google/flan-t5-base` | Hugging Face Hub | Apache 2.0 |
 | `deepset/roberta-base-squad2` | Hugging Face Hub | CC BY 4.0 |
 | `BAAI/bge-small-en-v1.5`, `BAAI/bge-reranker-base` | Hugging Face Hub | MIT |
 
-Licences as stated by each source on 9 Oct 2026.
+Licences as stated by each source on 9 Oct 2026 (NFCorpus: 13 Oct 2026).
 
 ## License
 
