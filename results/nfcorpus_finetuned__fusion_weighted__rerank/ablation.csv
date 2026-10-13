@@ -1,0 +1,2 @@
+variant,latency_ms_per_query,Recall@1,Precision@1,nDCG@1,Recall@3,Precision@3,nDCG@3,Recall@5,Precision@5,nDCG@5,Recall@10,Precision@10,nDCG@10,Recall@20,Precision@20,nDCG@20,Recall@100,Precision@100,nDCG@100,MRR,MRR@10,num_queries
+fusion+rerank,171.03,0.0586,0.4675,0.4536,0.1104,0.3942,0.4166,0.1327,0.3381,0.3904,0.1695,0.2659,0.3581,0.2173,0.2003,0.3372,0.2931,0.0652,0.3087,0.5555,0.5486,323.0
