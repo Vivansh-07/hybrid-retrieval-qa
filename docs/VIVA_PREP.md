@@ -10,6 +10,71 @@ algorithm with the idea, why it was chosen and a one-sentence answer.
 
 ---
 
+## The full paper (13 Oct): one improvement, and how it differs from the tools
+
+After the 13 Oct meeting the paper became a ~40-page general research paper
+([`paper_full/`](../paper_full/)) that improves one part of the problem. These questions
+follow directly from that framing; numbers are from `results/` and the paper.
+
+**SciSpace, ResearchRabbit and Consensus already do this. What is different?**
+They are products that *use* retrieval; my paper *improves and measures* it. ResearchRabbit
+maps citation networks and does not answer questions. Consensus and SciSpace answer with
+citations, but they are closed: they publish neither how their retrieval works nor how often
+it misses the evidence. Every answer they give depends on one step, finding the right evidence,
+and that is the step I took and improved: on SciFact my retriever reaches nDCG@10 0.759 against
+0.715 for the standard hybrid pipeline with a reranker (p = 0.003), at about a third of the time
+per claim and without the reranker, and I prove why its fusion weight works. It is open and runs
+offline on a laptop. *One line: "Those tools are the cars; I improved and tested one part of the
+engine they all use."*
+
+**What exactly did you improve, and how?**
+Evidence retrieval for a claim. Three changes to the standard pipeline: fine-tune the small
+MiniLM encoder on SciFact's 689 training claims (contrastive loss, in-batch negatives), fuse it
+with BM25 at a weight chosen on 120 held-out claims (0.3), and drop the cross-encoder reranker.
+
+**Prove Proposition 1 on the board.**
+RRF score = w/(k + rank in BM25) + 1/(k + rank in dense), a term being 0 if the passage is not
+in that list. (1) A passage only BM25 found has no dense term and BM25 rank ≥ 1, so its score
+is at most w/(k + 1). (2) Any passage in the dense list has dense rank ≤ K, so its score is at
+least 1/(k + K). (3) If w/(k + 1) < 1/(k + K), that is w < (k + 1)/(k + K) = 61/160 ≈ 0.38, then
+(1) < (3): every BM25-only passage scores below every dense candidate. The fused top 100 is then
+exactly the dense list, re-ordered. At w = 0.3: 0.3/61 = 0.0049 < 1/160 = 0.0063.
+
+**Why 0.3 and not 0.5, if their development scores are so close?**
+0.3 is simply where the development score peaked (0.788; 0.786 at 0.5), and the test set never
+influenced the choice. Be honest: the proposition does not predict a sharp drop at 0.38 on
+SciFact. What it gives is the reason the best weight works (BM25 only re-orders) and a rule for
+choosing it without a search. On NFCorpus the curve falls clearly above the break-even point
+(0.385 at 0.2, 0.376 at 0.5, 0.357 at 1.0), which fits the rule better.
+
+**On NFCorpus your method did not beat the reranked pipeline. Doesn't that weaken the paper?**
+No, it bounds it, and I report it. On NFCorpus the improvement is statistically level with the
+reranked pipeline (0.350 against 0.358, p = 0.35) at a sixth of the time (29 against 168 ms).
+The fusion part transferred: the chosen weight (0.2) is again below the break-even point and
+again beats the encoder alone (p < 0.0001). What did not transfer as well is fine-tuning
+(+0.006, not significant): NFCorpus's queries are lay titles and its training queries have ~43
+same-grade judged abstracts, so the training labels are weak. The honest claim is "better on
+SciFact, equal on NFCorpus, cheaper on both".
+
+**Why does fine-tuning help so much on SciFact and so little on NFCorpus?**
+SciFact's training claims are written by experts in the same style as the test claims, with one
+or two clear evidence abstracts each, so they teach the encoder exactly the paraphrases that
+matter (+0.106 on low-overlap claims). NFCorpus's training data is noisier: everyday questions
+and many indirectly relevant abstracts, all with the same grade.
+
+**Your improvement "repaired" 9 claims labelled missing evidence. How, if the evidence is
+missing?**
+Either the fine-tuned encoder learned how SciFact's annotators linked claims to abstracts, or
+some of those AI-assisted labels are wrong. The data cannot tell which, so the paper says so and
+names a second, independent annotation of that category as the first check to do.
+
+**Why APA and why 50 references?**
+APA 7 is the usual author–year style for scientific papers and was one of the two the course
+allowed; 50 is within the 40–50 asked for. Every reference was checked against Crossref or
+arXiv, and every one is cited in the text.
+
+---
+
 ## Your teacher's checklist (7 Oct): novelty, survey, algorithms
 
 **What is novel in your work?**
