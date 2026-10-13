@@ -11,8 +11,7 @@
 \label{sec:motivation}
 
 Researchers increasingly ask software, not search engines, what the literature says.
-Literature assistants such as SciSpace \parencite{scispace} and Consensus
-\parencite{consensus} accept a question in plain language and return an answer with
+Literature assistants such as \textcite{scispace} and \textcite{consensus} accept a question in plain language and return an answer with
 citations to research papers, and research systems such as OpenScholar
 \parencite{asai2026openscholar} and PaperQA2 \parencite{skarlinski2024paperqa} report
 answers whose citations are, on some benchmarks, as accurate as those written by experts.
@@ -97,8 +96,8 @@ cheaply decide when the reader should answer ``not enough evidence''.
 \subsection{How this work differs from SciSpace, ResearchRabbit and Consensus}
 \label{sec:tools}
 
-The question this paper answers is not the one these tools answer. ResearchRabbit
-\parencite{researchrabbit} maps citation networks so that a researcher can discover related
+The question this paper answers is not the one these tools answer.
+\textcite{researchrabbit} maps citation networks so that a researcher can discover related
 papers; it does not answer questions. Consensus and SciSpace answer questions with
 citations, but they are closed products: they do not publish how their retrieval works, how
 often it misses the evidence, or what each step costs. OpenScholar and PaperQA2 are open
@@ -120,9 +119,9 @@ for the system as a whole, not stage by stage.}
 \toprule
 & \makecell{Answers with\\citations} & \makecell{Open and\\reproducible} & \makecell{Evaluates each\\retrieval stage} & \makecell{Runs offline\\on a laptop} \\
 \midrule
-ResearchRabbit \parencite{researchrabbit} & no & no & no & no \\
-Consensus \parencite{consensus} & yes & no & no & no \\
-SciSpace \parencite{scispace} & yes & no & no & no \\
+\textcite{researchrabbit} & no & no & no & no \\
+\textcite{consensus} & yes & no & no & no \\
+\textcite{scispace} & yes & no & no & no \\
 OpenScholar \parencite{asai2026openscholar} & yes & yes & partial & no \\
 PaperQA2 \parencite{skarlinski2024paperqa} & yes & yes & partial & no \\
 \textbf{This work} & yes & yes & \textbf{yes} & \textbf{yes} \\
