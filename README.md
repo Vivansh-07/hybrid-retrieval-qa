@@ -45,7 +45,7 @@ python -m pip install torch --index-url https://download.pytorch.org/whl/cu126  
 python -m pip install -r requirements.txt
 python -m pip install -e .
 
-python -m pytest tests/ -q                           # 101 tests
+python -m pytest tests/ -q                           # 106 tests
 
 # full four-way ablation + sweeps (downloads SciFact + models on first run, ~13 min on an RTX 3050)
 python scripts/run_ablation.py --sweep-depth 10 25 50 100 --sweep-fusion-k 10 30 60 100
@@ -176,6 +176,7 @@ scripts/
 tests/                   unit tests: metrics, fusion, config, significance, subsets, scoring,
                          abstention; the paper's references and numbers; the review sheet
 paper/                   LaTeX source, bibliography, figures (GitHub builds the PDF: Actions → paper)
+paper_full/              the full-length paper (about 40 pages, APA references), one file per chapter (Actions → paper_full)
 docs/
   WORKFLOW.md            the original four-week plan (13 Sep)
   VIVA_PREP.md           expected questions with worked answers
@@ -229,7 +230,7 @@ model), so changing any of them re-embeds automatically.
 python -m pytest tests/ -q
 ```
 
-101 tests check the metrics against hand-worked values, the fusion, config, significance,
+106 tests check the metrics against hand-worked values, the fusion, config, significance,
 subset, scoring and abstention code; that the paper's references and figures are intact and
 its headline numbers (also those in RESULTS.md, the slides and the problem statement) still
 match `results/`; that the generated documents (failure review sheet, problem statement,
