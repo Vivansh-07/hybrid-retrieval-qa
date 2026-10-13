@@ -11,6 +11,9 @@
 %          (latexmk -pdf main does all four; Overleaf does it automatically).
 % One file per chapter in sections/, so each chapter can be written and reviewed
 % in its own pull request.
+% Overleaf: from the repository folder, in Command Prompt,
+%   tar -a -c -f paper_full_overleaf.zip -C paper_full main.tex references.bib sections -C ../paper figures
+% then New Project -> Upload Project (see paper_full/README.md).
 % ---------------------------------------------------------------------------
 \documentclass[12pt,a4paper]{article}
 
@@ -21,7 +24,7 @@
 \onehalfspacing
 \usepackage{amsmath}                        % newtxmath already provides the amssymb symbols
 \usepackage{graphicx}
-\graphicspath{{../paper/figures/}}          % the figures are shared with the short paper
+\graphicspath{{../paper/figures/}{figures/}} % shared with the short paper; figures/ in an Overleaf upload
 \usepackage{booktabs,tabularx,multirow,makecell}
 \usepackage{tikz}
 \usetikzlibrary{arrows.meta,fit,positioning}
