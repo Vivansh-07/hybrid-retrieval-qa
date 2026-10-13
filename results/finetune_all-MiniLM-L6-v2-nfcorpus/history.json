@@ -1,0 +1,96 @@
+{
+  "base_model": "sentence-transformers/all-MiniLM-L6-v2",
+  "output_model": "data/models/all-MiniLM-L6-v2-nfcorpus",
+  "train_claims": 2470,
+  "dev_claims": 120,
+  "train_pairs": 6917,
+  "max_pairs_per_query": 3,
+  "epochs": 12,
+  "batch_size": 32,
+  "lr": 2e-05,
+  "seed": 42,
+  "loss": "multiple-negatives ranking (in-batch negatives), scale 20",
+  "best_epoch": 8,
+  "best_dev_nDCG@10": 0.3732,
+  "train_seconds": 1102.7,
+  "history": [
+    {
+      "epoch": 0,
+      "train_loss": null,
+      "dev_nDCG@10": 0.3597,
+      "dev_Recall@10": 0.1464
+    },
+    {
+      "epoch": 1,
+      "train_loss": 2.2376,
+      "dev_nDCG@10": 0.3598,
+      "dev_Recall@10": 0.1512
+    },
+    {
+      "epoch": 2,
+      "train_loss": 1.9289,
+      "dev_nDCG@10": 0.3644,
+      "dev_Recall@10": 0.1503
+    },
+    {
+      "epoch": 3,
+      "train_loss": 1.6087,
+      "dev_nDCG@10": 0.3657,
+      "dev_Recall@10": 0.1471
+    },
+    {
+      "epoch": 4,
+      "train_loss": 1.3704,
+      "dev_nDCG@10": 0.3681,
+      "dev_Recall@10": 0.1531
+    },
+    {
+      "epoch": 5,
+      "train_loss": 1.1677,
+      "dev_nDCG@10": 0.368,
+      "dev_Recall@10": 0.1534
+    },
+    {
+      "epoch": 6,
+      "train_loss": 1.0271,
+      "dev_nDCG@10": 0.3672,
+      "dev_Recall@10": 0.1561
+    },
+    {
+      "epoch": 7,
+      "train_loss": 0.9118,
+      "dev_nDCG@10": 0.3674,
+      "dev_Recall@10": 0.152
+    },
+    {
+      "epoch": 8,
+      "train_loss": 0.8088,
+      "dev_nDCG@10": 0.3732,
+      "dev_Recall@10": 0.1599
+    },
+    {
+      "epoch": 9,
+      "train_loss": 0.748,
+      "dev_nDCG@10": 0.3694,
+      "dev_Recall@10": 0.1555
+    },
+    {
+      "epoch": 10,
+      "train_loss": 0.6825,
+      "dev_nDCG@10": 0.3724,
+      "dev_Recall@10": 0.1576
+    },
+    {
+      "epoch": 11,
+      "train_loss": 0.6571,
+      "dev_nDCG@10": 0.3658,
+      "dev_Recall@10": 0.1513
+    },
+    {
+      "epoch": 12,
+      "train_loss": 0.6265,
+      "dev_nDCG@10": 0.3683,
+      "dev_Recall@10": 0.1558
+    }
+  ]
+}

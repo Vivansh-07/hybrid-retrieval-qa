@@ -1,0 +1,85 @@
+{
+  "metric": "nDCG@10",
+  "test": "two-sided paired bootstrap",
+  "n_samples": 10000,
+  "seed": 42,
+  "comparisons": {
+    "improved vs standard pipeline (fusion + rerank)": {
+      "A": "nfcorpus:fusion+rerank",
+      "B": "nfcorpus_finetuned__fusion_weighted:fusion",
+      "A_mean": 0.3584,
+      "B_mean": 0.3502,
+      "delta": -0.0082,
+      "p_value": 0.3494,
+      "queries": 323,
+      "better": 99,
+      "worse": 110
+    },
+    "improved vs standard fusion (w = 1, pretrained)": {
+      "A": "nfcorpus:fusion",
+      "B": "nfcorpus_finetuned__fusion_weighted:fusion",
+      "A_mean": 0.3396,
+      "B_mean": 0.3502,
+      "delta": 0.0106,
+      "p_value": 0.2188,
+      "queries": 323,
+      "better": 117,
+      "worse": 96
+    },
+    "fine-tuned dense vs pretrained dense": {
+      "A": "nfcorpus:dense",
+      "B": "nfcorpus_finetuned__fusion_weighted:dense",
+      "A_mean": 0.3302,
+      "B_mean": 0.336,
+      "delta": 0.0058,
+      "p_value": 0.4893,
+      "queries": 323,
+      "better": 106,
+      "worse": 112
+    },
+    "improved vs fine-tuned dense alone": {
+      "A": "nfcorpus_finetuned__fusion_weighted:dense",
+      "B": "nfcorpus_finetuned__fusion_weighted:fusion",
+      "A_mean": 0.336,
+      "B_mean": 0.3502,
+      "delta": 0.0143,
+      "p_value": 0.0,
+      "queries": 323,
+      "better": 92,
+      "worse": 66
+    },
+    "SciFact encoder, not retrained (w = 0.3) vs standard fusion": {
+      "A": "nfcorpus:fusion",
+      "B": "nfcorpus_scifact_encoder__fusion_weighted:fusion",
+      "A_mean": 0.3396,
+      "B_mean": 0.3426,
+      "delta": 0.003,
+      "p_value": 0.5617,
+      "queries": 323,
+      "better": 93,
+      "worse": 89
+    },
+    "improved + rerank vs improved": {
+      "A": "nfcorpus_finetuned__fusion_weighted:fusion",
+      "B": "nfcorpus_finetuned__fusion_weighted__rerank:fusion+rerank",
+      "A_mean": 0.3502,
+      "B_mean": 0.3581,
+      "delta": 0.0079,
+      "p_value": 0.2302,
+      "queries": 323,
+      "better": 112,
+      "worse": 88
+    },
+    "improved + rerank vs standard pipeline": {
+      "A": "nfcorpus:fusion+rerank",
+      "B": "nfcorpus_finetuned__fusion_weighted__rerank:fusion+rerank",
+      "A_mean": 0.3584,
+      "B_mean": 0.3581,
+      "delta": -0.0003,
+      "p_value": 0.9565,
+      "queries": 323,
+      "better": 92,
+      "worse": 66
+    }
+  }
+}

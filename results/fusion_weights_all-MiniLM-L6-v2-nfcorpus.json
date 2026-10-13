@@ -1,0 +1,56 @@
+{
+  "dense_model": "data/models/all-MiniLM-L6-v2-nfcorpus",
+  "dev_claims": 120,
+  "grid": [
+    {
+      "bm25_weight": 0.0,
+      "nDCG@10": 0.3732,
+      "Recall@10": 0.1599
+    },
+    {
+      "bm25_weight": 0.1,
+      "nDCG@10": 0.3832,
+      "Recall@10": 0.1651
+    },
+    {
+      "bm25_weight": 0.2,
+      "nDCG@10": 0.385,
+      "Recall@10": 0.1674
+    },
+    {
+      "bm25_weight": 0.3,
+      "nDCG@10": 0.3833,
+      "Recall@10": 0.1665
+    },
+    {
+      "bm25_weight": 0.5,
+      "nDCG@10": 0.3757,
+      "Recall@10": 0.1642
+    },
+    {
+      "bm25_weight": 0.7,
+      "nDCG@10": 0.3648,
+      "Recall@10": 0.1575
+    },
+    {
+      "bm25_weight": 1.0,
+      "nDCG@10": 0.3567,
+      "Recall@10": 0.1521
+    },
+    {
+      "bm25_weight": 1.5,
+      "nDCG@10": 0.3373,
+      "Recall@10": 0.1393
+    },
+    {
+      "bm25_weight": 2.0,
+      "nDCG@10": 0.3345,
+      "Recall@10": 0.1385
+    }
+  ],
+  "chosen": {
+    "bm25_weight": 0.2,
+    "nDCG@10": 0.385,
+    "Recall@10": 0.1674
+  }
+}
