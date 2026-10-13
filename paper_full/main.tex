@@ -37,9 +37,27 @@
 \addbibresource{references.bib}
 \usepackage[hidelinks]{hyperref}
 
+\usepackage{etoolbox}
+
 \setlength{\emergencystretch}{1em}
 \renewcommand{\algorithmicrequire}{\textbf{Input:}}
 \renewcommand{\algorithmicensure}{\textbf{Output:}}
+\newcolumntype{L}{>{\raggedright\arraybackslash}X}                % ragged-right table columns:
+\newcolumntype{P}[1]{>{\raggedright\arraybackslash}p{#1}}         % no stretched gaps in narrow cells
+
+% ---------------------------------------------------------------------------
+% Compiling one chapter at a time. Overleaf's free plan stops a compile after 10 seconds,
+% and the whole paper takes longer. While rewriting a chapter in Overleaf, put its file
+% name between the braces, for example
+%     \newcommand{\onlychapter}{01_introduction}
+% and only that chapter (with its references) is compiled; references to other chapters
+% then show as ??. Leave the braces EMPTY in the version saved to GitHub: a test checks
+% this, and GitHub builds the whole paper.
+\newcommand{\onlychapter}{}
+\newcommand{\chapterfile}[1]{%
+  \ifdefempty{\onlychapter}{\input{sections/#1}}{%
+    \ifdefstring{\onlychapter}{#1}{\input{sections/#1}}{}}}
+% ---------------------------------------------------------------------------
 
 \title{\textbf{Improving Evidence Retrieval for Scientific Claim Verification:\\
 In-Domain Fine-Tuning with Analytically Weighted Rank Fusion}}
@@ -52,21 +70,23 @@ In-Domain Fine-Tuning with Analytically Weighted Rank Fusion}}
 \begin{document}
 \maketitle
 
-\input{sections/00_abstract}
+\chapterfile{00_abstract}
 
-\clearpage
-\tableofcontents
-\listofalgorithms
+\ifdefempty{\onlychapter}{%
+  \clearpage
+  \tableofcontents
+  \listofalgorithms
+}{}
 \clearpage
 
-\input{sections/01_introduction}
-\input{sections/02_literature_review}
-\input{sections/03_methodology}
-\input{sections/04_experimental_setup}
-\input{sections/05_results}
-\input{sections/06_failure_analysis}
-\input{sections/07_discussion}
-\input{sections/08_limitations_conclusion}
+\chapterfile{01_introduction}
+\chapterfile{02_literature_review}
+\chapterfile{03_methodology}
+\chapterfile{04_experimental_setup}
+\chapterfile{05_results}
+\chapterfile{06_failure_analysis}
+\chapterfile{07_discussion}
+\chapterfile{08_limitations_conclusion}
 
 \section*{Acknowledgment}
 \addcontentsline{toc}{section}{Acknowledgment}

@@ -8,24 +8,49 @@ from pathlib import Path
 
 FULL = Path(__file__).resolve().parents[1] / "paper_full"
 CITE = re.compile(r"\\(?:[Pp]arencite|[Tt]extcite|cite|citeauthor|citeyear|nocite)\*?(?:\[[^\]]*\])*\{([^}]+)\}")
+# chapters are included as \chapterfile{name} (sections/name.tex), other files as \input{path}
+INCLUDE = re.compile(r"\\chapterfile\{([^}]+)\}|\\input\{([^}#]+)\}")
+
+CHAPTERS = ["00_abstract", "01_introduction", "02_literature_review", "03_methodology",
+            "04_experimental_setup", "05_results", "06_failure_analysis", "07_discussion",
+            "08_limitations_conclusion"]
 
 
 def _strip_comments(text: str) -> str:
     return "\n".join(re.sub(r"(?<!\\)%.*", "", line) for line in text.splitlines())
 
 
+def _main() -> str:
+    return _strip_comments((FULL / "main.tex").read_text(encoding="utf-8"))
+
+
+def _included(main: str) -> list:
+    return [f"sections/{chapter}" if chapter else path for chapter, path in INCLUDE.findall(main)]
+
+
 def _source() -> str:
-    """main.tex with every \\input{...} chapter inlined, comments removed."""
-    main = _strip_comments((FULL / "main.tex").read_text(encoding="utf-8"))
-    return re.sub(r"\\input\{([^}]+)\}",
-                  lambda m: _strip_comments((FULL / f"{m.group(1)}.tex").read_text(encoding="utf-8")),
-                  main)
+    """main.tex with every included chapter inlined, comments removed."""
+    return INCLUDE.sub(
+        lambda m: _strip_comments((FULL / f"{'sections/' + m.group(1) if m.group(1) else m.group(2)}.tex")
+                                  .read_text(encoding="utf-8")),
+        _main())
 
 
 def test_every_chapter_file_exists():
-    main = _strip_comments((FULL / "main.tex").read_text(encoding="utf-8"))
-    missing = [name for name in re.findall(r"\\input\{([^}]+)\}", main) if not (FULL / f"{name}.tex").exists()]
-    assert not missing, f"\\input files missing: {missing}"
+    missing = [name for name in _included(_main()) if not (FULL / f"{name}.tex").exists()]
+    assert not missing, f"chapter files missing: {missing}"
+
+
+def test_every_chapter_is_included_in_order():
+    assert _included(_main()) == [f"sections/{c}" for c in CHAPTERS]
+
+
+def test_the_whole_paper_is_compiled():
+    """\\onlychapter compiles a single chapter in Overleaf; the saved version must build them all."""
+    match = re.search(r"\\newcommand\{\\onlychapter\}\{([^}]*)\}", _main())
+    assert match, "main.tex should define \\onlychapter"
+    assert match.group(1).strip() == "", (
+        f"main.tex compiles only '{match.group(1)}': set it back to \\newcommand{{\\onlychapter}}{{}}")
 
 
 def test_every_ref_has_a_label():
