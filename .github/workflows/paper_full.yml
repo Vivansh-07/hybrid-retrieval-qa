@@ -40,11 +40,15 @@ jobs:
           sed 's/onlychapter}{}/onlychapter}{05_results}/' paper_full/main.tex > paper_full/main_onechapter.tex
           grep -c 'onlychapter}{05_results}' paper_full/main_onechapter.tex
 
-      - name: Compile the one-chapter version
+      # latexmk -time reports the processing time of each run: first the build from scratch,
+      # then a recompile after an edit to the chapter, which is what each Recompile in Overleaf does.
+      - name: Compile the one-chapter version (with timings)
         uses: xu-cheng/latex-action@v3
         with:
           root_file: main_onechapter.tex
           working_directory: paper_full
+          args: -pdf -file-line-error -halt-on-error -interaction=nonstopmode -time
+          post_compile: touch sections/05_results.tex && latexmk -pdf -interaction=nonstopmode -time main_onechapter.tex
 
       - name: One-chapter page count
         run: |
