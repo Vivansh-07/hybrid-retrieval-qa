@@ -1,0 +1,52 @@
+% ===========================================================================
+% 1 Introduction (about 4 pages). The paper improves ONE part of the problem: evidence
+% retrieval for scientific claims. Everything else supports that improvement.
+% Drafted with AI assistance (Claude). Rewrite in your own words before submitting.
+% ===========================================================================
+\section{Introduction}
+\label{sec:introduction}
+
+\subsection{Background and motivation}
+\label{sec:motivation}
+% TODO: scientific question answering and literature assistants; the pipeline
+% question -> search -> passages -> generated answer with citations; a reader can only
+% cite what retrieval finds, so retrieval bounds the quality of every answer.
+
+\subsection{The part of the problem this paper improves}
+\label{sec:problem}
+% TODO: evidence retrieval for a scientific claim: given a claim, rank the abstracts that
+% support or refute it. Why this step: it is shared by every assistant, it is measurable
+% against known evidence (SciFact), and its cost (reranking) dominates the pipeline.
+
+\subsection{Research questions}
+\label{sec:rq}
+% TODO:
+% RQ1 Can in-domain fine-tuning with weighted fusion improve evidence retrieval over a
+%     standard hybrid pipeline with a reranker, at lower cost?
+% RQ2 Why does the chosen fusion weight work? (Proposition 1)
+% RQ3 Which kind of claim does each retriever help? (word overlap)
+% RQ4 Does the improvement hold on a second biomedical dataset?
+% RQ5 Where, and why, does the improved retrieval still fail?
+
+\subsection{Contributions: what is new}
+\label{sec:novelty}
+% TODO, each with its number:
+%  1. the improvement: fine-tuned 22M-parameter encoder + weighted RRF, nDCG@10 0.759 vs
+%     0.715 for hybrid + reranker (p = 0.003), Recall@10 0.905, 114 vs 329 ms per claim;
+%  2. Proposition 1 (Section 3.6): below a BM25 weight of 61/160 ~ 0.38, weighted RRF can
+%     only re-order the dense candidates; this turns choosing the weight into a rule;
+%  3. word overlap between a claim and its evidence decides which retriever wins;
+%  4. the improvement on a second dataset (RQ4);
+%  5. a failure analysis (42% of the hardest misses are evidence problems), answer quality
+%     and a measured abstention baseline.
+
+\subsection{How this work differs from SciSpace, ResearchRabbit and Consensus}
+\label{sec:tools}
+% TODO: ResearchRabbit maps citation networks and does not answer questions; Consensus and
+% SciSpace answer with citations but are closed and publish no evaluation of their
+% retrieval. This paper isolates the retrieval step those assistants depend on, improves
+% it, proves why the improvement works, and measures it openly on known evidence; it runs
+% offline on a laptop. Comparison table (Table tab:tools, in the chapter PR).
+
+\subsection{Organisation of the paper}
+% TODO: one sentence per chapter.
