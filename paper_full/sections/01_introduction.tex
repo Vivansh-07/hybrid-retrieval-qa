@@ -83,8 +83,11 @@ the fusion weight from a search into a rule.
 words occur in their evidence shows that the dense retriever wins on paraphrased claims
 (+0.073 nDCG@10, $p = 0.022$) while BM25 holds on claims worded like their evidence; fusion
 is never worse than the better of the two.
-\item \textbf{A second dataset} (RQ4): the same recipe applied to NFCorpus
-(Section~\ref{sec:results}).
+\item \textbf{A second dataset.} Applied unchanged to NFCorpus, the recipe again chooses a
+weight below the break-even point and again makes the reranker unnecessary: the improved
+retriever is statistically level with the reranked pipeline (0.350 against 0.358, $p = 0.35$)
+at a sixth of its time per query, while fine-tuning helps less on NFCorpus's lay queries
+(Section~\ref{sec:res-nfcorpus}).
 \item \textbf{Where retrieval cannot help.} A failure analysis of the 40 hardest claims finds
 that 42\% are not retrieval errors at all, because the abstract marked as evidence does not
 state the claim. An evaluation of the answers shows that the generative reader is right more

@@ -17,12 +17,12 @@ which of these failures the improved retriever repairs (RQ5).
 
 The claims were chosen by a fixed rule before any was examined. Every test claim receives a
 priority
-\begin{equation}
+\begin{multline}
 \pi(q) = 2\,\bigl(1 - \mathrm{R@10}_{\mathrm{full}}(q)\bigr)
-+ 1.5\,\mathbb{1}\bigl[\mathrm{R@10}_{\mathrm{fusion}}(q) > \mathrm{R@10}_{\mathrm{full}}(q)\bigr]
++ 1.5\,\mathbb{1}\bigl[\mathrm{R@10}_{\mathrm{fusion}}(q) > \mathrm{R@10}_{\mathrm{full}}(q)\bigr] \\
 + \bigl|\mathrm{R@10}_{\mathrm{BM25}}(q) - \mathrm{R@10}_{\mathrm{dense}}(q)\bigr|,
 \label{eq:priority}
-\end{equation}
+\end{multline}
 where ``full'' is the standard pipeline with the reranker: the first term rewards claims the
 pipeline misses, the second claims for which the reranker lost an abstract that fusion had
 found, and the third claims on which the two retrievers disagree. The 40 claims with the

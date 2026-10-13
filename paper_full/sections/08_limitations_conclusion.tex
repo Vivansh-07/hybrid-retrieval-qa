@@ -44,8 +44,10 @@ Proposition~1 retrieved evidence better than the standard hybrid pipeline with a
 reranker (nDCG@10 0.759 against 0.715 on SciFact, $p = 0.003$), at about a third of its time per
 claim and without the reranker. The proposition explains why the weight works: below
 $61/160$, keyword search can only re-order the dense retriever's candidates, so the fine-tuned
-encoder finds the evidence and BM25 sharpens its order. The analysis around the improvement
-shows which retriever helps which claim, where retrieval still fails, and what that means for
-the answers built on it. Literature assistants such as SciSpace and Consensus depend on this
-step; the improvement shows how it can be made both better and cheaper, openly and on a laptop.
-% TODO: one sentence on NFCorpus (RQ4) when the result is in.
+encoder finds the evidence and BM25 sharpens its order. On a second dataset, NFCorpus, the same
+recipe matched the reranked pipeline at a sixth of its cost: its fusion component transferred,
+while fine-tuning depended on the quality of the domain's training labels. The analysis around
+the improvement shows which retriever helps which claim, where retrieval still fails, and what
+that means for the answers built on it. Literature assistants such as SciSpace and Consensus
+depend on this step; the improvement shows how it can be made better and cheaper, openly and on
+a laptop.
