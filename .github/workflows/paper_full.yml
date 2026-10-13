@@ -33,6 +33,25 @@ jobs:
           echo "### Full paper: $pages pages" >> "$GITHUB_STEP_SUMMARY"
           grep -E "LaTeX Warning|Overfull|Underfull|undefined|Biber" paper_full/main.log | sort | uniq -c | sort -rn | head -40 || true
 
+      # Overleaf's free plan compiles one chapter at a time (\onlychapter in main.tex).
+      # Check that this still builds, with the longest chapter, Results.
+      - name: Make a one-chapter version (\onlychapter = 05_results)
+        run: |
+          sed 's/onlychapter}{}/onlychapter}{05_results}/' paper_full/main.tex > paper_full/main_onechapter.tex
+          grep -c 'onlychapter}{05_results}' paper_full/main_onechapter.tex
+
+      - name: Compile the one-chapter version
+        uses: xu-cheng/latex-action@v3
+        with:
+          root_file: main_onechapter.tex
+          working_directory: paper_full
+
+      - name: One-chapter page count
+        run: |
+          pages=$(grep -ao "/Type */Page[^s]" paper_full/main_onechapter.pdf | wc -l)
+          echo "pages: $pages"
+          echo "### One chapter (Results) on its own: $pages pages" >> "$GITHUB_STEP_SUMMARY"
+
       - uses: actions/upload-artifact@v4
         if: always()
         with:
@@ -40,3 +59,5 @@ jobs:
           path: |
             paper_full/main.pdf
             paper_full/main.log
+            paper_full/main_onechapter.pdf
+            paper_full/main_onechapter.log

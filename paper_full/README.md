@@ -26,16 +26,26 @@ artifact holds `main.pdf` (Actions → paper_full → the run → Artifacts), or
    ```
    The zip holds the paper, its chapters, the bibliography and a `figures/` folder; the
    paper finds the figures there as well as in `../paper/figures/`.
-2. In Overleaf: **New Project → Upload Project** → the zip → **Recompile**. Overleaf runs biber
-   for the APA references by itself.
-3. To bring a finished chapter back: **Menu → Download → Source**, copy the changed files over
-   `paper_full/` (only `main.tex`, `references.bib` and `sections/`), and open a pull request.
-   The zip is git-ignored.
+2. In Overleaf: **New Project → Upload Project** → the zip. Overleaf runs biber for the APA
+   references by itself.
+3. **Compile one chapter at a time.** Overleaf's free plan stops a compile after 10 seconds, and
+   the whole paper takes longer (it times out). In `main.tex`, put the chapter you are working on
+   between the braces of `\newcommand{\onlychapter}{}`, for example
+   `\newcommand{\onlychapter}{01_introduction}`, then **Recompile**: only that chapter and the
+   references it cites are built. References to other chapters show as **??**; that is expected.
+   GitHub builds the whole paper on every pull request (above), and checks that this one-chapter
+   mode still compiles.
+4. To bring a finished chapter back: **Menu → Download → Source**, copy the changed chapter files
+   over `paper_full/sections/`, and open a pull request. If you copy `main.tex` too, set
+   `\onlychapter` back to empty first: `test_paper_full` fails otherwise. The zip is git-ignored.
 
 ## What the tests check (`tests/test_paper_full.py`, `tests/test_numbers_full.py`)
 
-- every chapter file exists, every `\ref` has a `\label`, every citation is in
-  `references.bib`, every figure exists, and the braces balance;
+- every chapter file exists and is included in order, `\onlychapter` is empty (the whole paper
+  is built), every `\ref` has a `\label`, every citation is in `references.bib`, every figure
+  exists, and the braces balance;
+- every worked example in the Methodology computes to the number it shows
+  (`tests/test_worked_examples.py`);
 - every headline number (SciFact and NFCorpus) is the one in `results/`, as the text rounds it;
 - the abstract has fewer than 200 words, and the bibliography holds 40 to 50 entries.
 
