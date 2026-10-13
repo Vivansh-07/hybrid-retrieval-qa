@@ -2,8 +2,9 @@
 % 3 Methodology (about 10 pages): every algorithm with its equations (symbols defined,
 % working shown) and pseudocode. Concise, but complete.
 % Drafted with AI assistance (Claude). Rewrite in your own words before submitting.
-% Every setting below is the one in configs/scifact.yaml and src/hybridqa/; every number
-% in a worked example is computed from results/.
+% Every setting below is the one in configs/scifact.yaml and src/hybridqa/. A worked example
+% uses either small illustrative values or numbers from results/; tests/test_worked_examples.py
+% recomputes every one of them.
 % ===========================================================================
 \section{Methodology}
 \label{sec:method}
@@ -155,7 +156,10 @@ The inverse document frequency
 is large for a term that occurs in few of the $N$ passages ($n_t$ is the number of
 passages containing $t$); a term in more than half of the passages would get a negative
 value, which is replaced by $0.25$ times the average IDF. The sum runs over the claim's
-terms with repetition.
+terms with repetition. For example, with $N = 21{,}015$ passages, a rare term found in
+$n_t = 10$ of them gets $\mathrm{IDF} = \ln(21{,}005.5 / 10.5) = 7.60$, while a common term
+found in $n_t = 2{,}000$ gets $\ln(19{,}015.5 / 2{,}000.5) = 2.25$: one shared rare term
+outweighs three shared common ones.
 
 \paragraph{What the two constants do.} The fraction in Equation~\eqref{eq:bm25} is the
 term-frequency factor. For a passage of average length ($|p| = \overline{|p|}$) it is
@@ -163,7 +167,9 @@ $f(k_1 + 1)/(f + k_1)$, which grows with $f$ but saturates at $k_1 + 1$. With
 $k_1 = 0.9$, one occurrence gives $1 \times 1.9 / 1.9 = 1$ (the term contributes exactly its
 IDF), two give $2 \times 1.9 / 2.9 = 1.31$, and ten give $10 \times 1.9 / 10.9 = 1.74$:
 repeating a word cannot dominate the score. The constant $b \in [0, 1]$ sets how much a
-long passage is penalised: $b = 0$ ignores length, $b = 1$ normalises fully. We use
+long passage is penalised: $b = 0$ ignores length, $b = 1$ normalises fully. With
+$k_1 = 0.9$ and $b = 0.4$, one occurrence in a passage twice the average length gives
+$1.9 / \bigl(1 + 0.9\,(1 - 0.4 + 0.4 \times 2)\bigr) = 1.9 / 2.26 = 0.84$ instead of 1. We use
 $k_1 = 0.9$ and $b = 0.4$, the values used by the BEIR benchmark \parencite{thakur2021beir}.
 
 Text is lower-cased and split into terms by a regular expression that keeps hyphenated
@@ -220,7 +226,10 @@ s(q, p) = \mathbf{v}_q^{\top} \mathbf{v}_p
 \end{equation}
 where the second step substitutes Equation~\eqref{eq:pooling}: because both vectors have
 unit length, the inner product equals the cosine of the angle between the averaged token
-vectors, a value in $[-1, 1]$.
+vectors, a value in $[-1, 1]$. In two dimensions, for example, $\mathbf{u}_q = (3, 4)$ and
+$\mathbf{u}_p = (4, 3)$ both have length 5, so $\mathbf{v}_q = (0.6, 0.8)$,
+$\mathbf{v}_p = (0.8, 0.6)$ and $s(q, p) = 0.6 \times 0.8 + 0.8 \times 0.6 = 0.96$; the
+encoder does the same in 384 dimensions.
 
 Passage vectors are computed once, offline, and stored in an exact inner-product index
 \parencite{johnson2021faiss}: $N \times 384$ floats of 4 bytes, that is
@@ -265,8 +274,9 @@ p_i^{+} = \operatorname*{arg\,max}_{p \,\in\, \mathcal{P}(a_i)} s_0(q_i, p),
 \label{eq:positive}
 \end{equation}
 where $\mathcal{P}(a_i)$ are the passages of abstract $a_i$ and $s_0$ is
-Equation~\eqref{eq:cosine} computed with $E_0$. This is a weak label, but it needs no
-manual annotation. The 689 training claims give 792 pairs.
+Equation~\eqref{eq:cosine} computed with $E_0$. For example, if a relevant abstract has
+three passages with similarities 0.41, 0.63 and 0.52 to the claim, the second becomes the
+claim's positive $p_i^{+}$. This is a weak label, but it needs no manual annotation. The 689 training claims give 792 pairs.
 
 \paragraph{Loss.} Training uses the multiple-negatives ranking loss
 \parencite{henderson2017smartreply}, with in-batch negatives as in dense passage retrieval
@@ -290,6 +300,14 @@ negatives, so with $B = 32$ each claim is contrasted with 31 negatives at no ext
 The scale $\lambda = 20$ sharpens the softmax: cosines lie in $[-1, 1]$, and without it the
 largest possible gap between a positive and a negative, 2, would leave the probabilities
 too close to uniform for a useful gradient.
+
+\paragraph{Worked example.} Take $B = 2$, and let claim 1 have cosine 0.6 with its own
+passage and 0.4 with the other claim's passage. With $\lambda = 20$, $S_{11} = 12$ and
+$S_{12} = 8$, so the softmax gives the correct passage the probability
+$e^{12} / (e^{12} + e^{8}) = 1 / (1 + e^{-4}) = 0.982$, and claim 1 contributes
+$-\ln 0.982 = 0.018$ to the sum in Equation~\eqref{eq:mnrl}. Without the scale
+($\lambda = 1$), the same cosines give $1 / (1 + e^{-0.2}) = 0.550$, barely above the
+uniform 0.5, and a loss of 0.598, although the claim already prefers its own passage.
 
 \paragraph{Optimisation and early stopping.} The model is trained for 12 epochs with
 AdamW \parencite{loshchilov2019adamw} (learning rate $2 \times 10^{-5}$, weight decay
@@ -429,10 +447,12 @@ s_{\mathrm{CE}}(q, p) = \mathbf{w}^{\top} \mathbf{h}_{\mathrm{CLS}}(q, p) + c,
 \label{eq:ce}
 \end{equation}
 with learned $\mathbf{w}$ and $c$; any monotone transformation such as a sigmoid leaves the
-ranking unchanged. We use \texttt{ms-marco-MiniLM-L-6-v2}, trained on the MS~MARCO web-search
+ranking unchanged. For example, raw scores of 5.36 and $-2.30$ become
+$1 / (1 + e^{-5.36}) = 0.995$ and $1 / (1 + e^{2.30}) = 0.091$, in the same order. We use \texttt{ms-marco-MiniLM-L-6-v2}, trained on the MS~MARCO web-search
 collection \parencite{bajaj2016msmarco}. Nothing can be precomputed: every claim costs one
 forward pass per candidate, so only the top $M = 50$ fused passages are rescored and the
-rest keep their fused order below them (Algorithm~\ref{alg:rerank}). The improved
+rest keep their fused order below them (Algorithm~\ref{alg:rerank}); for the 300 test
+claims that is $300 \times 50 = 15{,}000$ forward passes. The improved
 configuration does not use this stage.
 
 \begin{algorithm}[t]
@@ -464,7 +484,9 @@ c(y) = \operatorname*{arg\,max}_{i \in \{1, \dots, 5\}} \bigl| T(y) \cap T(p_i) 
 \end{equation}
 where $T(\cdot)$ is the set of terms produced by the BM25 tokeniser of
 Section~\ref{sec:bm25}; ties go to the higher-ranked passage, and if no term is shared the
-answer cites passage [1] (Algorithm~\ref{alg:reader}). This prompt was chosen on 20
+answer cites passage [1] (Algorithm~\ref{alg:reader}). For example, if $y$ shares 4 terms
+with passage [2], 4 with passage [3] and at most 1 with each of the others, the tie goes to
+the higher-ranked passage and $c(y) = 2$. This prompt was chosen on 20
 training claims: asked instead to answer and cite inline, the model replies with only a
 passage number, such as ``[3].'', for 49 of 50 test claims.
 
@@ -547,6 +569,14 @@ the fraction of resampled means at least as far from zero as the observed one
 $R = 10{,}000$ resamples, $p$ cannot be resolved below $10^{-4}$, so a count of zero is
 reported as $p < 0.0001$.
 
+\paragraph{Worked example.} With $n = 4$ claims and differences $x = (0.2, 0, -0.1, 0.3)$,
+the mean is $\bar{x} = 0.4 / 4 = 0.1$, and the centred differences are
+$x' = (0.1, -0.1, -0.2, 0.2)$, which sum to zero. The resample $(0.1, 0.2, 0.2, -0.1)$ has
+mean 0.1, at least $|\bar{x}|$, so it is counted; the resample $(-0.2, -0.1, 0.1, -0.1)$
+has mean $-0.075$, and $|-0.075| < 0.1$, so it is not. For the improvement on SciFact
+($\bar{x} = 0.0433$ over $n = 300$ claims), 27 of the 10,000 resampled means were at least
+as far from zero, so $p = 27 / 10{,}000 = 0.0027$, reported as $p = 0.003$.
+
 \begin{algorithm}[t]
 \caption{Two-sided paired bootstrap test}
 \label{alg:bootstrap}
@@ -588,3 +618,11 @@ J(\theta) = \frac{|\{ m \in M : z_m < \theta \}|}{|M|} - \frac{|\{ h \in H : z_h
 \label{eq:youden}
 \end{equation}
 and then applied once to the test claims.
+
+\paragraph{Worked example.} Let three hits score $z_h = 0.9, 0.8, 0.6$ and two misses
+$z_m = 0.7, 0.2$. Of the $3 \times 2 = 6$ hit--miss pairs, the hit scores higher in five
+(all but 0.6 against 0.7), so $\mathrm{AUC} = 5/6 = 0.83$. Among the observed scores, the
+threshold $\theta = 0.8$ maximises Equation~\eqref{eq:youden}: it catches both misses and
+refuses one hit of three, so $J = 2/2 - 1/3 = 0.67$. On the real test claims, the threshold
+chosen on the development claims catches 68 of 74 misses and refuses 109 of 226 hits, so
+$J = 68/74 - 109/226 = 0.919 - 0.482 = 0.437$ (Section~\ref{sec:res-abstention}).
