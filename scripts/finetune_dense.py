@@ -64,17 +64,25 @@ def contrastive_loss(query_vecs, passage_vecs, scale: float = 20.0):
     return F.cross_entropy(scores, targets)
 
 
-def best_chunk_pairs(retriever, queries, qrels, chunks_by_doc):
+def best_chunk_pairs(retriever, queries, qrels, chunks_by_doc, max_per_query=None):
     """One (claim, passage) training pair per judged (claim, paper).
 
     Relevance is judged per paper, but the index holds 3-sentence chunks. As the positive
     we take the chunk of the evidence paper that the starting model already finds most
     similar to the claim: a weak label, but it needs no manual annotation.
+
+    `max_per_query` keeps only that many papers per query, the most relevant first (ties in
+    the order the qrels list them). SciFact has one or two per claim and needs no cap;
+    NFCorpus lists about 40 per query, mostly indirectly relevant.
     """
     pairs = []
     query_vecs = retriever.encode([q["text"] for q in queries], is_query=True)
     for q, qvec in zip(queries, query_vecs):
-        for doc_id in qrels[q["query_id"]]:
+        judged = qrels[q["query_id"]]
+        doc_ids = list(judged)
+        if max_per_query is not None:
+            doc_ids = sorted(doc_ids, key=lambda d: -judged[d])[:max_per_query]  # stable: ties keep order
+        for doc_id in doc_ids:
             chunks = chunks_by_doc.get(doc_id, [])
             if not chunks:
                 continue
@@ -102,6 +110,8 @@ def main() -> None:
     ap.add_argument("--lr", type=float, default=2e-5)
     ap.add_argument("--dev-queries", type=int, default=120, help="training claims held out for dev")
     ap.add_argument("--name", default=None, help="output name (default: <base model>-scifact)")
+    ap.add_argument("--max-pairs-per-query", type=int, default=None,
+                    help="training papers per query, most relevant first (default: all; NFCorpus: 3)")
     ap.add_argument("--device", default=None)
     args = ap.parse_args()
 
@@ -131,7 +141,7 @@ def main() -> None:
     model = retriever.model  # the SentenceTransformer we are going to update in place
     prefix = cfg.get_path("dense.query_prefix", "")
 
-    pairs = best_chunk_pairs(retriever, train_q, qrels, chunks_by_doc)
+    pairs = best_chunk_pairs(retriever, train_q, qrels, chunks_by_doc, args.max_pairs_per_query)
     pairs = [(prefix + claim, passage) for claim, passage in pairs]
     print(f"[finetune] {len(pairs)} (claim, evidence passage) training pairs")
 
@@ -181,6 +191,8 @@ def main() -> None:
     summary = {
         "base_model": base, "output_model": f"data/models/{name}",
         "train_claims": len(train_q), "dev_claims": len(dev_q), "train_pairs": len(pairs),
+        # only when used, so the committed SciFact history stays byte-for-byte reproducible
+        **({"max_pairs_per_query": args.max_pairs_per_query} if args.max_pairs_per_query else {}),
         "epochs": args.epochs, "batch_size": args.batch_size, "lr": args.lr, "seed": seed,
         "loss": "multiple-negatives ranking (in-batch negatives), scale 20",
         "best_epoch": best["epoch"], "best_dev_nDCG@10": round(best["dev_nDCG@10"], 4),
