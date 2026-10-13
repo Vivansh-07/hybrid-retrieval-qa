@@ -31,8 +31,15 @@ fusion is never worse than the better of the two. Fine-tuning closes most of the
 paraphrased claims ($+0.106$ there), which is why, after fine-tuning, BM25 is useful only as a
 re-ordering signal.
 
-\paragraph{RQ4: does the improvement hold on a second dataset?}
-% TODO: from results/nfcorpus*/ (Section 5.4).
+\paragraph{RQ4: does the improvement hold on a second dataset?} Partly. On NFCorpus the
+recipe again chooses a weight below the break-even point (0.2), weighted fusion again improves
+on the encoder alone ($p < 10^{-4}$), and the reranker again becomes unnecessary: the improved
+retriever is statistically level with the reranked pipeline (0.350 against 0.358, $p = 0.35$)
+at about a sixth of its time per query. It does not beat that pipeline, as it does on SciFact,
+because fine-tuning helped little there (+0.006, not significant): NFCorpus's lay queries and
+its many weakly judged training abstracts give poorer training signal than SciFact's
+expert-written claims. The fusion component of the improvement is general; the fine-tuning
+component is only as good as the training labels of the domain.
 
 \paragraph{RQ5: where does retrieval still fail?} Of the 40 hardest failures of the standard
 pipeline, 42\% are claims whose marked evidence does not state them, 28\% are vocabulary
