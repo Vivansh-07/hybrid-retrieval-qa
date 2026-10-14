@@ -88,6 +88,10 @@ In-Domain Fine-Tuning with Analytically Weighted Rank Fusion}}
 \chapterfile{07_discussion}
 \chapterfile{08_limitations_conclusion}
 
+% One-chapter mode stops here: no Acknowledgment and no 4-page reference list, so each pass
+% has less to typeset (citations in the chapter still show as Author, year).
+\ifdefempty{\onlychapter}{}{\end{document}}
+
 \section*{Acknowledgment}
 \addcontentsline{toc}{section}{Acknowledgment}
 % TODO: thank your supervisor / course instructor here if appropriate.
