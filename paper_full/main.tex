@@ -88,6 +88,9 @@ In-Domain Fine-Tuning with Analytically Weighted Rank Fusion}}
 \chapterfile{07_discussion}
 \chapterfile{08_limitations_conclusion}
 
+% One-chapter mode leaves out the Acknowledgment and the 4-page reference list, so each pass
+% has less to typeset (citations in the chapter still show as Author, year).
+\ifdefempty{\onlychapter}{%
 \section*{Acknowledgment}
 \addcontentsline{toc}{section}{Acknowledgment}
 % TODO: thank your supervisor / course instructor here if appropriate.
@@ -97,5 +100,6 @@ the text. All results come from the code and logs in the repository.
 
 \clearpage
 \printbibliography[heading=bibintoc,title={References}]
+}{}
 
 \end{document}
