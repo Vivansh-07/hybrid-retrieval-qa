@@ -32,32 +32,39 @@
 \usepackage[noend]{algpseudocode}
 \usepackage{microtype}
 \usepackage[hyphens]{url}
-\usepackage{csquotes}                       % required by biblatex-apa
-\usepackage[style=apa,backend=biber]{biblatex}
-\addbibresource{references.bib}
-\usepackage[hidelinks]{hyperref}
-
 \usepackage{etoolbox}
-
-\setlength{\emergencystretch}{1em}
-\renewcommand{\algorithmicrequire}{\textbf{Input:}}
-\renewcommand{\algorithmicensure}{\textbf{Output:}}
-\newcolumntype{L}{>{\raggedright\arraybackslash}X}                % ragged-right table columns:
-\newcolumntype{P}[1]{>{\raggedright\arraybackslash}p{#1}}         % no stretched gaps in narrow cells
 
 % ---------------------------------------------------------------------------
 % Compiling one chapter at a time. Overleaf's free plan stops a compile after 10 seconds,
 % and the whole paper takes longer. While rewriting a chapter in Overleaf, put its file
 % name between the braces, for example
 %     \newcommand{\onlychapter}{01_introduction}
-% and only that chapter (with its references) is compiled; references to other chapters
-% then show as ??. Leave the braces EMPTY in the version saved to GitHub: a test checks
-% this, and GitHub builds the whole paper.
+% and only that chapter is compiled, as a quick preview: citations show their keys, e.g.
+% (robertson2009bm25), instead of APA references, and references to other chapters show
+% as ??. Leave the braces EMPTY in the version saved to GitHub: a test checks this, and
+% GitHub builds the whole paper with its APA references.
 \newcommand{\onlychapter}{}
 \newcommand{\chapterfile}[1]{%
   \ifdefempty{\onlychapter}{\input{sections/#1}}{%
     \ifdefstring{\onlychapter}{#1}{\input{sections/#1}}{}}}
 % ---------------------------------------------------------------------------
+
+\ifdefempty{\onlychapter}{%
+  \usepackage{csquotes}                     % required by biblatex-apa
+  \usepackage[style=apa,backend=biber]{biblatex}
+  \addbibresource{references.bib}
+}{%                                         % preview: no biblatex, so no biber run
+  \newcommand{\parencite}[1]{(#1)}
+  \newcommand{\textcite}[1]{#1}
+  \renewcommand{\cite}[1]{#1}
+}
+\usepackage[hidelinks]{hyperref}
+
+\setlength{\emergencystretch}{1em}
+\renewcommand{\algorithmicrequire}{\textbf{Input:}}
+\renewcommand{\algorithmicensure}{\textbf{Output:}}
+\newcolumntype{L}{>{\raggedright\arraybackslash}X}                % ragged-right table columns:
+\newcolumntype{P}[1]{>{\raggedright\arraybackslash}p{#1}}         % no stretched gaps in narrow cells
 
 \title{\textbf{Improving Evidence Retrieval for Scientific Claim Verification:\\
 In-Domain Fine-Tuning with Analytically Weighted Rank Fusion}}
