@@ -31,10 +31,12 @@ artifact holds `main.pdf` (Actions → paper_full → the run → Artifacts), or
 3. **Compile one chapter at a time.** Overleaf's free plan stops a compile after 10 seconds, and
    the whole paper takes longer (it times out). In `main.tex`, put the chapter you are working on
    between the braces of `\newcommand{\onlychapter}{}`, for example
-   `\newcommand{\onlychapter}{01_introduction}`, then **Recompile**: only that chapter and the
-   references it cites are built. References to other chapters show as **??**; that is expected.
-   GitHub builds the whole paper on every pull request (above), and checks that this one-chapter
-   mode still compiles.
+   `\newcommand{\onlychapter}{01_introduction}` (line 46), then **Recompile**: only that chapter
+   is built, as a quick preview without biblatex and biber (about 3 s from scratch, 1 s per
+   recompile, measured on GitHub). In the preview, citations show their keys, e.g.
+   `(robertson2009bm25)`, and references to other chapters show as **??**; both are expected.
+   GitHub builds the whole paper with its APA references on every pull request (above), and
+   checks that the preview still compiles.
 4. To bring a finished chapter back: **Menu → Download → Source**, copy the changed chapter files
    over `paper_full/sections/`, and open a pull request. If you copy `main.tex` too, set
    `\onlychapter` back to empty first: `test_paper_full` fails otherwise. The zip is git-ignored.
