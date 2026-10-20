@@ -12,14 +12,31 @@ REPO_ROOT = Path(__file__).resolve().parents[2]
 
 
 class Config(dict):
-    """Dict with attribute access and dotted-path lookup, so cfg.get_path('dense.top_k') works."""
+    """Dict with attribute access and dotted-path lookup, so cfg.get_path('dense.top_k') works.
+
+    Attribute assignment is refused: a setting is changed with override() in code or with
+    --set on the command line. A section read as an attribute (cfg.dense) is the stored one,
+    so cfg.dense is cfg["dense"] (the first such read replaces the plain dict with a Config).
+    """
 
     def __getattr__(self, item: str) -> Any:
         try:
             value = self[item]
-        except KeyError as exc:  # pragma: no cover - defensive
+        except KeyError as exc:
             raise AttributeError(item) from exc
-        return Config(value) if isinstance(value, dict) else value
+        if isinstance(value, dict) and not isinstance(value, Config):
+            # swap the section for a Config in place, so cfg.dense is cfg["dense"] on every
+            # access; a fresh copy each time would silently drop cfg.dense["top_k"] = 50
+            value = self[item] = Config(value)
+        return value
+
+    def __setattr__(self, name: str, value: Any) -> None:
+        # cfg.dense.top_k = 50 would only set a Python attribute: get_path and the saved
+        # config read the dict, so they would still see the old value. Refuse it instead.
+        raise AttributeError(
+            f"cannot set {name!r} on a config by attribute assignment; use the setting's full "
+            f"dotted key instead, e.g. cfg.override(\"dense.top_k\", 50) in code (it returns a "
+            f"new config) or --set dense.top_k=50 on the command line")
 
     def get_path(self, dotted: str, default: Any = None) -> Any:
         node: Any = self
