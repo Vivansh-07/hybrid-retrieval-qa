@@ -51,14 +51,18 @@ artifact holds `main.pdf` (Actions → paper_full → the run → Artifacts), or
 - every headline number (SciFact and NFCorpus) is the one in `results/`, as the text rounds it;
 - the abstract has fewer than 200 words, and the bibliography holds 40 to 50 entries.
 
-So a rewrite in your own words that changes a number, drops a citation's entry or breaks one of
-the course's rules fails on the pull request, before it reaches the PDF.
+So a rewrite in your own words that loses a number everywhere it appears, drops a citation's entry
+or breaks one of the course's rules fails on the pull request, before it reaches the PDF. A number
+is looked for in the whole paper, not chapter by chapter: a mistyped number in one chapter still
+passes when the right one appears in another, so check the numbers of a rewritten chapter by eye.
 
 ## Before submitting
 
 Every chapter is marked *Drafted with AI assistance*, and the Acknowledgment says so. Rewrite each
 chapter in your own words, delete its `% Drafted with AI assistance` comment line, and keep the
-Acknowledgment accurate about what was AI-assisted.
+Acknowledgment accurate about what was AI-assisted. For the Introduction,
+[`briefs/01_introduction.md`](briefs/01_introduction.md) lists what the rewrite has to keep: the
+labels and RQ numbers other chapters rely on, the citations, and every number with its source.
 
 `python scripts/rewrite_progress.py` lists every chapter in the suggested order with its marker,
 its last commit and its **AI wording**: the share of its five-word phrases that also occur in the
