@@ -88,7 +88,7 @@ python -m pip install torch --index-url https://download.pytorch.org/whl/cu126  
 python -m pip install -r requirements.txt
 python -m pip install -e .
 
-python -m pytest tests/ -q                           # 163 tests
+python -m pytest tests/ -q                           # 171 tests
 
 # full four-way ablation + sweeps (downloads SciFact + models on first run, ~13 min on an RTX 3050)
 python scripts/run_ablation.py --sweep-depth 10 25 50 100 --sweep-fusion-k 10 30 60 100
@@ -216,6 +216,7 @@ scripts/
   significance_nfcorpus.py  paired tests of the improvement on the second dataset (NFCorpus)
   tune_fusion.py         choose the BM25 fusion weight on held-out dev claims
   rewrite_progress.py    which chapters of the full paper are still the AI-assisted draft; given one (e.g. 03), its sections
+  overlap_check.py       plagiarism pre-check: runs of 8+ words the full paper shares with other texts
   query_subsets.py       which retriever helps which kind of claim (overlap, numbers, rare terms)
   answer_sheet.py        blind sheet for hand-scoring the generated answers; --summarize
   make_survey_docx.py    docs/LITERATURE_SURVEY.md → paper/Literature_Survey.docx
@@ -277,7 +278,7 @@ model), so changing any of them re-embeds automatically.
 python -m pytest tests/ -q
 ```
 
-163 tests check the metrics against hand-worked values, the fusion, config, significance,
+171 tests check the metrics against hand-worked values, the fusion, config, significance,
 subset, scoring and abstention code; that the paper's references and figures are intact and
 its headline numbers (also those in RESULTS.md, the slides, the problem statement and the full paper) still
 match `results/`; that every worked example in the full paper's Methodology still computes

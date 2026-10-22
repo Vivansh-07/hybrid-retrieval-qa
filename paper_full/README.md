@@ -73,3 +73,9 @@ open a pull request a section at a time. 100% is the draft unchanged, and a ligh
 high. A low share shows that the draft's wording is gone; it does not by itself prove that the
 words are your own, so a chapter counts as rewritten only when you delete its marker. In a
 shallow clone the column shows `-` until `git fetch --unshallow` brings in the draft.
+
+`python scripts/overlap_check.py` is a plagiarism pre-check. It lists every run of 8 or more words
+that a chapter shares with the short paper, the literature survey or the problem statement, and,
+with `--abstracts` (needs internet), with the abstracts of the references. Long shared runs are
+what a checker such as Turnitin flags; the survey and the short paper are sources too if they were
+submitted to one. A flagged run may be a cited quotation or a name: read each one.
