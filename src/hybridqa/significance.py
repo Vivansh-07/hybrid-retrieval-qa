@@ -93,11 +93,18 @@ def save_significance(
 # --------------------------------------------------------------------------------------
 
 def load_runs(results_dir: str | Path) -> Dict[str, dict]:
-    """Every saved run in <results_dir>/runs as {variant: {"run": ..., "per_query": ...}}."""
+    """Every saved run in <results_dir>/runs as {variant: {"run": ..., "per_query": ...}}.
+
+    Files saved since issue #50 also hold the variant's name, so a future name such as
+    dense_ft is not read back as dense+ft.
+    """
     runs = {}
     for path in sorted(Path(results_dir, "runs").glob("*.json")):
-        variant = path.stem.replace("_", "+")  # fusion_rerank.json -> fusion+rerank
-        runs[variant] = json.loads(path.read_text(encoding="utf-8"))
+        saved = json.loads(path.read_text(encoding="utf-8"))
+        # older files (runs/ is not committed, so they stay on disk) have no name inside: the
+        # file name is exact for them, as none of bm25, dense, fusion, fusion+rerank has an "_"
+        variant = saved.get("variant", path.stem.replace("_", "+"))  # fusion_rerank.json -> fusion+rerank
+        runs[variant] = saved
     return runs
 
 

@@ -1,5 +1,6 @@
-"""Unit tests for command-line config overrides, output folders and the embedding cache key."""
+"""Unit tests for config attribute access, --set overrides, output folders and the embedding cache key."""
 
+import json
 import sys
 from pathlib import Path
 
@@ -117,3 +118,72 @@ def test_embedding_cache_follows_retrained_weights(cfg, tmp_path, weights):
     later = (model / weights).stat().st_mtime_ns + 10**9
     os.utime(model / weights, ns=(later, later))
     assert RetrievalPipeline(local, verbose=False).embedding_cache_path() != before
+
+
+def _read_sections_as_attributes(cfg):
+    # attribute access now swaps each section for a Config in place; check that it did,
+    # so the tests below really run on a config that has been read this way
+    for name in ("dataset", "chunking", "dense", "paths"):
+        assert getattr(cfg, name) is cfg[name] and type(cfg[name]) is Config
+
+
+def test_attribute_access_returns_the_same_section_every_time(cfg):
+    # issue #50: a write made through cfg.dense was lost, because each access built a new copy
+    assert cfg.dense is cfg.dense is cfg["dense"]
+    cfg.dense["top_k"] = 50
+    assert cfg.get_path("dense.top_k") == 50
+
+
+def test_attribute_assignment_is_refused_and_changes_nothing(cfg):
+    # issue #50: cfg.dense.top_k = 50 used to set a Python attribute that get_path never saw
+    top_k = cfg.get_path("dense.top_k")
+    with pytest.raises(AttributeError, match=r"override\(\"dense\.top_k\", 50\).*--set dense\.top_k=50"):
+        cfg.dense.top_k = 50
+    with pytest.raises(AttributeError):
+        cfg.new_section = {}
+    assert cfg.get_path("dense.top_k") == top_k and cfg.dense.top_k == top_k
+    assert not hasattr(cfg, "new_section") and "new_section" not in cfg
+
+
+def test_missing_names_behave_like_missing_attributes(cfg):
+    # issue #50: hasattr/getattr must still answer from the dict
+    _read_sections_as_attributes(cfg)
+    assert not hasattr(cfg, "no_such_section") and not hasattr(cfg.dense, "no_such_setting")
+    assert getattr(cfg.dense, "no_such_setting", "default") == "default"
+
+
+def test_deepcopy_and_pickle_after_attribute_access(cfg):
+    # issue #50: override() deep-copies the config, so a swapped-in section must copy cleanly
+    import copy
+    import pickle
+
+    _read_sections_as_attributes(cfg)
+    for clone in (copy.deepcopy(cfg), pickle.loads(pickle.dumps(cfg))):
+        assert type(clone) is Config and clone == cfg
+        assert clone.dense is clone["dense"] and clone.dense is not cfg.dense
+        clone.dense["top_k"] = 1
+        assert clone.get_path("dense.top_k") == 1 != cfg.get_path("dense.top_k")
+
+
+def test_saved_config_after_attribute_access_is_plain_json(cfg):
+    # issue #50: save_results writes json.dumps(dict(cfg)); a write through cfg.dense must be in it
+    _read_sections_as_attributes(cfg)
+    cfg.dense["top_k"] = 50
+    saved = json.loads(json.dumps(dict(cfg)))
+    assert saved == cfg and saved["dense"]["top_k"] == 50
+
+
+def test_override_after_attribute_access_leaves_the_original_unchanged(cfg):
+    # issue #50: override() must still copy a section that was swapped for a Config
+    _read_sections_as_attributes(cfg)
+    top_k = cfg.dense.top_k
+    new = cfg.override("dense.top_k", top_k + 1)
+    assert new.dense.top_k == top_k + 1 and cfg.dense.top_k == top_k
+    assert new.dense is not cfg.dense
+
+
+def test_embedding_cache_is_the_same_after_attribute_access(cfg):
+    # issue #50: swapping a section for a Config must not change the cache file name
+    before = RetrievalPipeline(cfg, verbose=False).embedding_cache_path()
+    _read_sections_as_attributes(cfg)
+    assert RetrievalPipeline(cfg, verbose=False).embedding_cache_path() == before

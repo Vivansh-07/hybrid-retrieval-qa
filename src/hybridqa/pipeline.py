@@ -197,9 +197,9 @@ class RetrievalPipeline:
         runs_dir.mkdir(exist_ok=True)
         for name, res in results.items():
             safe = name.replace("+", "_")
-            (runs_dir / f"{safe}.json").write_text(
-                json.dumps({"run": res.run, "per_query": res.per_query}, indent=2), encoding="utf-8"
-            )
+            # the name is stored too: the file name cannot be mapped back once a name has an "_"
+            (runs_dir / f"{safe}.json").write_text(json.dumps(
+                {"variant": name, "run": res.run, "per_query": res.per_query}, indent=2), encoding="utf-8")
 
         # flat CSV for the paper's main table
         rows = [r.summary() for r in results.values()]

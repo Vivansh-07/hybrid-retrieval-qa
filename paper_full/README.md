@@ -51,11 +51,25 @@ artifact holds `main.pdf` (Actions → paper_full → the run → Artifacts), or
 - every headline number (SciFact and NFCorpus) is the one in `results/`, as the text rounds it;
 - the abstract has fewer than 200 words, and the bibliography holds 40 to 50 entries.
 
-So a rewrite in your own words that changes a number, drops a citation's entry or breaks one of
-the course's rules fails on the pull request, before it reaches the PDF.
+So a rewrite in your own words that loses a number everywhere it appears, drops a citation's entry
+or breaks one of the course's rules fails on the pull request, before it reaches the PDF. A number
+is looked for in the whole paper, not chapter by chapter: a mistyped number in one chapter still
+passes when the right one appears in another, so check the numbers of a rewritten chapter by eye.
 
 ## Before submitting
 
 Every chapter is marked *Drafted with AI assistance*, and the Acknowledgment says so. Rewrite each
 chapter in your own words, delete its `% Drafted with AI assistance` comment line, and keep the
-Acknowledgment accurate about what was AI-assisted.
+Acknowledgment accurate about what was AI-assisted. For the Introduction,
+[`briefs/01_introduction.md`](briefs/01_introduction.md) lists what the rewrite has to keep: the
+labels and RQ numbers other chapters rely on, the citations, and every number with its source.
+
+`python scripts/rewrite_progress.py` lists every chapter in the suggested order with its marker,
+its last commit and its **AI wording**: the share of its five-word phrases that also occur in the
+AI draft (commit `16ed095`, the last one before the first rewrite). For a long chapter,
+`python scripts/rewrite_progress.py 03_methodology` (or `3`, or `methodology`) shows the same per
+section and subsection, and names the first one still at 50% or more, so you can rewrite it and
+open a pull request a section at a time. 100% is the draft unchanged, and a light edit stays
+high. A low share shows that the draft's wording is gone; it does not by itself prove that the
+words are your own, so a chapter counts as rewritten only when you delete its marker. In a
+shallow clone the column shows `-` until `git fetch --unshallow` brings in the draft.

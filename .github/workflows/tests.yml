@@ -12,7 +12,10 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
+      # The whole history: tests/test_rewrite_progress.py compares the chapters with the AI draft, commit 16ed095.
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - uses: actions/setup-python@v5
         with:
