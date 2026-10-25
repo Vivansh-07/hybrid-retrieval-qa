@@ -95,16 +95,9 @@ In-Domain Fine-Tuning with Analytically Weighted Rank Fusion}}
 \chapterfile{07_discussion}
 \chapterfile{08_limitations_conclusion}
 
-% One-chapter mode leaves out the Acknowledgment and the 4-page reference list, so each pass
+% One-chapter mode leaves out the Declarations and the 4-page reference list, so each pass
 % has less to typeset (citations in the chapter show their keys, see above).
 \ifdefempty{\onlychapter}{%
-\section*{Acknowledgment}
-\addcontentsline{toc}{section}{Acknowledgment}
-% TODO: thank your supervisor / course instructor here if appropriate.
-AI assistance (Claude, Anthropic) was used to write and debug code, run and
-analyse experiments, assign the failure categories and answer scores, and draft
-the text. All results come from the code and logs in the repository.
-
 \section*{Declarations}
 \addcontentsline{toc}{section}{Declarations}
 
@@ -131,6 +124,10 @@ experiments and the analysis, and wrote the manuscript. Pooja Gupta supervised t
 reviewed the manuscript. Both authors read and approved the final manuscript.
 
 \paragraph{Funding} No funding was received for this study.
+
+\paragraph{Use of generative AI} Generative AI (Claude, Anthropic) was used to assist with
+code development, running the experiments and drafting the manuscript. The authors take full
+responsibility for the content.
 
 \clearpage
 \printbibliography[heading=bibintoc,title={References}]
