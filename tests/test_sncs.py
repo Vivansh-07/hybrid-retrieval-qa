@@ -40,6 +40,13 @@ def test_every_chapter_and_citation_resolves():
     assert cited and cited <= keys, f"cited but not in paper_sncs/references.bib: {sorted(cited - keys)}"
 
 
+def test_every_reference_has_an_author():
+    # three entries once had none, and both styles then printed the title in the author's place
+    entries = make_sncs.parse_bib((REPO / "paper_full" / "references.bib").read_text(encoding="utf-8"))
+    missing = [key for _, key, fields in entries if not dict(fields).get("author", "").strip()]
+    assert not missing, f"references without an author: {missing}"
+
+
 def test_bibliography_is_plain_bibtex():
     """Every entry of the full paper is there, with no biblatex-only type or field left for BibTeX to ignore."""
     bib = (SNCS / "references.bib").read_text(encoding="utf-8")
