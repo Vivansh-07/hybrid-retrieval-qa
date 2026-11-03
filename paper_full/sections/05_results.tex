@@ -68,7 +68,7 @@ The weights of the best epoch (12) are kept.}
 claims). $^{*}$: significantly different from the row it is compared with, as stated in the
 text (paired bootstrap, $p < 0.05$).}
 \label{tab:improvement}
-\begin{tabular}{@{}lccr@{}}
+\begin{tabularx}{\textwidth}{@{}Lccr@{}}
 \toprule
 Configuration & nDCG@10 & R@10 & ms \\
 \midrule
@@ -78,7 +78,7 @@ Fine-tuned MiniLM, dense only & 0.742$^{*}$ & -- & -- \\
 Fine-tuned MiniLM + BM25, RRF ($w = 1$) & 0.731 & -- & -- \\
 \textbf{Improved: fine-tuned MiniLM + BM25, RRF ($w = 0.3$), no reranker} & \textbf{0.759}$^{*}$ & \textbf{0.905} & \textbf{114} \\
 \bottomrule
-\end{tabular}
+\end{tabularx}
 \end{table}
 
 Fine-tuning raises the dense retriever's nDCG@10 on the development claims from 0.691 to
@@ -169,7 +169,7 @@ development queries, and the result was evaluated once on its 323 test queries
 \caption{The same recipe on NFCorpus (323 test queries). P@10 is reported next to nDCG@10
 because each query has many relevant abstracts. ms per query is approximate.}
 \label{tab:nfcorpus}
-\begin{tabular}{@{}lcccr@{}}
+\begin{tabularx}{\textwidth}{@{}Lcccr@{}}
 \toprule
 Configuration & nDCG@10 & P@10 & R@100 & ms \\
 \midrule
@@ -183,7 +183,7 @@ Dense, fine-tuned on NFCorpus & 0.336 & 0.258 & \textbf{0.293} & 13 \\
 \quad + reranker & \textbf{0.358} & 0.266 & \textbf{0.293} & 171 \\
 SciFact encoder, not retrained ($w = 0.3$) & 0.343 & 0.253 & 0.253 & 29 \\
 \bottomrule
-\end{tabular}
+\end{tabularx}
 \end{table}
 
 \paragraph{The improvement matches the reranked pipeline at a sixth of the cost.} On
