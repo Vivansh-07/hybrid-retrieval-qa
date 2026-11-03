@@ -22,13 +22,12 @@
 
 % The chapters place every float at the top of a page ([t]). In this narrower text block a tall
 % table does not fit there, and LaTeX then holds it, and every later table, until the end of the
-% paper. Here each table, figure and algorithm may also go on a page of floats ([tp]).
-\let\snTable\table \let\endsnTable\endtable
-\renewenvironment{table}[1][]{\snTable[tp]}{\endsnTable}
-\let\snFigure\figure \let\endsnFigure\endfigure
-\renewenvironment{figure}[1][]{\snFigure[tp]}{\endsnFigure}
-\let\snAlgorithm\algorithm \let\endsnAlgorithm\endalgorithm
-\renewenvironment{algorithm}[1][]{\snAlgorithm[tp]}{\endsnAlgorithm}
+% paper. Here every float may also go on a page of floats: "p" is added to each placement in
+% LaTeX's float command, which sn-jnl's own table environment also goes through.
+\makeatletter
+\let\sn@xfloat\@xfloat
+\def\@xfloat#1[#2]{\sn@xfloat{#1}[#2p]}
+\makeatother
 \renewcommand{\topfraction}{0.85}
 \renewcommand{\textfraction}{0.1}
 \renewcommand{\floatpagefraction}{0.75}
