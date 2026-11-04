@@ -1,22 +1,23 @@
 % ===========================================================================
-% Abstract (under 200 words, the course's rule; 199 now, so a sentence added needs one removed):
+% Abstract (under 200 words, the course's rule; 194 now). Written by the author (#80); on
+% 4 Nov 2026 changed to the third person and four grammar slips fixed, at the supervisor's request.
 % why, method, results, what is new. tests/test_numbers_full.py counts the words.
 
 % ===========================================================================
 \begin{abstract}
 \noindent
 Literature assistants such as SciSpace and Consensus answer scientific questions with
-citations, but each answer depends on one step they do not expose: which is finding the right
+citations, but each answer depends on one step they do not expose: finding the right
 evidence. This paper takes only that step and improves it. A small sentence encoder is
 fine-tuned on scientific claims and is fused with keyword search (BM25) at a weight chosen on
 held-out claims, and the cross-encoder reranker of the standard hybrid pipeline is also removed.
-We prove, that below a BM25 weight of $61/160 \approx 0.38$, reciprocal rank fusion can only
-re-order the dense retriever's candidates, this also explains why the chosen weight works. On
+It is proved that below a BM25 weight of $61/160 \approx 0.38$, reciprocal rank fusion can only
+re-order the dense retriever's candidates, which explains why the chosen weight works. On
 SciFact (300 test claims with known evidence) the improved retrieval reaches an nDCG@10 of
-0.759 against 0.715 for the standard pipeline ($p = 0.003$), which is at about a third of the time per
+0.759 against 0.715 for the standard pipeline ($p = 0.003$), at about a third of the time per
 claim. On a second dataset, NFCorpus, it is statistically level with the reranked pipeline
 (0.350 against 0.358, $p = 0.35$) at a sixth of the time, while fine-tuning helps less on its
-lay queries. A failure analysis performed shows that 42\% of the hardest misses are evidence the
+lay queries. A failure analysis shows that 42\% of the hardest misses are evidence the
 benchmark marks but that does not state the claim, and that the improvement repairs 22 of the
 40 hardest failures.
 

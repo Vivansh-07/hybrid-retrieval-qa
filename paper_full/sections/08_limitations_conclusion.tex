@@ -1,53 +1,28 @@
 % ===========================================================================
-% 8 Limitations and future work, 9 Conclusion (about 2 pages)
+% 8 Limitations and future work, 9 Conclusion
 % Drafted with AI assistance (Claude). Rewrite in your own words before submitting.
+% Revised on 4 Nov 2026 after the supervisor's review: limitations kept short.
 % ===========================================================================
 \section{Limitations and Future Work}
 \label{sec:limitations}
 
-\paragraph{Scope.} The improvement is developed on SciFact (300 biomedical test claims, 5,183
-abstracts) and tested on one further dataset; other domains, longer documents and corpora of
-millions of papers are untested. Relevance is judged per abstract, so it cannot be established
-whether a retrieved passage is the one that holds the evidence.
-
-\paragraph{Fusion design.} Fusion operates on passages, so when the two retrievers rank
-different passages of one relevant abstract first, their votes do not add up. The BM25 weight is
-one number chosen on 120 development claims; weights chosen per claim are untested, and below
-the break-even weight BM25 cannot contribute evidence that the dense retriever missed, which
-costs two test claims on SciFact.
-
-\paragraph{Training.} Only the dense encoder is fine-tuned, in one run with one seed, with weak
-passage-level labels and in-batch negatives only; the reranker and the readers are used off the
-shelf.
-
-\paragraph{Measurement.} Latency was measured on one laptop and varied by up to a factor of
-two between identical runs. The significance tests are not corrected for multiple comparisons.
-The overlap analysis uses the relevant abstract and is therefore descriptive. The failure
-categories and answer scores were assigned with AI assistance by a single annotator; an
-independent second annotation, especially of the missing-evidence category
-(Section~\ref{sec:fail-repaired}), is the most important check still to be made.
-
-\paragraph{Future work.} Four directions follow directly from the findings: fusion weights
-chosen per claim from a cheap signal such as the claim's agreement between retrievers; an
-encoder trained on biomedical text at scale, for the drug-to-class relations that a few hundred
-claims cannot teach; a reranker trained on scientific rather than web text, to test whether
-reranking fails here because of its training domain; and a reader that abstains, trained on the
-retrieval signals measured in Section~\ref{sec:res-abstention}.
+The method was developed on SciFact and validated on one further biomedical dataset, so larger
+corpora and other domains remain to be tested, and the failure categories, assigned by a single
+annotator with AI assistance, would benefit from independent validation. Future work includes
+selecting the fusion weight for each claim from inexpensive signals and fine-tuning on larger
+biomedical corpora, to capture relations such as drug-to-class terminology that a few hundred
+claims cannot teach.
 
 \section{Conclusion}
 \label{sec:conclusion}
 
-This paper took one part of scientific question answering, the retrieval of evidence for a
+This study addressed one part of scientific question answering, the retrieval of evidence for a
 claim, and improved it. Fine-tuning a 22-million-parameter encoder on the domain's training
 claims and fusing it with keyword search at a weight below the break-even point of
-Proposition~1 retrieved evidence better than the standard hybrid pipeline with a cross-encoder
-reranker (nDCG@10 0.759 against 0.715 on SciFact, $p = 0.003$), at about a third of its time per
-claim and without the reranker. The proposition explains why the weight works: below
-$61/160$, keyword search can only re-order the dense retriever's candidates, so the fine-tuned
-encoder finds the evidence and BM25 sharpens its order. On a second dataset, NFCorpus, the same
-recipe matched the reranked pipeline at a sixth of its cost: its fusion component transferred,
-while fine-tuning depended on the quality of the domain's training labels. The analysis around
-the improvement shows which retriever helps which claim, where retrieval still fails, and what
-that means for the answers built on it. Literature assistants such as SciSpace and Consensus
-depend on this step; the improvement shows how it can be made better and cheaper, openly and on
-a laptop.
+Proposition~1 retrieved evidence more accurately than the standard hybrid pipeline with a
+cross-encoder reranker (nDCG@10 of 0.759 against 0.715 on SciFact, $p = 0.003$), at about a
+third of its time per claim. Proposition~1 explains why the weight works: below $61/160$, keyword
+search can only re-order the candidates of the dense retriever. On NFCorpus, the same method
+matched the reranked pipeline at a sixth of its cost. Because literature assistants depend on
+this retrieval step, the results show how it can be made both more accurate and less expensive
+with an openly evaluated method that runs on a laptop.

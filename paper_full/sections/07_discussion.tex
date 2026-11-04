@@ -1,95 +1,51 @@
 % ===========================================================================
-% 7 Discussion (about 3 pages)
+% 7 Discussion
 % Drafted with AI assistance (Claude). Rewrite in your own words before submitting.
+% Revised on 4 Nov 2026 after the supervisor's review: the answers to the research questions
+% removed; each point tied to the measured numbers and to the literature it extends.
 % ===========================================================================
 \section{Discussion}
 \label{sec:discussion}
 
-\subsection{Answers to the research questions}
-\label{sec:disc-rq}
+\subsection{Interpretation of the Results}
+\label{sec:disc-results}
 
-\paragraph{RQ1: can the improvement beat the standard pipeline at lower cost?} On SciFact, yes.
-The fine-tuned encoder fused with BM25 at $w = 0.3$ reaches an nDCG@10 of 0.759 against 0.715
-for the standard pipeline with a reranker ($p = 0.003$), and a Recall@10 of 0.905 against
-0.833, at about 114 instead of 329 milliseconds per claim. The gain comes from two sources that
-add up: fine-tuning teaches the encoder the paraphrases that separate scientific claims from
-their evidence, and weighted fusion lets BM25 sharpen the order without bringing in its weaker
-candidates. The reranker, the most expensive stage, becomes unnecessary; added to the improved
-retriever, it even lowers the score.
+The gain of the proposed retriever over the standard pipeline ($+0.043$ nDCG@10 on SciFact) has
+two sources, which Table~\ref{tab:improvement} separates. Fine-tuning contributes most of it: the
+encoder alone rises from 0.679 to 0.742, which already exceeds the reranked pipeline. Weighted
+fusion adds a further $+0.017$, whereas equal-weight fusion with the same encoder loses 0.011
+(0.731). The difference between the two fusion settings is significant ($p = 0.0009$) and is
+explained by Proposition~1: at $w = 0.3$ BM25 can only re-order the encoder's candidates, while
+at $w = 1$ its weaker candidates displace good dense ones.
 
-\paragraph{RQ2: why does the weight work?} Proposition~1 shows that below
-$(k + 1)/(k + K) = 61/160$, a BM25-only passage can never outrank a dense candidate, so fusion
-becomes a re-ordering of the dense list. The chosen weight of 0.3 lies below this bound, and on
-the test claims no fused abstract lies outside the dense list. The proposition does not predict
-a sharp drop above the bound (weights up to 0.7 score almost as well on the development claims);
-it explains what the best weight does and gives a rule for setting it without a search when one
-retriever is clearly stronger.
+This mechanism makes two observations in the literature precise. \textcite{wang2026blend} report
+that one weak retrieval path can degrade a fused result; Proposition~1 identifies the weight
+below which this cannot happen in weighted RRF. \textcite{bruch2024fusion} found that a tuned
+fusion weight outperforms the default; here the tuned weights on both datasets (0.3 and 0.2) lie
+below the derived bound of 0.381, so the bound can replace the search when development data are
+scarce. The complementarity of lexical and dense retrieval reported by \textcite{chen2022hybrid}
+holds for the pretrained encoder, where fusion adds $+0.031$ over dense retrieval, but after
+fine-tuning BM25 is useful mainly as a re-ordering signal.
 
-\paragraph{RQ3: which retriever helps which claim?} Word overlap decides. Dense retrieval wins
-on paraphrased claims (+0.073, $p = 0.022$), BM25 holds on claims worded like their evidence, and
-fusion is never worse than the better of the two. Fine-tuning closes most of the gap on
-paraphrased claims ($+0.106$ there), which is why, after fine-tuning, BM25 is useful only as a
-re-ordering signal.
+The reranking result differs from benchmarks in other domains. \textcite{akarsu2026bm25} found
+hybrid retrieval followed by reranking to be the strongest configuration for financial question
+answering; on SciFact, the web-trained cross-encoder adds only $+0.006$ to the standard pipeline
+($p = 0.65$) and lowers the score of the proposed retriever (0.745 against 0.759). For scientific
+claims, a small encoder adapted to the domain is therefore more effective than a reranker trained
+on web search. On NFCorpus the reranker does improve the standard pipeline ($+0.019$,
+$p = 0.0045$), yet the proposed retriever reaches the same level without it, even though
+fine-tuning contributes little there ($+0.006$) because of the dataset's short lay queries and
+uniformly graded training judgements.
 
-\paragraph{RQ4: does the improvement hold on a second dataset?} Partly. On NFCorpus the
-recipe again chooses a weight below the break-even point (0.2), weighted fusion again improves
-on the encoder alone ($p < 10^{-4}$), and the reranker again becomes unnecessary: the improved
-retriever is statistically level with the reranked pipeline (0.350 against 0.358, $p = 0.35$)
-at about a sixth of its time per query. It does not beat that pipeline, as it does on SciFact,
-because fine-tuning helped little there (+0.006, not significant): NFCorpus's lay queries and
-its many weakly judged training abstracts give poorer training signal than SciFact's
-expert-written claims. The fusion component of the improvement is general; the fine-tuning
-component is only as good as the training labels of the domain.
-
-\paragraph{RQ5: where does retrieval still fail?} Of the 40 hardest failures of the standard
-pipeline, 42\% are claims whose marked evidence does not state them, 28\% are vocabulary
-mismatches, 20\% reranker errors and 10\% ambiguous claims. The improved retriever repairs 22
-of the 40, most of the reranker errors and vocabulary mismatches among them. What remains
-are failures of the benchmark's judgements, of vocabulary that 689 claims cannot teach, and of
-claims whose only lexical evidence BM25 finds.
-
-\subsection{What the findings mean for literature assistants}
+\subsection{Implications for Literature Assistants}
 \label{sec:disc-tools}
 
-The findings concern the retrieval step that literature assistants such as SciSpace and
-Consensus depend on, and five of them carry over to such systems directly.
-
-\begin{enumerate}
-\item \textbf{Adapt the encoder before adding a reranker.} A small encoder fine-tuned on a few
-hundred in-domain examples did more than a reranker trained on web search, at a third of the
-cost. For a tool that serves many queries, this is the cheaper way to better evidence.
-\item \textbf{Weight the weaker retriever below the break-even point.} Equal-weight fusion
-helps only when the two retrievers are comparably strong; once one is stronger, its partner
-should only re-order, which Proposition~1 shows how to guarantee.
-\item \textbf{Keep keyword search.} Even after fine-tuning, BM25 finds evidence that the dense
-retriever misses on claims worded like their evidence, and identifiers such as gene and drug
-names are where it is strongest.
-\item \textbf{Measure faithfulness, not only citations.} A generative reader that cites the
-right paper can still state something the paper does not say, as a third of the generative
-answers did here; citation accuracy alone does not show this.
-\item \textbf{Let the reader abstain, but do not rely on one score for it.} The reranker's
-confidence predicts missing evidence (AUC 0.81), but a threshold on it refuses about half of
-the answerable questions; abstention needs a trained component.
-\end{enumerate}
-
-\noindent None of this requires access to the tools' internals: each finding concerns a design
-choice that any retrieval-augmented assistant makes, measured here on known evidence.
-
-\subsection{Threats to validity}
-\label{sec:disc-validity}
-
-\paragraph{Internal validity.} The fusion weight and the fine-tuning epoch were chosen on
-development claims disjoint from the test claims, and the test claims were used once per
-configuration, so the reported gains are not the result of tuning on the test set. Many
-configurations were compared without a correction for multiple comparisons, so $p$-values near
-0.05 should be read with care; the main comparison ($p = 0.003$) is well below that.
-
-\paragraph{External validity.} SciFact's claims are short, expert-written and biomedical, with
-about one relevant abstract each. The second dataset (Section~\ref{sec:res-nfcorpus}) differs
-in query style and in the number of relevant abstracts; other domains, longer documents and much
-larger corpora remain untested.
-
-\paragraph{Construct validity.} Relevance is judged per abstract, so a passage-level pipeline is
-evaluated at the abstract level; the failure analysis shows that some judgements themselves
-are questionable. The answer scores and failure labels were assigned with AI assistance, by one
-annotator, following fixed definitions.
+Three implications follow for retrieval-augmented assistants such as SciSpace and Consensus.
+First, adapting a small first-stage encoder to the domain with a few hundred labelled claims
+improved evidence retrieval more than a web-trained reranker, at about a third of the cost per
+query. Second, when one retriever is clearly stronger, the weight of the other should be kept
+below $(k + 1)/(k + K)$, so that fusion re-orders the stronger retriever's candidates without
+importing weaker ones. Third, keyword search remains useful for claims worded like their evidence
+and for exact identifiers such as gene and drug names, where BM25 is strongest. None of these
+conclusions requires access to the internals of a commercial tool, since each concerns a design
+choice that every retrieval-augmented assistant makes.

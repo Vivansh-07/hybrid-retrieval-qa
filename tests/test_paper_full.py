@@ -66,6 +66,13 @@ def test_every_citation_is_in_the_bibliography():
     assert cited <= keys, f"citation keys missing from references.bib: {sorted(cited - keys)}"
 
 
+def test_every_reference_is_cited():
+    """biblatex lists only cited works, so a reference no chapter cites silently drops out of the list."""
+    keys = set(re.findall(r"@\w+\{\s*([^,\s]+)\s*,", (FULL / "references.bib").read_text(encoding="utf-8")))
+    cited = {k.strip() for group in CITE.findall(_source()) for k in group.split(",")}
+    assert keys <= cited, f"in references.bib but cited nowhere, so missing from the paper: {sorted(keys - cited)}"
+
+
 def test_every_figure_file_exists():
     for name in re.findall(r"\\includegraphics(?:\[[^]]*\])?\{([^}]+)\}", _source()):
         assert (FULL.parent / "paper" / "figures" / name).exists() or (FULL / name).exists(), \

@@ -1,216 +1,100 @@
 % ===========================================================================
-% 2 Literature Review (about 9 pages): foundations and the 2022-2026 literature.
+% 2 Literature Review: foundations and the 2022-2026 literature.
 % Drafted with AI assistance (Claude). Rewrite in your own words before submitting.
+% Revised on 4 Nov 2026 after the supervisor's review: four subsections instead of eight, no
+% comparative-summary table, one research gap. Every reference of the bibliography is still
+% cited (tests/test_paper_full.py checks this).
 % Source: docs/LITERATURE_SURVEY.md (every reference checked against its publisher).
 % ===========================================================================
 \section{Literature Review}
 \label{sec:literature}
 
-This chapter reviews the work on which the improvement builds and the recent work it is
-measured against. It follows the stages of the pipeline: lexical retrieval, dense
-retrieval, the benchmarks that expose domain shift, hybrid retrieval and rank fusion, neural
-reranking, retrieval-augmented generation for science, the literature assistants built on it,
-and abstention. It ends with a comparative summary and the research gap.
+The review follows the stages of the retrieval pipeline: lexical and dense retrieval, their
+combination by rank fusion, neural reranking, and the retrieval-augmented systems built on top
+of them.
 
-\subsection{Lexical retrieval}
-\label{sec:lit-lexical}
+\subsection{Lexical and Dense Retrieval}
+\label{sec:lit-retrieval}
 
-BM25, formalised within the probabilistic relevance framework by
-\textcite{robertson2009bm25}, remains the reference point for first-stage retrieval. It
-scores a passage by the query terms it contains, weighting rare terms more and normalising
-for length, over an inverted index (Section~\ref{sec:bm25}).
+BM25, formalised within the probabilistic relevance framework \parencite{robertson2009bm25},
+remains the reference point for first-stage retrieval: it scores a passage by the query terms
+it contains, weighting rare terms more and normalising for length. Its standing depends on the
+domain. On financial documents that mix text and tables it outperforms dense retrieval
+\parencite{akarsu2026bm25}, whereas on literature-search questions dense retrievers exceed it by
+24.8 points of Recall@5 \parencite{ajith2024litsearch}.
 
-Recent benchmarks show that BM25's standing depends on the domain. On financial documents
-that mix text and tables, BM25 outperforms state-of-the-art dense retrieval
-\parencite{akarsu2026bm25}; on literature-search questions about recent machine-learning
-papers, dense retrievers beat BM25 by 24.8 points of Recall@5 \parencite{ajith2024litsearch}.
-There is no single best retriever across domains, which is the first argument for combining
-them.
+Dense retrieval encodes the query and the passage separately and compares them by an inner
+product. Sentence-BERT \parencite{reimers2019sbert} established this bi-encoder design, dense
+passage retrieval \parencite{karpukhin2020dpr} trained it with in-batch negatives, and
+Contriever \parencite{izacard2022contriever} showed that contrastive pre-training without labels
+already outperforms BM25 on many datasets. Domain-specific training is the most direct route to
+accuracy in a specialised field: MedCPT \parencite{jin2023medcpt} is trained on 255 million
+PubMed search logs and sets the state of the art on six biomedical retrieval tasks, and
+\textcite{lin2024thesis} studies how robust retrieval systems are built from dense models.
 
-\subsection{Dense retrieval}
-\label{sec:lit-dense}
+The BEIR benchmark \parencite{thakur2021beir} established that BM25 is a robust zero-shot
+baseline across 18 datasets that many dense models fail to beat, and \textcite{thakur2026thesis}
+extends this line of evaluation to retrieval-augmented generation across domains and languages.
+SciFact \parencite{wadden2020scifact}, one of the BEIR datasets, pairs 5,183 scientific
+abstracts with expert-written claims. In its open-domain extension to 500,000 abstracts,
+claim-verification systems lose at least 15 points of F1 \parencite{wadden2022scifactopen},
+which shows how strongly verification depends on retrieval.
 
-Sentence-BERT \parencite{reimers2019sbert} established the bi-encoder used in this paper: a
-query and a passage are encoded separately and compared by an inner product. Dense passage
-retrieval \parencite{karpukhin2020dpr} trained such encoders for open-domain question
-answering with in-batch negatives, the training scheme adapted here
-(Section~\ref{sec:finetune}). Contriever \parencite{izacard2022contriever} showed that
-contrastive pre-training without labels already beats BM25 on many datasets.
-
-Two recent directions matter for this paper. \emph{Domain-specific training}: MedCPT
-\parencite{jin2023medcpt} trains a retriever and a reranker on 255 million PubMed search logs
-and sets the state of the art on six biomedical retrieval tasks.
-\emph{Robustness}: \textcite{lin2024thesis} devotes a doctoral
-thesis to building robust retrieval systems from dense models. The improvement in this paper
-takes the supervised route that SciFact allows, at the opposite end of the scale from MedCPT:
-it fine-tunes a 22-million-parameter encoder on 689 labelled claims.
-
-\subsection{Domain shift and benchmarks}
-\label{sec:lit-benchmarks}
-
-BEIR \parencite{thakur2021beir} is the central result motivating hybrid retrieval: across 18
-datasets, BM25 is a robust zero-shot baseline that many dense models fail to beat. SciFact
-\parencite{wadden2020scifact}, one of the BEIR datasets and the main one in this paper, pairs
-5,183 scientific abstracts with claims written by experts. SciFact-Open
-\parencite{wadden2022scifactopen} scales the corpus to 500,000 abstracts and finds that
-claim-verification systems built on the small corpus lose at least 15 points of F1 there,
-which shows how much verification depends on retrieval. \textcite{thakur2026thesis},
-the lead author of BEIR, collects benchmarks and evaluation methods for robust retrieval and
-retrieval-augmented generation across domains and languages. This paper uses a second BEIR
-dataset, NFCorpus, to test whether its improvement transfers (Section~\ref{sec:results}).
-
-\subsection{Hybrid retrieval and rank fusion}
+\subsection{Hybrid Retrieval and Rank Fusion}
 \label{sec:lit-hybrid}
 
-If sparse and dense retrieval fail on different queries, combining them should recover both.
-\textcite{chen2022hybrid} showed this for zero-shot retrieval: a deep retriever degrades
-sharply under domain shift while BM25 is more robust, yet the two are complementary even when
-the deep model is the weaker one, and a hybrid gains on average 20.4\% over the deep model and
-9.5\% over BM25 on three out-of-domain datasets.
+Because sparse and dense retrievers fail on different queries, combining them can recover
+both. \textcite{chen2022hybrid} showed that the two are complementary under domain shift even
+when the dense model is the weaker one, with a hybrid gaining on average 20.4\% over the dense
+model. Reciprocal rank fusion \parencite{cormack2009rrf} combines ranks rather than scores,
+which are not comparable across retrievers, and \textcite{bruch2024fusion} found it sensitive to
+its parameters, with a tuned convex combination of normalised scores performing better.
+Recent studies examine the wider design space. \textcite{wang2026blend} report a ``weakest
+link'' effect, in which one weak retrieval path degrades the fused result;
+\textcite{rao2025rethinking} find that a compact MiniLM encoder, the model family used in this
+study, outperforms the larger BGE-Large once a large language model reranks its results; and
+DAT \parencite{hsu2025dat} predicts a fusion weight for each query with a language model. These
+studies tune or predict the fusion weight, but none explains what a given weight does to the
+set of candidates.
 
-How to combine them is the harder question, because their scores are not comparable.
-Reciprocal rank fusion \parencite{cormack2009rrf} fuses ranks instead of scores, summing
-$1/(k + \mathrm{rank})$ with $k = 60$. \textcite{bruch2024fusion} compared it with a convex
-combination of normalised scores and found RRF sensitive to its parameters and a tuned
-combination better, with the single weight tunable from few examples. The most recent studies
-examine the whole design space. \textcite{wang2026blend} evaluate four retrieval paradigms and
-their combinations on 11 datasets and report a ``weakest link'' phenomenon: one weak
-retrieval path can substantially degrade the fused result, so paths should be assessed before
-they are fused, and no configuration is best everywhere. \textcite{akarsu2026bm25} benchmark
-ten strategies on financial question answering with paired bootstrap tests and find hybrid
-retrieval followed by neural reranking best there. \textcite{rao2025rethinking} fuse dense,
-sparse and graph signals on SciFact, FiQA and NFCorpus, and find that a compact MiniLM encoder,
-the model family used in this paper, outperforms the much larger BGE-Large once a large
-language model reranks its results. DAT \parencite{hsu2025dat} makes the fusion weight
-query-specific: a large language model judges the top result of each retriever and sets the
-weight for each query, outperforming fixed weights.
-
-These studies tune or predict the fusion weight, but none explains what a given weight does
-to the candidate set. Proposition~1 of this paper does, for weighted RRF.
-
-\subsection{Neural reranking}
+\subsection{Neural Reranking}
 \label{sec:lit-rerank}
 
-\textcite{nogueira2019passage} introduced the cross-encoder reranker: query and passage are
-read together with full attention, which is accurate but costs one forward pass per
-candidate. Large language models are the newest rerankers: RankGPT
-\parencite{sun2023rankgpt} showed that instructed models such as GPT-4 rank passages as well
-as or better than supervised methods, and that the ranking can be distilled into a smaller
-model. Rank-DistiLLM \parencite{schlatt2025rankdistillm} tempers this on cost: it trains
-cross-encoders that match LLM rerankers while
-being up to 173 times faster and 24 times more memory-efficient. \textcite{pradeep2025thesis}
-covers open rerankers and scalable evaluation of retrieval-augmented generation. The common
-thread is that reranking is the most expensive stage of a retrieval pipeline; this paper asks
-whether a cheaper change to an earlier stage can replace it.
+The cross-encoder reranker \parencite{nogueira2019passage} reads the query and the passage
+together with full attention, which is accurate but requires one forward pass per candidate.
+Large language models now serve as rerankers as well: RankGPT \parencite{sun2023rankgpt} ranks
+passages as well as or better than supervised methods, and Rank-DistiLLM
+\parencite{schlatt2025rankdistillm} distils such rankings into cross-encoders that are up to 173
+times faster. \textcite{pradeep2025thesis} develops open rerankers and scalable evaluation for
+retrieval-augmented generation. Across this work, reranking remains the most expensive stage of
+a retrieval pipeline.
 
-\subsection{Retrieval-augmented generation for the scientific literature}
+\subsection{Retrieval-Augmented Generation for Scientific Literature}
 \label{sec:lit-rag}
 
 Retrieval-augmented generation \parencite{lewis2020rag} conditions a generator on retrieved
-passages. Attribution is the sharper evaluation target: ALCE \parencite{gao2023enabling}
-measures whether citations actually support the generated text. Scientific literature is now
-a flagship application. OpenScholar \parencite{asai2026openscholar} answers scientific
-questions from 45 million open-access papers; its 8-billion-parameter model is more often
-correct than GPT-4o on an expert-written benchmark, and its citation accuracy matches that of
-human experts, whereas GPT-4o hallucinates citations in 78--90\% of cases. PaperQA2
-\parencite{skarlinski2024paperqa}, a language-model agent, matches or exceeds subject-matter
-experts at literature search, summarisation and contradiction detection, and LitSearch
-\parencite{ajith2024litsearch} provides 597 realistic literature-search questions. All of these
-systems depend on a first-stage
-retriever, and SciFact-Open shows how much claim verification degrades as the corpus grows.
+passages, and ALCE \parencite{gao2023enabling} evaluates whether the generated citations support
+the text. The reader may be extractive, such as RoBERTa \parencite{liu2019roberta} fine-tuned on
+SQuAD~2.0 \parencite{rajpurkar2018squad2}, or generative, such as Flan-T5
+\parencite{chung2024flan}, an instruction-tuned version of T5 \parencite{raffel2020t5}. For the
+scientific literature, OpenScholar \parencite{asai2026openscholar} answers questions from 45
+million open-access papers with citation accuracy that matches human experts, and PaperQA2
+\parencite{skarlinski2024paperqa} matches or exceeds experts at literature search and
+summarisation. Other work improves reliability by deciding when to answer: selective question
+answering \parencite{kamath2020selective} trains a calibrator that abstains under domain shift,
+Self-RAG \parencite{asai2024selfrag} learns when to retrieve and critiques its own output, and
+CRAG \parencite{yan2024crag} triggers corrective retrieval from a learned confidence score. Such
+confidence signals are commonly evaluated by the area under the ROC curve
+\parencite{hanley1982auc}. All of these systems depend on a first-stage retriever, whose
+performance the commercial assistants do not report.
 
-\subsection{Literature assistants in practice}
-\label{sec:lit-tools}
-
-Three widely used tools illustrate the landscape that motivated this paper.
-\textcite{researchrabbit} helps researchers discover papers by mapping citation networks
-around a set of seed papers; it recommends literature but does not answer questions.
-\textcite{consensus} and \textcite{scispace} answer questions in natural
-language and cite research papers, following the retrieval-augmented pattern above. Their
-retrieval components, corpora and evaluation are not published, so it cannot be established
-from the outside which part of their pipeline finds the evidence, how often it misses, or what
-each part costs. This is the gap between the tools and the research systems of the previous
-section, and the reason this paper studies the retrieval step openly
-(Section~\ref{sec:tools}).
-
-\subsection{Knowing when not to answer}
-\label{sec:lit-abstain}
-
-A reader given the wrong passages should say so rather than answer. Selective question
-answering \parencite{kamath2020selective} trains a calibrator that decides when a question
-answering model should abstain under domain shift. Self-RAG \parencite{asai2024selfrag}
-trains a language model to decide when to retrieve and to critique the retrieved passages and
-its own output with special reflection tokens. CRAG \parencite{yan2024crag} adds a lightweight
-retrieval evaluator whose confidence triggers corrective actions, such as discarding the
-retrieved documents and searching elsewhere. These methods all train a component; this paper measures how far the untrained retrieval score goes
-(Section~\ref{sec:abstention}).
-
-\subsection{Comparative summary}
-\label{sec:lit-summary}
-
-Table~\ref{tab:litsummary} summarises the recent work most closely related to the
-improvement, with its setting, its key finding and its relation to this paper.
-
-\begin{table}[p]
-\centering\footnotesize
-\setlength{\tabcolsep}{4pt}
-\caption{Recent work (2022--2026) related to the improvement proposed in this paper.}
-\label{tab:litsummary}
-\begin{tabularx}{\textwidth}{@{}P{2.6cm}P{2.6cm}LL@{}}
-\toprule
-Work & Setting & Key finding & Relation to this paper \\
-\midrule
-\textcite{chen2022hybrid} & 5 datasets, 3 out of domain & Lexical and deep retrieval complementary even when the deep model is weaker; +20.4\% over deep & Same premise, tested on scientific claims with significance tests \\
-\addlinespace
-\textcite{bruch2024fusion} & Fusion functions & A tuned convex combination beats RRF; RRF sensitive to its parameters & We explain analytically what an RRF weight does (Proposition~1) \\
-\addlinespace
-\textcite{wang2026blend} & 4 paradigms, 11 datasets & ``Weakest link'': a weak path degrades fusion; no universal best & Proposition~1 gives the mechanism for weighted RRF \\
-\addlinespace
-\textcite{akarsu2026bm25} & 10 strategies, financial QA & Hybrid + reranking best; paired bootstrap tests & Same evaluation method; on scientific claims reranking is not needed \\
-\addlinespace
-\textcite{rao2025rethinking} & SciFact, FiQA, NFCorpus & Compact MiniLM beats BGE-Large with LLM reranking & Same model family and datasets; we fine-tune instead of adding an LLM \\
-\addlinespace
-\textcite{hsu2025dat} & RAG, LLM-judged weights & Per-query fusion weights beat fixed ones & Our overlap analysis gives a cheap per-claim signal \\
-\addlinespace
-\textcite{jin2023medcpt} & 255M PubMed search logs & State of the art on six biomedical tasks & Domain training at scale; we use 689 claims \\
-\addlinespace
-\textcite{sun2023rankgpt}; \textcite{schlatt2025rankdistillm} & MS MARCO, TREC, BEIR & LLMs rerank well; distilled cross-encoders match them, up to 173$\times$ faster & Reranking cost matters; we remove the reranker \\
-\addlinespace
-\textcite{wadden2022scifactopen} & 500K abstracts & Claim verification loses at least 15 F1 in the open setting & Retrieval is the bottleneck for claims \\
-\addlinespace
-\textcite{asai2026openscholar} & 45M papers & Citation accuracy at expert level & Full scientific RAG; we isolate and improve its retrieval stage \\
-\addlinespace
-\textcite{skarlinski2024paperqa} & Literature tasks & An agent matches or exceeds experts & Same goal at agent scale \\
-\addlinespace
-\textcite{asai2024selfrag}; \textcite{yan2024crag} & QA, fact verification & Trained signals decide when to retrieve or correct & We measure the untrained baseline \\
-\bottomrule
-\end{tabularx}
-\end{table}
-
-\subsection{Research gap}
+\subsection{Research Gap}
 \label{sec:gap}
 
-The literature confirms the premise of hybrid retrieval and shows how much the best design
-depends on the data \parencite{chen2022hybrid,wang2026blend,akarsu2026bm25}. For evidence
-retrieval on scientific claims, four gaps remain, and each corresponds to a contribution of
-this paper (Section~\ref{sec:novelty}).
-
-\begin{enumerate}
-\item \textbf{The cost of reranking is rarely weighed against a cheaper change to an
-earlier stage.} Hybrid retrieval followed by reranking is the strongest configuration in
-recent benchmarks \parencite{akarsu2026bm25}, and ever larger rerankers are used despite
-their cost \parencite{sun2023rankgpt,schlatt2025rankdistillm}. Whether in-domain fine-tuning
-of a small first-stage encoder, combined with fusion, can replace the reranker for scientific
-claims has not been tested. This paper tests it and finds that it can (RQ1).
-\item \textbf{What a fusion weight does is not explained.} Fusion weights are tuned as a black
-box \parencite{bruch2024fusion} or predicted per query by a language model
-\parencite{hsu2025dat}, and the weakest-link effect is observed empirically
-\parencite{wang2026blend}. Proposition~1 explains, for weighted RRF, when the weaker retriever
-can no longer bring passages into the fused list (RQ2).
-\item \textbf{Which retriever helps which claim is reported, if at all, through a language
-model.} A measurable property of the claim that predicts which retriever wins would give a
-cheap signal; this paper shows that word overlap is one (RQ3).
-\item \textbf{The closed tools cannot be evaluated, and the open systems are evaluated end to
-end.} Neither shows which retrieval stage finds the evidence or why the rest fails. This paper
-measures each stage on known evidence and categorises the remaining failures (RQ5).
-\end{enumerate}
+Hybrid retrieval followed by reranking is the strongest configuration in recent benchmarks
+\parencite{akarsu2026bm25}, and ever larger rerankers are adopted despite their cost
+\parencite{sun2023rankgpt,schlatt2025rankdistillm}, while fusion weights are tuned as a black box
+\parencite{bruch2024fusion} or predicted per query \parencite{hsu2025dat}. Whether in-domain
+fine-tuning of a small first-stage encoder, combined with a fusion weight that is understood
+analytically, can replace the reranker for scientific claims has not been examined. This study
+addresses that gap.
