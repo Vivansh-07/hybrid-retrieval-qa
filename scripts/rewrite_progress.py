@@ -14,9 +14,11 @@ long chapter can be rewritten and pushed a section at a time, and names the firs
 is still at least half AI wording.
 
 AI wording is the share of the text's five-word phrases that also occur in the chapter's AI
-draft (commit 16ed095, the last one before the first rewrite). 100% is the draft unchanged, and
-a light edit stays high. A low share shows that the draft's wording is gone; it does not by
-itself prove the words are your own, so only the marker decides "rewritten".
+drafts: the first full draft (commit 16ed095, the last one before the first rewrite) and, for
+every chapter but the abstract, the revision after the supervisor's review of 4 Nov (commit
+eb607ca), which was drafted with AI assistance too. 100% is a draft unchanged, and a light edit
+stays high. A low share shows that the drafts' wording is gone; it does not by itself prove the
+words are your own, so only the marker decides "rewritten".
 """
 import argparse
 import math
@@ -34,7 +36,12 @@ ORDER = ["00_abstract", "01_introduction", "08_limitations_conclusion", "07_disc
 # The last commit on main before the first rewrite (#80, 15 Oct): every chapter there is the
 # complete AI draft. A fixed commit, so a chapter edited twice is still compared with the draft.
 DRAFT_COMMIT = "16ed095c5409fb3f2f163cb27a1445ac7985825d"
-N = 5               # words per phrase: long enough that a shared phrase is the draft's, not common English
+# The revision after the supervisor's review (4 Nov, #89) rewrote chapters 1-8 with AI assistance,
+# so their wording there is AI wording too. The abstract is the author's own (#80) and was only
+# changed to the third person in that revision, so it is compared with the first draft alone.
+REVISION_COMMIT = "eb607caed00661b260f47d0080fa2c639765f5b5"
+AUTHOR_WRITTEN = {"00_abstract"}
+N = 5              # words per phrase: long enough that a shared phrase is the draft's, not common English
 STILL_DRAFT = 0.5   # a section with at least this share of AI wording is the next one to rewrite
 NO_HEADING = "(no heading)"
 HEADING = re.compile(r"\\(?:section|subsection)\*?(?:\[[^\]]*\])?\{((?:[^{}]|\{[^{}]*\})*)\}")  # \texttt{..} inside too
@@ -117,11 +124,18 @@ def last_commit(path: Path) -> str:
     return out.stdout.strip() or "-"
 
 
-def draft_text(name: str):
-    """The chapter as the AI drafted it, or None if this clone lacks the draft commit or the file."""
-    out = subprocess.run(["git", "show", f"{DRAFT_COMMIT}:paper_full/sections/{name}.tex"],
+def text_at(commit: str, name: str):
+    """The chapter as it was at a commit, or None if this clone lacks the commit or the file."""
+    out = subprocess.run(["git", "show", f"{commit}:paper_full/sections/{name}.tex"],
                          cwd=REPO, capture_output=True, encoding="utf-8", errors="replace")
     return out.stdout if out.returncode == 0 else None
+
+
+def draft_text(name: str):
+    """Every AI-drafted version of the chapter, joined, or None if this clone has none of them."""
+    commits = [DRAFT_COMMIT] + ([] if name in AUTHOR_WRITTEN else [REVISION_COMMIT])
+    texts = [t for t in (text_at(c, name) for c in commits) if t]
+    return "\n".join(texts) if texts else None
 
 
 def have_draft_commit() -> bool:

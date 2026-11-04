@@ -87,10 +87,29 @@ def test_chapters_are_compared_with_the_ai_draft():
     assert abstract != drafts["00_abstract"] and rp.ai_wording(abstract, drafts["00_abstract"]) < 1.0
     for name, draft in drafts.items():
         tex = (REPO / "paper_full" / "sections" / f"{name}.tex").read_text(encoding="utf-8")
-        if draft == tex:
+        # a chapter unchanged since one of its AI drafts (for the author's abstract, the first only)
+        ai_versions = [rp.text_at(rp.DRAFT_COMMIT, name)]
+        if name not in rp.AUTHOR_WRITTEN:
+            ai_versions.append(rp.text_at(rp.REVISION_COMMIT, name))
+        if tex in ai_versions:
             assert rp.ai_wording(tex, draft) == 1.0, name
             for part in rp.sections(tex):
                 assert rp.ai_wording(part["text"], draft) == 1.0, (name, part["title"])
+
+
+def test_the_revision_counts_as_ai_drafted_except_the_abstract():
+    # the 4 Nov revision rewrote chapters 1-8 with AI assistance: it must not read as the author's
+    # own rewriting, while the author's abstract is still measured against the first draft only
+    if not rp.have_draft_commit() or rp.text_at(rp.REVISION_COMMIT, "01_introduction") is None:
+        pytest.skip("the AI drafts are not in this clone; git fetch --unshallow adds them")
+    for name in rp.ORDER:
+        revised = rp.text_at(rp.REVISION_COMMIT, name)
+        assert revised is not None, name
+        share = rp.ai_wording(revised, rp.draft_text(name))
+        if name in rp.AUTHOR_WRITTEN:
+            assert share < 1.0, name
+        else:
+            assert share == 1.0, name
 
 
 def test_percent_is_rounded_down():
