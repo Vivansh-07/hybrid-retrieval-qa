@@ -1,28 +1,26 @@
 % ===========================================================================
-% 5 Results (about 8 pages). Every number comes from results/.
+% 5 Results. Every number comes from results/.
 % Drafted with AI assistance (Claude). Rewrite in your own words before submitting.
+% Revised on 4 Nov 2026 after the supervisor's review: third person; formal headings; answer
+% quality and abstention removed; sensitivity and cost merged.
 % SciFact: results/ablation.csv, results/significance.json, results/set_*/,
 % results/dense_*/, results/fusion_weights_*.json, results/query_subsets.json.
-% NFCorpus: results/nfcorpus/, results/nfcorpus_*/.
+% NFCorpus: results/nfcorpus/, results/nfcorpus_*/, results/nfcorpus_comparisons.json.
 % ===========================================================================
 \section{Results}
 \label{sec:results}
 
 All differences are in nDCG@10 unless stated otherwise, and every $p$-value comes from the
-paired bootstrap of Section~\ref{sec:bootstrap}. The results answer the research questions in
-order: the standard pipeline that serves as the baseline, the improvement (RQ1), why its
-weight works (RQ2), the second dataset (RQ4), which retriever helps which claim (RQ3), and
-the cost and quality of what is built on top. RQ5 is the subject of
-Section~\ref{sec:failures}.
+paired bootstrap of Section~\ref{sec:bootstrap}.
 
-\subsection{The baseline: the standard hybrid pipeline}
+\subsection{Baseline Hybrid Pipeline}
 \label{sec:res-baseline}
 
 \begin{table}[t]
 \centering\small
-\caption{The standard hybrid pipeline on SciFact (300 test claims), stage by stage. All
-variants share one corpus, one passage split and one index. R@100 counts relevant abstracts
-within the top 100 passages; ms per claim is approximate.}
+\caption{The standard hybrid pipeline on SciFact (300 test claims), stage by stage. All variants
+share one corpus, one passage split and one index. R@100 counts relevant abstracts within the
+top 100 passages; ms per claim is approximate.}
 \label{tab:ablation}
 \begin{tabular}{@{}lccccr@{}}
 \toprule
@@ -36,37 +34,25 @@ RRF fusion ($w = 1$) & 0.710 & 0.833 & 0.947 & 0.675 & 119 \\
 \end{tabular}
 \end{table}
 
-Table~\ref{tab:ablation} shows the baseline. BM25 reaches 0.656, close to the 0.665 that
-BEIR reports for SciFact \parencite{thakur2021beir}, which indicates that the passage split and
-the evaluation behave as intended. The pretrained dense retriever's 0.679 is not significantly
-better ($+0.023$, $p = 0.25$; better on 73 claims, worse on 60).
+Table~\ref{tab:ablation} reports the baseline. BM25 reaches 0.656, close to the 0.665 reported by
+BEIR for SciFact \parencite{thakur2021beir}, which confirms that the passage split and the
+evaluation behave as intended. The pretrained dense retriever's 0.679 is not significantly
+better ($+0.023$, $p = 0.25$). The two retrievers are tied on average but succeed on different
+claims: for 17 claims only BM25 places a relevant abstract in its top ten, and for 25 only the
+dense retriever does. RRF exploits this disagreement and reaches 0.710, significantly above BM25
+($+0.053$, $p < 10^{-4}$) and the dense retriever ($+0.031$, $p = 0.019$). Reranking the top 50
+fused passages adds $+0.006$, which is not significant ($p = 0.65$), at almost three times the
+latency (329 against 119~ms). This standard pipeline, at 0.715, is the baseline for the
+comparison.
 
-The two retrievers are tied on average but not on the same claims: for 223 claims both place a
-relevant abstract in their top ten, for 17 only BM25 does, for 25 only the dense retriever
-does, and for 35 neither does. Fusion exploits this disagreement. RRF reaches 0.710,
-significantly above BM25 ($+0.053$, $p < 10^{-4}$) and the dense retriever ($+0.031$,
-$p = 0.019$), and raises recall within the top 100 passages to 0.947. Reranking the top 50
-fused passages adds $+0.006$, which is not significant ($p = 0.65$; 52 claims better, 46
-worse), at almost three times the latency (329 against 119~ms). This standard pipeline, at
-0.715, is the baseline the improvement is measured against.
-
-\subsection{The improvement on SciFact (RQ1)}
+\subsection{Performance of the Proposed Retriever on SciFact}
 \label{sec:res-improvement}
-
-\begin{figure}[t]
-\centering
-\includegraphics[width=0.75\textwidth]{finetune_curve_all-MiniLM-L6-v2-scifact.png}
-\caption{Fine-tuning the encoder on SciFact's 689 training claims: nDCG@10 of dense
-retrieval on the 120 development claims after each epoch (epoch 0 is the pretrained model).
-The weights of the best epoch (12) are kept.}
-\label{fig:finetune}
-\end{figure}
 
 \begin{table}[t]
 \centering\small
-\caption{From the standard pipeline to the improved retriever on SciFact (nDCG@10, 300 test
-claims). $^{*}$: significantly different from the row it is compared with, as stated in the
-text (paired bootstrap, $p < 0.05$).}
+\caption{From the standard pipeline to the proposed retriever on SciFact (nDCG@10, 300 test
+claims). $^{*}$: significantly different from the row it is compared with in the text (paired
+bootstrap, $p < 0.05$).}
 \label{tab:improvement}
 \begin{tabularx}{\textwidth}{@{}Lccr@{}}
 \toprule
@@ -76,39 +62,36 @@ Standard pipeline: pretrained dense + BM25, RRF ($w = 1$), reranker & 0.715 & 0.
 Stronger off-the-shelf encoder (BGE-small), dense only & 0.723 & -- & -- \\
 Fine-tuned MiniLM, dense only & 0.742$^{*}$ & -- & -- \\
 Fine-tuned MiniLM + BM25, RRF ($w = 1$) & 0.731 & -- & -- \\
-\textbf{Improved: fine-tuned MiniLM + BM25, RRF ($w = 0.3$), no reranker} & \textbf{0.759}$^{*}$ & \textbf{0.905} & \textbf{114} \\
+\textbf{Proposed: fine-tuned MiniLM + BM25, RRF ($w = 0.3$), no reranker} & \textbf{0.759}$^{*}$ & \textbf{0.905} & \textbf{114} \\
 \bottomrule
 \end{tabularx}
 \end{table}
 
-Fine-tuning raises the dense retriever's nDCG@10 on the development claims from 0.691 to
-0.770, levelling off after epoch 9 (Figure~\ref{fig:finetune}), and on the test claims from
-0.679 to 0.742 ($+0.063$, $p < 10^{-4}$). This makes it the best single retriever in the
-study, level with the larger off-the-shelf BGE-small encoder ($p = 0.23$), at no extra cost
-per query.
+Fine-tuning raises the dense retriever's nDCG@10 on the development claims from 0.691 to 0.770,
+levelling off after epoch 9, and on the test claims from 0.679 to 0.742 ($+0.063$,
+$p < 10^{-4}$). The fine-tuned encoder is the best single retriever in the study and is level
+with the larger off-the-shelf BGE-small encoder ($p = 0.23$), at no extra cost per query.
 
-A stronger dense retriever changes what fusion can do. With equal weights, fusing the
+A stronger dense retriever changes the effect of fusion. With equal weights, fusing the
 fine-tuned encoder with BM25 falls slightly below the encoder alone (0.731 against 0.742,
-$p = 0.44$): once one retriever dominates, an equal vote for the weaker one adds noise.
-Fusion helps again when that vote is reduced. With the weight chosen on the development
-claims, $w = 0.3$, the improved retriever reaches \textbf{nDCG@10 0.759} and Recall@10 0.905
-(Table~\ref{tab:improvement}). It is better than the standard pipeline ($+0.043$, $p = 0.003$)
-and than equal-weight fusion with the same encoder ($+0.027$, $p = 0.0009$), and level with the
-fine-tuned encoder alone ($+0.017$, $p = 0.057$). It needs about 114~ms per claim against 329
-for the standard pipeline, because it has no reranker. Adding the reranker to the improved
-retriever lowers its score (0.745), so the improvement is not one that a reranker can build on.
-The answer to RQ1 is therefore positive on SciFact: in-domain fine-tuning with weighted fusion
-retrieves evidence significantly better than the standard pipeline, at about a third of its
-cost.
+$p = 0.44$): once one retriever dominates, an equal vote for the weaker one adds noise. With the
+weight selected on the development claims, $w = 0.3$, the proposed retriever reaches an nDCG@10
+of \textbf{0.759} and a Recall@10 of 0.905 (Table~\ref{tab:improvement}). It is significantly
+better than the standard pipeline ($+0.043$, $p = 0.003$) and than equal-weight fusion with the
+same encoder ($+0.027$, $p = 0.0009$), and level with the fine-tuned encoder alone ($+0.017$,
+$p = 0.057$). It requires about 114~ms per claim against 329~ms for the standard pipeline,
+because it has no reranker. Adding the reranker to the proposed retriever lowers its score to
+0.745. These results address RQ1: on SciFact, the proposed retriever is more accurate than the
+standard pipeline at about a third of its cost.
 
-\subsection{Why the weight works (RQ2)}
+\subsection{Analysis of the Fusion Weight}
 \label{sec:res-weight}
 
 \begin{table}[t]
 \centering\small
-\caption{Choosing the BM25 weight on the 120 development claims (fine-tuned encoder). $w = 0$
-is dense retrieval alone; $w = 1$ is standard fusion; the break-even weight of
-Proposition~1 is 0.381.}
+\caption{Selection of the BM25 weight on the 120 development claims (fine-tuned encoder). $w = 0$
+is dense retrieval alone; $w = 1$ is standard fusion; the break-even weight of Proposition~1 is
+0.381.}
 \label{tab:weights}
 \begin{tabular}{@{}lccccccccc@{}}
 \toprule
@@ -126,48 +109,42 @@ R@10 & 0.887 & 0.887 & 0.887 & \textbf{0.912} & 0.896 & 0.904 & 0.883 & 0.867 & 
 \caption{Development nDCG@10 against the BM25 weight $w$, with the fine-tuned encoder on each
 dataset. The dashed line is the break-even weight $(k + 1)/(k + K) = 61/160 = 0.381$ of
 Proposition~1; in the shaded region BM25 can only re-order the dense candidates. The circled
-point is the weight chosen on the development set and used on the test set. The y-axes differ.}
+point is the weight selected on the development set and used on the test set. The y-axes differ.}
 \label{fig:weights}
 \end{figure}
 
-Table~\ref{tab:weights} shows the search on the development claims, and
-Figure~\ref{fig:weights} plots it next to the same search on NFCorpus
-(Section~\ref{sec:res-nfcorpus}). On SciFact the score rises from the
-encoder alone ($w = 0$) to a maximum at $w = 0.3$, stays nearly flat up to $w = 0.7$, and
-falls once BM25 weighs as much as the dense retriever or more. Proposition~1 explains the
-maximum: at $w = 0.3$, below the break-even weight of 0.381, BM25 cannot bring any passage into
-the fused list and only re-orders the encoder's candidates. The test claims confirm this: no
-abstract in the improved retriever's fused list lies outside the dense retriever's list. The
-price is small: only two test claims have a relevant abstract in BM25's top ten that the dense
-retriever does not retrieve at all, among them ``Ivermectin is used to treat
-onchocerciasis'', which BM25 ranks first.
+Table~\ref{tab:weights} and Figure~\ref{fig:weights} show the weight search on the development
+claims of both datasets. On SciFact the score rises from the encoder alone ($w = 0$) to a maximum
+at $w = 0.3$, stays nearly flat up to $w = 0.7$, and falls once BM25 weighs as much as the dense
+retriever or more. Proposition~1 explains the maximum: at $w = 0.3$, below the break-even weight
+of 0.381, BM25 cannot bring any passage into the fused list and only re-orders the encoder's
+candidates. The test claims confirm this, since no abstract in the proposed retriever's fused
+list lies outside the dense retriever's list. The cost of the restriction is small: only two test
+claims have a relevant abstract in BM25's top ten that the dense retriever does not retrieve.
 
-The development scores do not drop sharply at the break-even weight; weights of 0.5 and 0.7
-score within 0.003 of the best. The proposition therefore does not predict a cliff. What it
-provides is an explanation of the best weight, and a rule for choosing it when development
-claims are few: when the dense retriever is the stronger one, keep the weight of the weaker
-retriever below $(k + 1)/(k + K)$, so that fusion can only re-order the stronger retriever's
-candidates. With the pretrained encoder, where the two retrievers are equally strong, the
-weight makes no difference (0.711 at $w = 0.3$ against 0.710 at $w = 1$, $p = 0.88$),
-which is consistent with this reading: re-ordering helps only when the candidates are
-already good.
+The development scores do not drop sharply at the break-even weight, since weights of 0.5 and
+0.7 score within 0.003 of the best; the proposition does not predict a sharp threshold. It
+explains the best weight and provides a rule for selecting it when development claims are few:
+when the dense retriever is the stronger one, the weight of the weaker retriever should remain
+below $(k + 1)/(k + K)$. With the pretrained encoder, where the two retrievers are equally
+strong, the weight makes no difference (0.711 at $w = 0.3$ against 0.710 at $w = 1$, $p = 0.88$),
+which is consistent with this reading and addresses RQ2.
 
-\subsection{A second dataset: NFCorpus (RQ4)}
+\subsection{Generalisation to NFCorpus}
 \label{sec:res-nfcorpus}
 % Numbers: results/nfcorpus/, results/nfcorpus_finetuned__fusion_weighted/,
 % results/nfcorpus_finetuned__fusion_weighted__rerank/,
 % results/nfcorpus_scifact_encoder__fusion_weighted/, results/fusion_weights_all-MiniLM-L6-v2-nfcorpus.json,
 % results/finetune_all-MiniLM-L6-v2-nfcorpus/history.json, results/nfcorpus_comparisons.json.
 
-The same recipe was applied, unchanged, to NFCorpus (Section~\ref{sec:datasets}): the encoder
-was fine-tuned on NFCorpus's training queries, the BM25 weight was chosen on its 120
-development queries, and the result was evaluated once on its 323 test queries
-(Table~\ref{tab:nfcorpus}).
+The same method was applied, unchanged, to NFCorpus (Section~\ref{sec:datasets}): the encoder was
+fine-tuned on NFCorpus's training queries, the BM25 weight was selected on its 120 development
+queries, and the result was evaluated once on its 323 test queries (Table~\ref{tab:nfcorpus}).
 
 \begin{table}[t]
 \centering\small
-\caption{The same recipe on NFCorpus (323 test queries). P@10 is reported next to nDCG@10
-because each query has many relevant abstracts. ms per query is approximate.}
+\caption{The same method on NFCorpus (323 test queries). P@10 is reported next to nDCG@10
+because each query has many relevant abstracts; ms per query is approximate.}
 \label{tab:nfcorpus}
 \begin{tabularx}{\textwidth}{@{}Lcccr@{}}
 \toprule
@@ -179,165 +156,66 @@ Standard fusion ($w = 1$) & 0.340 & 0.253 & 0.254 & 31 \\
 Standard pipeline (fusion + reranker) & \textbf{0.358} & 0.260 & 0.254 & 168 \\
 \midrule
 Dense, fine-tuned on NFCorpus & 0.336 & 0.258 & \textbf{0.293} & 13 \\
-\textbf{Improved: fine-tuned + BM25 at $w = 0.2$, no reranker} & 0.350 & \textbf{0.267} & \textbf{0.293} & \textbf{29} \\
+\textbf{Proposed: fine-tuned + BM25 at $w = 0.2$, no reranker} & 0.350 & \textbf{0.267} & \textbf{0.293} & \textbf{29} \\
 \quad + reranker & \textbf{0.358} & 0.266 & \textbf{0.293} & 171 \\
 SciFact encoder, not retrained ($w = 0.3$) & 0.343 & 0.253 & 0.253 & 29 \\
 \bottomrule
 \end{tabularx}
 \end{table}
 
-\paragraph{The improvement matches the reranked pipeline at a sixth of the cost.} On
-NFCorpus, unlike SciFact, the reranker helps the standard pipeline significantly ($+0.019$
-over standard fusion, $p = 0.0045$). The improved retriever reaches the same level without it:
-0.350 against 0.358, a difference that is not significant ($p = 0.35$), in about 29 instead of
-168 milliseconds per query. Its precision in the top ten is the highest of all configurations
-(0.267). Adding the reranker on top of the improved retriever gives nothing significant either
-($+0.008$, $p = 0.23$). So the improvement does not beat the standard pipeline on NFCorpus, as
-it does on SciFact; it matches it, and makes the reranker unnecessary in both cases.
+On NFCorpus, unlike SciFact, the reranker improves the standard pipeline significantly
+($+0.019$ over standard fusion, $p = 0.0045$). The proposed retriever reaches the same level
+without it: 0.350 against 0.358, a difference that is not significant ($p = 0.35$), in about 29
+instead of 168 milliseconds per query, with the highest precision in the top ten of all
+configurations (0.267). Adding the reranker to the proposed retriever gives no significant gain
+($+0.008$, $p = 0.23$). The selected weight is 0.2, again below the break-even weight, and the
+development curve follows Proposition~1 more sharply than on SciFact: it peaks at $w = 0.2$
+(0.385) and falls steadily above the break-even point (0.376 at $w = 0.5$, 0.357 at $w = 1$,
+0.335 at $w = 2$; Figure~\ref{fig:weights}). As the proposition predicts, the proposed
+retriever's Recall@100 equals that of the fine-tuned encoder (0.293).
 
-\paragraph{Weighted fusion transfers; fine-tuning helps less.} The weighted-fusion part of the
-recipe transfers cleanly. The weight chosen on the development queries is 0.2, again below the
-break-even weight of 0.381, and fusing at that weight improves on the fine-tuned encoder alone
-($+0.014$, $p < 10^{-4}$). The development curve (Figure~\ref{fig:weights}, right panel) also
-follows Proposition~1 more sharply than on
-SciFact: it peaks at $w = 0.2$ (0.385) and falls steadily once the weight exceeds the break-even
-point (0.376 at $w = 0.5$, 0.357 at $w = 1$, 0.335 at $w = 2$). As the proposition predicts, the
-improved retriever's Recall@100 equals that of the fine-tuned encoder (0.293): below the
-break-even weight, the fused list is exactly the dense candidates, re-ordered.
+Fine-tuning contributes less on NFCorpus. It raises the encoder's Recall@100 from 0.252 to 0.293
+but its nDCG@10 only from 0.330 to 0.336 ($p = 0.49$), because the queries are short titles
+written for the general public and the training queries carry many uniformly graded judgements,
+which are weak labels. The SciFact-trained encoder, applied without retraining, does not improve
+on standard fusion either ($+0.003$, $p = 0.56$). With respect to RQ3, the weighted-fusion
+component transfers to the second dataset, whereas the benefit of fine-tuning depends on the
+quality of the domain's training labels.
 
-Fine-tuning itself helped less. It raised the encoder's Recall@100 from 0.252 to 0.293 but its
-nDCG@10 only from 0.330 to 0.336 (not significant, $p = 0.49$; development nDCG@10 from 0.360 to
-0.373 at the best epoch, 8). Two properties of NFCorpus explain this: its queries are short
-titles written for the general public, far from the vocabulary of the abstracts, and its
-training queries have 42.7 judged abstracts each, all with the same grade, so the three used as
-positives per query are weak labels. The SciFact-trained encoder, applied to NFCorpus without
-retraining, does not help either ($+0.003$ over standard fusion, $p = 0.56$): the adaptation is
-specific to the domain it was trained on.
-
-\paragraph{Answer to RQ4.} The improvement holds partly. Its fusion component, a BM25 weight
-below the break-even point chosen on development queries, improves retrieval on both datasets
-and makes the reranker unnecessary on both: on SciFact the improved retriever is significantly
-better than the standard pipeline, on NFCorpus it is statistically level with it, at a third
-and a sixth of the cost respectively. Its fine-tuning component depends on how well the training
-labels match the test queries, which SciFact's expert-written claims do far better than
-NFCorpus's.
-
-\subsection{Which retriever helps which claim? (RQ3)}
+\subsection{Effect of Claim--Evidence Term Overlap}
 \label{sec:res-overlap}
 
 \begin{figure}[t]
 \centering
 \includegraphics[width=\textwidth]{overlap_split.png}
-\caption{nDCG@10 on claims whose terms overlap little (left group in each panel) or much
-(right group) with their evidence abstract, split at the median overlap of 0.57, for the
-pretrained (left) and the fine-tuned (right) dense encoder.}
+\caption{nDCG@10 on claims whose terms overlap little (left group in each panel) or much (right
+group) with their evidence abstract, split at the median overlap of 0.57, for the pretrained
+(left) and the fine-tuned (right) dense encoder.}
 \label{fig:overlap}
 \end{figure}
 
-To see where the retrievers differ, the 300 test claims are split by properties computed from
-their text. The property that separates the retrievers most is the word overlap between a
-claim and its evidence abstract: the share of the claim's terms, after BM25's tokenisation,
-that occur in the abstract. With the split at the median of 0.57 (Figure~\ref{fig:overlap}),
-the pretrained dense retriever beats BM25 by 0.073 on the 156 low-overlap claims, whose
-evidence is phrased differently ($p = 0.022$). On the 144 high-overlap claims BM25 is at least
-as good (0.889 against 0.857, $p = 0.13$), and fusion gains 0.052 over the dense retriever
-($p < 10^{-4}$). Fusion is never worse than the better of the two retrievers. Paraphrased claims
-are also much harder: no method exceeds 0.53 on them in the standard pipeline, against 0.86 to
-0.92 on the others.
+The property of a claim that best separates the retrievers is its word overlap with the evidence
+abstract, the share of the claim's terms that occur in the abstract. With the claims split at the
+median overlap of 0.57 (Figure~\ref{fig:overlap}), the pretrained dense retriever outperforms BM25
+by 0.073 on the 156 low-overlap claims ($p = 0.022$), whereas on the 144 high-overlap claims BM25
+is at least as accurate (0.889 against 0.857, $p = 0.13$); fusion is never worse than the better
+of the two. Fine-tuning raises dense retrieval by 0.106 on the low-overlap claims
+($p < 10^{-4}$) but only by 0.016 on the high-overlap ones ($p = 0.21$): the encoder learns the
+paraphrases that word matching misses. Because the overlap is computed with the relevant
+abstract, this analysis is descriptive and is not available to a retriever at query time.
 
-The split also shows what fine-tuning teaches. It raises dense retrieval by 0.106 on the
-low-overlap claims ($p < 10^{-4}$) but only by 0.016 on the high-overlap ones ($p = 0.21$): the
-encoder learns the paraphrases that word matching misses. The overlap is computed with the
-relevant abstract, so it describes the claims and is not available to a retriever at query
-time.
-
-\subsection{Sensitivity to the other design choices}
+\subsection{Sensitivity and Computational Cost}
 \label{sec:res-sensitivity}
 
-\begin{table}[t]
-\centering\small
-\caption{nDCG@10 when one component of the standard pipeline is changed. $^{*}$: significantly
-different from the standard pipeline for the same variant ($p < 0.05$).}
-\label{tab:configs}
-\begin{tabular}{@{}lcccc@{}}
-\toprule
-Configuration & BM25 & Dense & Fusion & + Rerank \\
-\midrule
-Standard (pretrained MiniLM) & 0.656 & 0.679 & 0.710 & 0.715 \\
-Whole abstracts instead of passages & 0.658 & 0.648$^{*}$ & 0.703 & 0.687$^{*}$ \\
-Score fusion instead of RRF & -- & -- & 0.717 & -- \\
-Fusion by abstract instead of passage & -- & -- & 0.706 & 0.704 \\
-BGE-small encoder & 0.656 & 0.723$^{*}$ & 0.721 & 0.712 \\
-\quad with the BGE reranker & -- & -- & -- & 0.714 \\
-Passages keep the sentences after a short window & 0.656 & 0.678 & 0.710 & 0.715 \\
-\bottomrule
-\end{tabular}
-\end{table}
-
-None of the other choices changes the picture (Table~\ref{tab:configs}). Reranking more or
-fewer fused passages buys cost, not accuracy: nDCG@10 stays between 0.716 and 0.722 for depths
-from 10 to 100, while latency grows from about 120~ms without reranking to about 470~ms at
-depth 100. Fusion is insensitive to its constant ($k \in \{10, 30, 60, 100\}$ gives 0.709 to
-0.714), and score fusion is tied with RRF (0.717 against 0.710, $p = 0.27$); RRF is kept
-because it needs no score normalisation. With whole abstracts instead of passages, BM25 is
-unchanged but the dense retriever loses 0.031 ($p = 0.009$), because 71.6\% of the abstracts
-exceed the encoder's 256-token limit and are truncated, against 1.2\% of the passages. Finally,
-keeping the sentences that follow a short window (Section~\ref{sec:chunking}) adds 118 passages
-and changes no result significantly: BM25 and fusion are identical on all 300 claims, and the
-improved retriever scores 0.7586 against 0.7587 ($p = 0.63$).
-
-\subsection{Cost}
-\label{sec:res-cost}
-
-Building the BM25 index over the 21,015 passages took 18 to 41~s and encoding them 53 to
-130~s with MiniLM; the embedding index occupies 32.3~MB. Per claim, BM25 took about 60 to
-120~ms because it scores every passage, dense retrieval 16 to 32~ms, and reranking 50
-candidates added 160 to 260~ms (about 1.2~s with the BGE reranker). Fine-tuning is a one-off
-cost of about ten minutes on the laptop's GPU. Removing the reranker is therefore the largest
-saving available in the pipeline, and the improvement makes it possible without losing
-accuracy.
-
-\subsection{Answer quality}
-\label{sec:res-answers}
-
-\begin{table}[t]
-\centering\small
-\caption{Answer quality for the first 50 test claims, mean score from 0 to 2, with passages
-from the standard pipeline.}
-\label{tab:answers}
-\begin{tabular}{@{}lcc@{}}
-\toprule
-& Generative & Extractive \\
-\midrule
-Correctness & \textbf{0.84} & 0.48 \\
-Completeness & \textbf{0.76} & 0.36 \\
-Faithfulness & 1.16 & \textbf{2.00} \\
-Citation accuracy & 1.40 & \textbf{1.64} \\
-\midrule
-Fully correct (score 2) & 17 / 50 & 10 / 50 \\
-With unsupported content (faithfulness 0) & 17 / 50 & 0 / 50 \\
-\bottomrule
-\end{tabular}
-\end{table}
-
-Retrieval is half of question answering, so the answers built on it were scored too: 50 test
-claims, two readers, four criteria from 0 to 2, with a rubric written before any answer was
-generated. The scores were assigned with AI assistance, by the assistant that had run both
-readers, so the scoring is not blind (Section~\ref{sec:limitations}). Table~\ref{tab:answers}
-shows a clear trade-off. The generative reader is more often right (correctness 0.84 against
-0.48), but a third of its answers state something the cited passage does not say, such as
-calling albendazole ``an alkylating agent used for multiple myeloma''. The extractive reader
-never says anything unsupported, because it copies text, but mostly returns fragments that do
-not answer the claim.
-
-\subsection{Could retrieval decide when to abstain?}
-\label{sec:res-abstention}
-
-Neither reader abstains: for the 9 of the 50 claims whose relevant abstract was not among the
-five passages, both returned an answer instead of ``not enough evidence''. A retrieval signal
-could trigger abstention, but not cheaply. Over all 300 test claims, the top cross-encoder
-score separates claims with a relevant abstract among the five passages from those without
-one with an AUC of 0.81 (top dense similarity: 0.73). Yet the threshold chosen on the
-development claims (Equation~\eqref{eq:youden}) catches 68 of the 74 misses only by also
-refusing 109 of the 226 answerable claims. A reader that abstains needs more than a score
-threshold, such as the trained evaluators reviewed in Section~\ref{sec:lit-abstain}.
+The other design choices do not change these conclusions. Reranking more or fewer fused passages
+changes cost but not accuracy: nDCG@10 stays between 0.716 and 0.722 for depths from 10 to 100,
+while latency grows from about 120~ms without reranking to about 470~ms at depth 100. Fusion is
+insensitive to its constant ($k \in \{10, 30, 60, 100\}$ gives 0.709 to 0.714), and score fusion
+is level with RRF (0.717 against 0.710, $p = 0.27$). With whole abstracts instead of passages,
+the dense retriever loses 0.031 ($p = 0.009$), because 71.6\% of the abstracts exceed the
+encoder's 256-token limit. Keeping the sentences that follow a short window adds 118 passages and
+changes no result significantly (0.7586 against 0.7587 for the proposed retriever, $p = 0.63$).
+In terms of cost, the BM25 index and the passage embeddings are built once in under three minutes
+(32.3~MB of vectors), fine-tuning takes about ten minutes on the laptop's GPU, and reranking 50
+candidates adds 160 to 260~ms per claim, which makes the reranker the largest saving available
+in the pipeline.

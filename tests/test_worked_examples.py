@@ -5,19 +5,13 @@ and the paper must show the result as the test rounds it. A slip in the arithmet
 rewrite that changes a number, fails here instead of in front of the examiner.
 """
 
-import json
 import math
 import re
-import sys
 from pathlib import Path
 
 import pytest
 
 REPO = Path(__file__).resolve().parents[1]
-sys.path.insert(0, str(REPO / "src"))
-
-from hybridqa.abstention import apply_threshold, auc, best_threshold  # noqa: E402
-
 METHOD = (REPO / "paper_full" / "sections" / "03_methodology.tex").read_text(encoding="utf-8")
 # without comments, and with LaTeX's thin spaces and line breaks reduced to single spaces
 TEXT = re.sub(r"\s+", " ", "\n".join(re.sub(r"(?<!\\)%.*", "", line) for line in METHOD.splitlines()))
@@ -34,6 +28,24 @@ def _assert_in_paper(*snippets: str) -> None:
 
 def _sigmoid(x: float) -> float:
     return 1 / (1 + math.exp(-x))
+
+
+def test_passage_count_example():
+    # m(n) = ceil((n - W) / S) + 1 windows for n > W sentences, W = 3, S = 2
+    n, window, stride = 7, 3, 2
+    starts = list(range(1, n - window + 2, stride))
+    if starts[-1] + window - 1 < n:
+        starts.append(starts[-1] + stride)
+    assert len(starts) == math.ceil((n - window) / stride) + 1 == 3
+    assert [(s, min(s + window - 1, n)) for s in starts] == [(1, 3), (3, 5), (5, 7)]
+    _assert_in_paper("$\\lceil (7-3)/2 \\rceil + 1 = 3$", "sentences 1--3, 3--5 and 5--7")
+
+
+def test_reordering_bound_example():
+    # a BM25-first passage at dense rank r ties with the dense top passage when 1/(60+r) = 0.7/61
+    r = 61 / 0.7 - 60
+    assert round(r) == 27 and 1 / (60 + 27) + 0.3 / 61 > 1 / 61 > 1 / (60 + 28) + 0.3 / 61
+    _assert_in_paper("r = \\frac{61}{0.7} - 60 \\approx 27", "up to about 26 places")
 
 
 def test_idf_example():
@@ -82,13 +94,6 @@ def test_sigmoid_keeps_the_order():
     _assert_in_paper(f"= {_shown(high, 3)}$", f"= {_shown(low, 3)}$")
 
 
-def test_attribution_tie_example():
-    shared = {1: 1, 2: 4, 3: 4, 4: 0, 5: 1}
-    best = max(shared.values())
-    assert min(i for i, n in shared.items() if n == best) == 2  # ties go to the higher rank
-    _assert_in_paper("$c(y) = 2$")
-
-
 def test_bootstrap_example():
     x = [0.2, 0.0, -0.1, 0.3]
     mean = sum(x) / len(x)
@@ -102,25 +107,3 @@ def test_bootstrap_example():
     # p = count / R: RESULTS.md (step 11) prints p = 0.0027 for the improvement on SciFact
     assert "+0.0433  p = 0.0027" in (REPO / "RESULTS.md").read_text(encoding="utf-8")
     _assert_in_paper("27 of the 10,000", "$p = 27 / 10{,}000 = 0.0027$")
-
-
-def test_auc_and_threshold_example():
-    hits, misses = [0.9, 0.8, 0.6], [0.7, 0.2]
-    rows = [{"gold_in_passages": True, "z": v} for v in hits] + \
-           [{"gold_in_passages": False, "z": v} for v in misses]
-    a = auc(hits, misses)
-    assert a == 5 / 6
-    t = best_threshold(rows, "z")
-    out = apply_threshold(rows, "z", t)
-    assert t == 0.8 and out["misses_caught"] == 2 and out["hits_refused"] == 1
-    j = out["misses_caught"] / out["misses"] - out["hits_refused"] / out["hits"]
-    _assert_in_paper(f"= 5/6 = {_shown(a, 2)}$", "$\\theta = 0.8$", f"= {_shown(j, 2)}$")
-
-
-def test_real_threshold_example():
-    test = json.loads((REPO / "results" / "abstention.json").read_text(encoding="utf-8"))
-    out = test["signals"]["cross_encoder_top"]["threshold_from_dev_on_test"]
-    caught, misses, refused, hits = out["misses_caught"], out["misses"], out["hits_refused"], out["hits"]
-    j = caught / misses - refused / hits
-    _assert_in_paper(f"$J = {caught}/{misses} - {refused}/{hits} = {_shown(caught / misses, 3)} - "
-                     f"{_shown(refused / hits, 3)} = {_shown(j, 3)}$")

@@ -1,6 +1,7 @@
 % ===========================================================================
-% 4 Experimental Setup (about 3 pages)
+% 4 Experimental Setup
 % Drafted with AI assistance (Claude). Rewrite in your own words before submitting.
+% Revised on 4 Nov 2026 after the supervisor's review: third person, shorter.
 % Settings: configs/scifact.yaml; dataset statistics computed from the BEIR copies.
 % ===========================================================================
 \section{Experimental Setup}
@@ -9,25 +10,25 @@
 \subsection{Datasets}
 \label{sec:datasets}
 
-Both datasets come from the BEIR benchmark \parencite{thakur2021beir}, which provides a
-corpus, test queries and relevance judgements in one format (Table~\ref{tab:datasets}).
+Both datasets come from the BEIR benchmark \parencite{thakur2021beir}, which provides a corpus,
+test queries and relevance judgements in one format (Table~\ref{tab:datasets}).
 
 \paragraph{SciFact} \parencite{wadden2020scifact} is the main dataset. Its corpus holds 5,183
 abstracts of biomedical papers; each of its 300 test claims was written by an expert, and the
-abstracts that support or refute it are judged relevant (339 in total, 1.13 per claim, all
-with grade 1). Its 809 training claims are disjoint from the test claims and are used only to
-fine-tune the encoder and to choose the fusion weight, with 120 held out as development
-claims (Section~\ref{sec:finetune}).
+abstracts that support or refute it are judged relevant (339 in total, 1.13 per claim, all with
+grade 1). Its 809 training claims are disjoint from the test claims and are used only to
+fine-tune the encoder and to select the fusion weight, with 120 held out as development claims
+(Section~\ref{sec:finetune}).
 
 \paragraph{NFCorpus} \parencite{boteva2016nfcorpus} tests whether the improvement transfers
-(RQ4). Its corpus holds 3,633 medical abstracts and its queries come from NutritionFacts.org,
-a website that explains nutrition research in plain language. It differs from SciFact in two ways that make it a hard test: each of its 323
-test queries has many judged abstracts (38.2 on average, graded 1 for indirectly and 2 for
-directly relevant), and its queries are short and phrased very differently from the
-abstracts. Its 2,590 training queries are used exactly as SciFact's training claims are: 120
-are held out for development and the rest train the encoder. Because the training queries
-have 42.7 judged abstracts each, all graded 1, training uses the first three judged abstracts
-of each query (6,917 pairs).
+(RQ3). Its corpus holds 3,633 medical abstracts, and its queries come from NutritionFacts.org, a
+website that explains nutrition research in plain language. It is a demanding test for two
+reasons: each of its 323 test queries has many judged abstracts (38.2 on average, graded 1 for
+indirectly and 2 for directly relevant), and its queries are short and phrased very differently
+from the abstracts. Its 2,590 training queries are used in the same way as SciFact's training
+claims, with 120 held out for development. Because the training queries have 42.7 judged
+abstracts each, all graded 1, training uses the first three judged abstracts of each query
+(6,917 pairs).
 
 \begin{table}[t]
 \centering\small
@@ -47,27 +48,25 @@ Training queries (train / development) & 809 (689 / 120) & 2,590 (2,470 / 120) \
 \end{tabular}
 \end{table}
 
-\subsection{Models and settings}
+\subsection{Models and Settings}
 \label{sec:models}
 
-All models are public and come from the Hugging Face Hub; Table~\ref{tab:settings} lists every
-setting, all of which are kept in one configuration file. Two configurations are compared
-throughout:
+All models are public and are obtained from the Hugging Face Hub; Table~\ref{tab:settings} lists
+every setting. Two configurations are compared throughout:
 
 \begin{itemize}
 \item the \textbf{standard hybrid pipeline}: the pretrained MiniLM encoder, unweighted RRF
 ($w = 1$) and the MS~MARCO cross-encoder reranking the top 50, evaluated in all four variants
-(BM25, dense, fusion, fusion with reranking), as in the zero-shot setting of BEIR;
-\item the \textbf{improved retriever}: the MiniLM encoder fine-tuned on the dataset's training
-claims, fused with BM25 at the weight chosen on the development claims, without a reranker.
+(BM25, dense, fusion, fusion with reranking);
+\item the \textbf{proposed retriever}: the MiniLM encoder fine-tuned on the dataset's training
+claims, fused with BM25 at the weight selected on the development claims, without a reranker.
 \end{itemize}
 
-\noindent Further configurations change one component each, to show what each part
-contributes: whole abstracts instead of passages, score fusion instead of RRF, fusion by
-abstract instead of by passage, a stronger off-the-shelf encoder (\texttt{bge-small-en-v1.5},
-33.4M parameters, \citeauthor{xiao2024cpack}, \citeyear{xiao2024cpack}) and a larger reranker (\texttt{bge-reranker-base},
-278M), the reranking depth $M \in \{10, 25, 50, 100\}$ and the RRF constant
-$k \in \{10, 30, 60, 100\}$.
+\noindent Further configurations change one component each: whole abstracts instead of
+passages, score fusion instead of RRF, a stronger off-the-shelf encoder
+(\texttt{bge-small-en-v1.5}, 33.4M parameters, \citeauthor{xiao2024cpack},
+\citeyear{xiao2024cpack}) with a larger reranker (\texttt{bge-reranker-base}, 278M), the
+reranking depth $M \in \{10, 25, 50, 100\}$ and the RRF constant $k \in \{10, 30, 60, 100\}$.
 
 \begin{table}[t]
 \centering\small
@@ -81,33 +80,22 @@ Passages & 3 sentences, stride 2, title prepended, windows under 120 characters 
 BM25 & $k_1 = 0.9$, $b = 0.4$; lower-case, 52 stop words, Porter stemming; top 100 \\
 Dense encoder & \texttt{all-MiniLM-L6-v2} (22.7M parameters, 384 dimensions), mean pooling, unit length, 256 tokens; exact inner-product search; top 100 \\
 Fine-tuning & multiple-negatives ranking loss, scale 20, batch 32, AdamW, learning rate $2 \times 10^{-5}$, weight decay 0.01, 10\% warm-up then linear decay, 12 epochs, best development epoch kept \\
-Fusion & RRF, $k = 60$; dense weight 1; BM25 weight 1 (standard) or chosen on development claims from $\{0, 0.1, 0.2, 0.3, 0.5, 0.7, 1, 1.5, 2\}$; top 100 \\
+Fusion & RRF, $k = 60$; dense weight 1; BM25 weight 1 (standard) or selected on development claims from $\{0, 0.1, 0.2, 0.3, 0.5, 0.7, 1, 1.5, 2\}$; top 100 \\
 Reranker & \texttt{ms-marco-MiniLM-L-6-v2} (22.7M), 512 tokens, top 50 rescored \\
-Reader & \texttt{flan-t5-base} (248M), top 5 passages, greedy, 128 new tokens; \texttt{roberta-base-squad2} (124M) as extractive baseline \\
 Evaluation & nDCG@10 (main), Recall@$k$, MRR@10; paired bootstrap, 10,000 resamples, seed 42 \\
 \bottomrule
 \end{tabularx}
 \end{table}
 
-\subsection{Hardware and timing}
+\subsection{Hardware and Reproducibility}
 \label{sec:hardware}
 
-All experiments run on one laptop: an Intel Core i5-12450H processor, 16~GB of memory and an
-NVIDIA RTX~3050 Laptop GPU with 4~GB, with PyTorch 2.6, FAISS 1.15, Transformers 5.17 and
-sentence-transformers 6.1. The neural models run on the GPU; BM25 and the exact vector search
-run on the processor. Latency is the wall-clock time per query until its final ranked list,
-one query at a time, after one untimed warm-up query (without it, loading the models would be
-counted as the latency of the first query), averaged over all test queries. Timings varied by
-up to a factor of two between identical runs, so they are compared only when they differ by
-more than that.
-
-\subsection{Reproducibility}
-\label{sec:reproducibility}
-
-Every setting is in one configuration file, every random choice uses seed 42, and every run
-writes its configuration next to its results. The evaluation code computes every metric from
-its definition and is checked by unit tests against values worked out by hand
-(Section~\ref{sec:metrics}). A clean copy of the repository, installed on the same laptop by
-following its deployment guide, reproduced all reported retrieval metrics exactly, including
-the fine-tuning epoch by epoch; only the timings differed. Code, configuration, results and the
-log of every experiment are in the project repository.
+All experiments run on one laptop with an Intel Core i5-12450H processor, 16~GB of memory and an
+NVIDIA RTX~3050 Laptop GPU with 4~GB, using PyTorch 2.6, FAISS 1.15, Transformers 5.17 and
+sentence-transformers 6.1. Latency is the wall-clock time per query until its final ranked list,
+measured one query at a time after an untimed warm-up query and averaged over all test queries;
+timings varied by up to a factor of two between identical runs, so they are compared only when
+they differ by more than that. Every setting is kept in one configuration file, every random
+choice uses seed 42, and every metric is computed from its definition and checked by unit tests
+against values worked out by hand. A clean installation of the code reproduced all reported
+retrieval metrics exactly.
