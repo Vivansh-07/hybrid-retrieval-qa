@@ -58,21 +58,20 @@ passes when the right one appears in another, so check the numbers of a rewritte
 
 ## Before submitting
 
-Every chapter is marked *Drafted with AI assistance*, and the Acknowledgment says so. Rewrite each
-chapter in your own words, delete its `% Drafted with AI assistance` comment line, and keep the
-Acknowledgment accurate about what was AI-assisted. For the Introduction,
-[`briefs/01_introduction.md`](briefs/01_introduction.md) lists what the rewrite has to keep: the
-labels and RQ numbers other chapters rely on, the citations, and every number with its source.
+Every chapter is marked *Drafted with AI assistance*, and the Declarations say so (*Use of
+generative AI*). Rewrite each chapter in your own words, delete its `% Drafted with AI assistance`
+comment line, and keep that statement accurate about what was AI-assisted.
 
 `python scripts/rewrite_progress.py` lists every chapter in the suggested order with its marker,
-its last commit and its **AI wording**: the share of its five-word phrases that also occur in the
-AI draft (commit `16ed095`, the last one before the first rewrite). For a long chapter,
+its last commit and its **AI wording**: the share of its five-word phrases that also occur in its
+AI drafts (the first draft, commit `16ed095`, and for chapters 1-8 the revision of 4 Nov, commit
+`eb607ca`). For a long chapter,
 `python scripts/rewrite_progress.py 03_methodology` (or `3`, or `methodology`) shows the same per
 section and subsection, and names the first one still at 50% or more, so you can rewrite it and
 open a pull request a section at a time. 100% is the draft unchanged, and a light edit stays
 high. A low share shows that the draft's wording is gone; it does not by itself prove that the
 words are your own, so a chapter counts as rewritten only when you delete its marker. In a
-shallow clone the column shows `-` until `git fetch --unshallow` brings in the draft.
+shallow clone the column shows `-` until `git fetch --unshallow` brings in the drafts.
 
 `python scripts/overlap_check.py` is a plagiarism pre-check. It lists every run of 8 or more words
 that a chapter shares with the short paper, the literature survey or the problem statement, and,
