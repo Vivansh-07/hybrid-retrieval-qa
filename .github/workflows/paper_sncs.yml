@@ -1,0 +1,46 @@
+# Builds the full paper in the Springer Nature journal template (paper_sncs/, for SN Computer
+# Science) whenever it or the full paper changes, and reports its page count. The PDF and the
+# log are attached to the run as the "paper_sncs" artifact:
+#   gh run download <run id> -n paper_sncs
+name: paper_sncs
+
+on:
+  pull_request:
+    paths: ["paper_sncs/**", "paper_full/**", "paper/figures/**", "scripts/make_sncs.py",
+            ".github/workflows/paper_sncs.yml"]
+  push:
+    branches: [main]
+    paths: ["paper_sncs/**", "paper_full/**", "paper/figures/**", "scripts/make_sncs.py",
+            ".github/workflows/paper_sncs.yml"]
+  workflow_dispatch:
+
+jobs:
+  pdf:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Compile with latexmk (pdflatex + bibtex, APA style sn-apacite)
+        uses: xu-cheng/latex-action@v3
+        with:
+          root_file: main.tex
+          working_directory: paper_sncs
+
+      - name: Page count and warnings
+        if: always()
+        run: |
+          pages=$(grep -ao "/Type */Page[^s]" paper_sncs/main.pdf | wc -l)
+          echo "pages: $pages"
+          echo "### SN Computer Science version: $pages pages" >> "$GITHUB_STEP_SUMMARY"
+          grep -E "LaTeX Warning|Overfull|undefined|Citation" paper_sncs/main.log | sort | uniq -c | sort -rn | head -40 || true
+          grep -E "Warning|error" paper_sncs/main.blg | head -40 || true
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: paper_sncs
+          path: |
+            paper_sncs/main.pdf
+            paper_sncs/main.log
+            paper_sncs/main.blg

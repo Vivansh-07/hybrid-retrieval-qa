@@ -1,144 +1,92 @@
 % ===========================================================================
-% 1 Introduction (about 4 pages). The paper improves ONE part of the problem: evidence
-% retrieval for scientific claims. Everything else supports that improvement.
+% 1 Introduction. The paper improves ONE part of the problem: evidence retrieval for
+% scientific claims. Everything else supports that improvement.
 % Drafted with AI assistance (Claude). Rewrite in your own words before submitting.
+% Revised on 4 Nov 2026 after the supervisor's review: third person, three research
+% questions, no comparison table, shorter.
 % Numbers: results/ (SciFact) and results/nfcorpus* (second dataset, Section 5).
 % ===========================================================================
 \section{Introduction}
 \label{sec:introduction}
 
-\subsection{Background and motivation}
+\subsection{Background and Motivation}
 \label{sec:motivation}
 
-Researchers increasingly ask software, not search engines, what the literature says.
-Literature assistants such as \textcite{scispace} and \textcite{consensus} accept a question in plain language and return an answer with
-citations to research papers, and research systems such as OpenScholar
-\parencite{asai2026openscholar} and PaperQA2 \parencite{skarlinski2024paperqa} report
-answers whose citations are, on some benchmarks, as accurate as those written by experts.
-All of them follow the same pattern, known as retrieval-augmented generation
-\parencite{lewis2020rag}: a retriever first selects a few passages from a large collection,
-and a language model then writes an answer from those passages and cites them.
+Researchers increasingly turn to software, rather than search engines, to learn what the
+literature says about a question. Literature assistants such as \textcite{scispace} and
+\textcite{consensus} accept a question in plain language and return an answer that cites
+research papers, while \textcite{researchrabbit} maps citation networks to help researchers
+discover related work. Research systems such as OpenScholar \parencite{asai2026openscholar}
+and PaperQA2 \parencite{skarlinski2024paperqa} report citations that, on some benchmarks, are
+as accurate as those written by experts. The question-answering systems among them follow the
+pattern of retrieval-augmented generation \parencite{lewis2020rag}: a retriever selects a few
+passages from a large collection, and a language model writes an answer from those passages
+and cites them.
 
-The pattern has a weak point that no language model can repair: a reader can only cite what
-retrieval finds. If the abstract that supports or refutes a claim is not among the passages
-handed to the reader, the answer either cites the wrong paper or cites nothing, however
-capable the reader is. Evidence retrieval therefore bounds the quality of every answer such a
-system produces. It also dominates the cost: the most accurate retrieval pipelines add a
-neural reranker that reads every candidate passage together with the question, which is
-several times slower than the retrieval it refines \parencite{nogueira2019passage}.
+This pattern has a weakness that no language model can repair: a reader can cite only what
+retrieval returns. If the abstract that supports or refutes a claim is not among the retrieved
+passages, the answer cites the wrong paper or none at all. Evidence retrieval therefore bounds
+the quality of every answer. It also dominates the cost, because the most accurate pipelines
+add a neural reranker that reads every candidate passage together with the question, which is
+several times slower than the retrieval it refines \parencite{nogueira2019passage}. The
+commercial assistants do not publish how their retrieval works, how often it misses the
+evidence or what each step costs, so this step cannot be examined from the outside.
 
-\subsection{The part of the problem this paper improves}
+\subsection{Problem Statement}
 \label{sec:problem}
 
-This paper deliberately takes one small part of the problem and improves it: \emph{evidence
-retrieval for scientific claims}. Given a claim such as ``Aspirin inhibits the production of
-PGE2.'', the task is to rank the abstracts of a scientific corpus so that those that support
-or refute the claim appear at the top. This step is the right one to isolate for three
-reasons. Every literature assistant depends on it. It can be measured exactly, because
-benchmarks such as SciFact \parencite{wadden2020scifact} record which abstracts are the
-evidence for each claim. And it is where the cost of a pipeline concentrates, so an
-improvement can make a system both better and cheaper.
+This study isolates one part of the problem and improves it: \emph{evidence retrieval for
+scientific claims}. Given a claim such as ``Aspirin inhibits the production of PGE2.'', the
+task is to rank the abstracts of a scientific corpus so that those which support or refute
+the claim appear at the top. The task can be measured exactly, because benchmarks such as
+SciFact \parencite{wadden2020scifact} record which abstracts are the evidence for each claim.
 
-The starting point is the standard hybrid pipeline: keyword search (BM25) and a neural
-bi-encoder each retrieve candidates, the two rankings are merged by reciprocal rank fusion,
+The reference point is the standard hybrid pipeline, in which keyword search (BM25) and a
+neural bi-encoder each retrieve candidates, reciprocal rank fusion merges the two rankings,
 and a cross-encoder reranks the merged list \parencite{chen2022hybrid,bruch2024fusion}. The
-improvement proposed here changes two things and removes one: the bi-encoder is fine-tuned on
+problem addressed is whether this pipeline can be made both more accurate and cheaper. The
+proposed retriever changes two components and removes one: the bi-encoder is fine-tuned on
 claims from the domain, the keyword ranking enters the fusion with a small weight chosen on
-held-out claims, and the reranker is dropped. Section~\ref{sec:method} proves why the small
+held-out claims, and the reranker is removed. Section~\ref{sec:method} derives why the small
 weight works.
 
-\subsection{Research questions}
+\subsection{Research Questions}
 \label{sec:rq}
 
 \begin{description}
-\item[RQ1] Can in-domain fine-tuning combined with weighted rank fusion retrieve evidence
-for scientific claims better than a standard hybrid pipeline with a reranker, and at a lower
-cost?
-\item[RQ2] Why does the chosen fusion weight work, and can the choice be derived rather than
-only searched for?
-\item[RQ3] Which kind of claim does each retriever help, and why does fusion help at all?
-\item[RQ4] Does the improvement hold on a second biomedical dataset?
-\item[RQ5] Where, and why, does the improved retrieval still fail, and what does that mean
-for the answers built on it?
+\item[RQ1] Can in-domain fine-tuning combined with weighted rank fusion retrieve evidence for
+scientific claims more accurately than a standard hybrid pipeline with a reranker, and at a
+lower cost?
+\item[RQ2] Why does the selected fusion weight work, and can it be derived rather than
+searched for?
+\item[RQ3] Does the improvement hold on a second biomedical dataset?
 \end{description}
 
-\subsection{Contributions: what is new}
+\subsection{Contributions}
 \label{sec:novelty}
-
-The paper makes five contributions. The first is the improvement itself; the second explains
-it; the other three show when retrieval succeeds and when it cannot.
 
 \begin{enumerate}
 \item \textbf{An improved evidence retriever.} A 22-million-parameter encoder fine-tuned on
-689 training claims and fused with BM25 at a weight of 0.3 reaches an nDCG@10 of 0.759 on
-the 300 SciFact test claims, against 0.715 for the standard hybrid pipeline with a
-cross-encoder reranker ($p = 0.003$). Its Recall@10 is 0.905 against 0.833, and it needs
-114 instead of 329 milliseconds per claim, because it does without the reranker.
-\item \textbf{Why the improvement works (Proposition~1).} Weighted reciprocal rank fusion
-has a break-even weight: below $61/160 \approx 0.38$, keyword search can no longer add a
-passage to the fused list and can only re-order the candidates of the dense retriever. The
-fine-tuned encoder finds the evidence, and BM25 sharpens its order. The proof turns choosing
-the fusion weight from a search into a rule.
-\item \textbf{Which retriever helps which claim.} Splitting the claims by how many of their
-words occur in their evidence shows that the dense retriever wins on paraphrased claims
-(+0.073 nDCG@10, $p = 0.022$) while BM25 holds on claims worded like their evidence; fusion
-is never worse than the better of the two.
-\item \textbf{A second dataset.} Applied unchanged to NFCorpus, the recipe again chooses a
-weight below the break-even point and again makes the reranker unnecessary: the improved
-retriever is statistically level with the reranked pipeline (0.350 against 0.358, $p = 0.35$)
-at a sixth of its time per query, while fine-tuning helps less on NFCorpus's lay queries
-(Section~\ref{sec:res-nfcorpus}).
-\item \textbf{Where retrieval cannot help.} A failure analysis of the 40 hardest claims finds
-that 42\% are not retrieval errors at all, because the abstract marked as evidence does not
-state the claim. An evaluation of the answers shows that the generative reader is right more
-often than an extractive one but states something the cited passage does not say in a third
-of its answers. And a measured baseline shows that the reranker's confidence alone cannot
-cheaply decide when the reader should answer ``not enough evidence''.
+689 training claims and fused with BM25 at a weight of 0.3 reaches an nDCG@10 of 0.759 on the
+300 SciFact test claims, against 0.715 for the standard hybrid pipeline with a cross-encoder
+reranker ($p = 0.003$). Its Recall@10 is 0.905 against 0.833, and it needs 114 instead of 329
+milliseconds per claim.
+\item \textbf{An analytical explanation of the fusion weight (Proposition~1).} Weighted
+reciprocal rank fusion has a break-even weight: below $61/160 \approx 0.38$, keyword search
+can no longer add a passage to the fused list and can only re-order the candidates of the
+dense retriever. This turns the choice of the weight from a search into a rule.
+\item \textbf{Evidence of transfer.} Applied unchanged to NFCorpus, the method again selects a
+weight below the break-even point and is statistically level with the reranked pipeline (0.350
+against 0.358, $p = 0.35$) at a sixth of its time per query.
+\item \textbf{A failure analysis.} Of the 40 hardest test claims, 42\% are not retrieval
+errors, because the abstract marked as evidence does not state the claim; the proposed
+retriever resolves 22 of the 40 failures.
 \end{enumerate}
 
-\subsection{How this work differs from SciSpace, ResearchRabbit and Consensus}
-\label{sec:tools}
+\subsection{Organisation of the Paper}
 
-The question this paper answers is not the one these tools answer.
-\textcite{researchrabbit} maps citation networks so that a researcher can discover related
-papers; it does not answer questions. Consensus and SciSpace answer questions with
-citations, but they are closed products: they do not publish how their retrieval works, how
-often it misses the evidence, or what each step costs. OpenScholar and PaperQA2 are open
-research systems, evaluated end to end with large language models and large corpora.
-
-This paper sits underneath all of them. It isolates the retrieval step that every one of them
-depends on, improves it, proves why the improvement works, and measures it openly against
-known evidence, one stage at a time and with a significance test for every comparison. The
-improved retriever runs offline on a laptop with a 4~GB GPU, so it can serve collections that
-cannot be sent to a cloud service. Table~\ref{tab:tools} summarises the differences; the
-entries for the closed products reflect their public documentation as of October 2026.
-
-\begin{table}[t]
-\centering\small
-\caption{What this work provides compared with literature assistants. ``Partial'': reported
-for the system as a whole, not stage by stage.}
-\label{tab:tools}
-\begin{tabularx}{\textwidth}{@{}Xcccc@{}}
-\toprule
-& \makecell{Answers with\\citations} & \makecell{Open and\\reproducible} & \makecell{Evaluates each\\retrieval stage} & \makecell{Runs offline\\on a laptop} \\
-\midrule
-\textcite{researchrabbit} & no & no & no & no \\
-\textcite{consensus} & yes & no & no & no \\
-\textcite{scispace} & yes & no & no & no \\
-OpenScholar \parencite{asai2026openscholar} & yes & yes & partial & no \\
-PaperQA2 \parencite{skarlinski2024paperqa} & yes & yes & partial & no \\
-\textbf{This work} & yes & yes & \textbf{yes} & \textbf{yes} \\
-\bottomrule
-\end{tabularx}
-\end{table}
-
-\subsection{Organisation of the paper}
-
-Section~\ref{sec:literature} reviews the literature on lexical, dense and hybrid retrieval,
-reranking and retrieval-augmented generation for science, and identifies the gap.
-Section~\ref{sec:method} describes every stage of the pipeline as equations and pseudocode,
-including the proof of Proposition~1. Section~\ref{sec:setup} gives the datasets, models
-and settings, and Section~\ref{sec:results} the results, including the second dataset.
-Section~\ref{sec:failures} analyses the failures, Section~\ref{sec:discussion} discusses what
-the findings mean for literature assistants, and Section~\ref{sec:limitations} states the
-limitations and concludes.
+Section~\ref{sec:literature} reviews related work, Section~\ref{sec:method} describes the
+method, and Sections~\ref{sec:setup} and~\ref{sec:results} present the experimental setup and
+the results. Section~\ref{sec:failures} analyses the remaining failures,
+Section~\ref{sec:discussion} discusses the findings, and Section~\ref{sec:limitations} states
+the limitations and concludes.

@@ -1,6 +1,8 @@
 % ===========================================================================
-% 6 Failure Analysis (about 3 pages)
+% 6 Failure Analysis
 % Drafted with AI assistance (Claude). Rewrite in your own words before submitting.
+% Revised on 4 Nov 2026 after the supervisor's review: third person; formal headings; the
+% examples subsection removed (its cases remain in Section 6.2).
 % Numbers: results/failure_analysis.csv, results/failure_summary.json, and the per-claim
 % runs of the standard pipeline and the improved retriever (results/runs/,
 % results/dense_minilm_finetuned__fusion_weighted/runs/).
@@ -8,14 +10,14 @@
 \section{Failure Analysis}
 \label{sec:failures}
 
-Aggregate scores show how often retrieval fails but not why. This chapter examines the claims
-on which the standard pipeline fails most clearly, assigns each failure a cause, and then asks
-which of these failures the improved retriever repairs (RQ5).
+Aggregate scores show how often retrieval fails but not why. This section examines the claims on
+which the standard pipeline fails most clearly, assigns each failure a cause, and determines
+which of these failures the proposed retriever resolves.
 
-\subsection{Selecting the claims}
+\subsection{Selection of Failure Cases}
 \label{sec:fail-selection}
 
-The claims were chosen by a fixed rule before any was examined. Every test claim receives a
+The claims were selected by a fixed rule before any was examined. Every test claim receives a
 priority
 \begin{multline}
 \pi(q) = 2\,\bigl(1 - \mathrm{R@10}_{\mathrm{full}}(q)\bigr)
@@ -23,33 +25,29 @@ priority
 + \bigl|\mathrm{R@10}_{\mathrm{BM25}}(q) - \mathrm{R@10}_{\mathrm{dense}}(q)\bigr|,
 \label{eq:priority}
 \end{multline}
-where ``full'' is the standard pipeline with the reranker: the first term rewards claims the
-pipeline misses, the second claims for which the reranker lost an abstract that fusion had
-found, and the third claims on which the two retrievers disagree. The 40 claims with the
-highest priority were analysed. The selection is deliberately the hardest claims, not a random
-sample, so the shares below describe hard failures rather than all errors. For 39 of the 40,
-the standard pipeline has no relevant abstract in its top ten; the fortieth has two relevant
-abstracts, of which the reranker pushed one out.
+where ``full'' denotes the standard pipeline with the reranker: the first term favours claims the
+pipeline misses, the second claims for which the reranker lost an abstract that fusion had found,
+and the third claims on which the two retrievers disagree. The 40 claims with the highest
+priority were analysed. The selection deliberately contains the hardest claims rather than a
+random sample, so the shares below describe hard failures rather than all errors.
 
-\subsection{Categories and their frequency}
+\subsection{Failure Categories}
 \label{sec:fail-categories}
 
-Each claim was assigned one of six categories fixed in advance: terminology mismatch (the
+Each claim was assigned one of six categories defined in advance: terminology mismatch (the
 evidence uses different words), ambiguous claim, missing evidence (the abstract marked as
 evidence does not state the claim), conflicting evidence, granularity (right abstract, wrong
-passage) and reranker error (fusion found the evidence and the reranker demoted it). For each
-claim the evidence abstract, its rank under every variant and the abstracts ranked first were
-read. The labels were assigned with AI assistance following these definitions and have not
-yet been validated by a second annotator (Section~\ref{sec:limitations}).
+passage) and reranker error (fusion found the evidence and the reranker demoted it). The labels
+were assigned with AI assistance following these definitions.
 
 \begin{table}[t]
 \centering\small
-\caption{Causes of failure on the 40 hardest test claims of the standard pipeline, and how
-many of them the improved retriever repairs (a relevant abstract in its top ten).}
+\caption{Causes of failure on the 40 hardest test claims of the standard pipeline, and the number
+resolved by the proposed retriever (a relevant abstract in its top ten).}
 \label{tab:failures}
 \begin{tabular}{@{}lrr@{}}
 \toprule
-Category & Claims & Repaired by the improvement \\
+Category & Claims & Resolved by the proposed retriever \\
 \midrule
 Missing evidence in the marked abstract & 17 (42\%) & 9 \\
 Terminology mismatch & 11 (28\%) & 7 \\
@@ -62,54 +60,27 @@ Total & 40 & 22 \\
 \end{tabular}
 \end{table}
 
-Table~\ref{tab:failures} shows the result. The largest group is not a retrieval error at all:
-for 17 claims the abstract marked as evidence does not state what the claim says. Three pairs of
-contradictory claims share a single marked abstract (for example ``PPAR-RXRs are inhibited by
+Table~\ref{tab:failures} shows the result. The largest group is not a retrieval error: for 17
+claims the abstract marked as evidence does not state what the claim says. Three pairs of
+contradictory claims share a single marked abstract (for example, ``PPAR-RXRs are inhibited by
 PPAR ligands'' and ``PPAR-RXRs can be activated by PPAR ligands''), and that abstract never
-mentions PPAR. With judgements made per abstract, such claims cap every retriever's score.
+mentions PPAR. With judgements made per abstract, such claims cap the score of every retriever.
 
 Terminology mismatch accounts for 11 claims, which share few words with their evidence (median
-overlap 0.25). The evidence for ``Aspirin inhibits the production of PGE2'' speaks only of COX
-inhibitors, so every retriever of the standard pipeline misses it; in another claim ``SFM'' is
-expanded as a rare syndrome while its abstract is about severe falciparum malaria. In the 8
-reranker errors, fusion had the evidence in its top ten and the cross-encoder pushed it out: for
-``Ivermectin is used to treat onchocerciasis'', BM25 ranks the evidence first and fusion third,
-but the reranker drops it to seventeenth. No failure was attributed to conflicting evidence or
-to granularity.
+overlap 0.25). The evidence for ``Aspirin inhibits the production of PGE2'' refers only to COX
+inhibitors, so every retriever of the standard pipeline misses it. In the 8 reranker errors,
+fusion had the evidence in its top ten and the cross-encoder pushed it out: for ``Ivermectin is
+used to treat onchocerciasis'', BM25 ranks the evidence first and fusion third, but the reranker
+moves it to seventeenth. No failure was attributed to conflicting evidence or to granularity.
 
-\subsection{Which failures the improvement repairs}
+\subsection{Failures Resolved by the Proposed Retriever}
 \label{sec:fail-repaired}
 
 The last column of Table~\ref{tab:failures} counts, for each category, the claims for which the
-improved retriever places a relevant abstract in its top ten. It repairs 22 of the 40 failures.
-As expected, it repairs most of the reranker errors (5 of 8), since it has no reranker, and most
-of the terminology mismatches (7 of 11), the paraphrases that fine-tuning teaches the encoder
-(Section~\ref{sec:res-overlap}). It also repairs 9 of the 17 claims labelled as missing evidence,
-which by definition no retriever should be able to repair. Two explanations are possible, and
-the data cannot separate them: the fine-tuned encoder may have learned regularities of how
-SciFact's annotators linked claims to abstracts, or some of these labels may be wrong. Either
-way, this result marks the missing-evidence category as the one most in need of the independent
-second annotation listed among the limitations.
-
-\subsection{Examples}
-\label{sec:fail-examples}
-
-Three claims illustrate the categories and how the stages behave on them.
-
-\begin{description}
-\item[Terminology mismatch.] \emph{``Aspirin inhibits the production of PGE2.''} The evidence
-abstract discusses COX inhibitors without the word aspirin. BM25 has no shared term to match,
-and the pretrained encoder does not connect the drug to its class; all variants of the standard
-pipeline miss the abstract, and so does the improved retriever: 689 training claims do not teach
-the encoder every drug-to-class relation, which is where a biomedical encoder trained at scale,
-such as MedCPT \parencite{jin2023medcpt}, could help.
-\item[Reranker error.] \emph{``Ivermectin is used to treat onchocerciasis.''} BM25 ranks the
-evidence first and fusion third, but the cross-encoder, trained on web search, demotes it to
-seventeenth. With the improved retriever's weight of 0.3, BM25 can only re-order the dense
-candidates (Proposition~1), and the fine-tuned encoder does not retrieve this abstract, so the
-improvement does not repair this claim either: it is one of the two test claims whose evidence
-only BM25 finds.
-\item[Missing evidence.] \emph{``PPAR-RXRs are inhibited by PPAR ligands.''} and its opposite
-share one marked abstract that never mentions PPAR; no ranking of abstracts can make both
-claims correct.
-\end{description}
+proposed retriever places a relevant abstract in its top ten. It resolves 22 of the 40 failures,
+including most of the reranker errors (5 of 8), since it has no reranker, and most of the
+terminology mismatches (7 of 11), the paraphrases that fine-tuning teaches the encoder
+(Section~\ref{sec:res-overlap}). It also resolves 9 of the 17 claims labelled as missing
+evidence, which by definition no retriever should resolve. Either the fine-tuned encoder has
+learned regularities in how SciFact's annotators linked claims to abstracts, or some of these
+labels are incorrect; this category therefore most requires independent annotation.

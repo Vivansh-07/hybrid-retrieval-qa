@@ -1,7 +1,9 @@
 % ===========================================================================
-% 3 Methodology (about 10 pages): every algorithm with its equations (symbols defined,
-% working shown) and pseudocode. Concise, but complete.
+% 3 Methodology: every algorithm with its equations (symbols defined, working shown) and
+% pseudocode for the core steps. Concise, but complete.
 % Drafted with AI assistance (Claude). Rewrite in your own words before submitting.
+% Revised on 4 Nov 2026 after the supervisor's review: third person; the answer-generation
+% stage, the abstention analysis and three minor algorithms removed.
 % Every setting below is the one in configs/scifact.yaml and src/hybridqa/. A worked example
 % uses either small illustrative values or numbers from results/; tests/test_worked_examples.py
 % recomputes every one of them.
@@ -9,22 +11,21 @@
 \section{Methodology}
 \label{sec:method}
 
-This chapter describes the retrieval pipeline whose evidence-finding step the paper
-improves, and the tools used to evaluate it. Each stage is given as an equation, with
-every symbol defined, and as pseudocode. Section~\ref{sec:rrf} contains the analytical
-result on which the improvement rests (Proposition~1).
+This section describes the retrieval pipeline whose evidence-finding step is improved and the
+procedures used to evaluate it. Each stage is given as an equation, with every symbol defined,
+and the core stages also as pseudocode. Section~\ref{sec:rrf} contains the analytical result on
+which the improvement rests (Proposition~1).
 
-\subsection{System overview and notation}
+\subsection{System Overview and Notation}
 \label{sec:overview}
 
-Figure~\ref{fig:pipeline} shows the pipeline. Offline, every abstract is split into
-passages, which are indexed twice: once for keyword search and once as vectors. For each
-claim, the two retrievers each return their 100 best passages (Stages 1--2), the two
-rankings are fused (Stage 3), a cross-encoder may rescore the top of the fused list
-(Stage 4), and a reader writes an answer that cites the top five passages (Stage 5). The
-improved configuration replaces the general-purpose encoder of Stage 2 with one
-fine-tuned on scientific claims (Section~\ref{sec:finetune}), weights the keyword ranking
-by $w = 0.3$ in Stage 3, and skips Stage 4. Table~\ref{tab:notation} lists the notation.
+Figure~\ref{fig:pipeline} shows the pipeline. Offline, every abstract is split into passages,
+which are indexed twice: once for keyword search and once as vectors. For each claim, the two
+retrievers each return their 100 best passages (Stages 1--2), the two rankings are fused
+(Stage 3), and in the standard pipeline a cross-encoder rescores the top of the fused list
+(Stage 4). The proposed retriever replaces the general-purpose encoder of Stage 2 with one
+fine-tuned on scientific claims (Section~\ref{sec:finetune}), weights the keyword ranking by
+$w = 0.3$ in Stage 3, and omits Stage 4. Table~\ref{tab:notation} lists the notation.
 
 \begin{figure}[t]
 \centering
@@ -38,33 +39,30 @@ by $w = 0.3$ in Stage 3, and skips Stage 4. Table~\ref{tab:notation} lists the n
   \node[stage=6.0cm, fill=gray!12, above=5mm of group] (offline) {\textit{Offline, once:}\\5{,}183 abstracts $\rightarrow$ 21{,}015 passages\\$\rightarrow$
     BM25 index + passage embeddings};
   \node[stage=2.6cm] (rrf) at (6.35,0) {\textbf{Stage 3: RRF}\\[1pt]
-    $\displaystyle\sum_{s}\frac{w_s}{60+r_s(p)}$\\[1pt]$w_{\mathrm{BM25}}{=}0.3$ (improved)};
+    $\displaystyle\sum_{s}\frac{w_s}{60+r_s(p)}$\\[1pt]$w_{\mathrm{BM25}}{=}0.3$ (proposed)};
   \node[stage=3.0cm] (ce) at (9.7,0) {\textbf{Stage 4: reranker}\\cross-encoder,\\rescores top 50};
-  \node[stage=3.0cm] (reader) at (9.7,-2.7) {\textbf{Stage 5: reader}\\flan-t5-base,\\top 5 passages};
-  \node[stage=2.4cm] (answer) at (6.35,-2.7) {Answer citing\\passages [1]--[5]};
+  \node[stage=3.0cm] (evidence) at (9.7,-2.5) {\textbf{Ranked evidence}\\abstracts, best first};
   \draw[arr] (claim.east) -- ([xshift=3mm]claim.east) |- (bm25.west);
   \draw[arr] (claim.east) -- ([xshift=3mm]claim.east) |- (dense.west);
   \draw[arr] (bm25.east) -| ([xshift=-3mm]rrf.west) -- (rrf.west);
   \draw[arr] (dense.east) -| ([xshift=-3mm]rrf.west) -- (rrf.west);
   \draw[arr] (rrf) -- (ce);
-  \draw[arr] (ce) -- (reader);
-  \draw[arr] (reader) -- (answer);
+  \draw[arr] (ce) -- (evidence);
   \draw[arr, dashed] (offline.south) -- (group.north) node[midway, right] {indexes};
-  \draw[arr, densely dotted] (rrf.south) -- ++(0,-0.75) -| ([xshift=-6mm]reader.north)
-    node[pos=0.3, above, font=\scriptsize] {improved: no reranker};
+  \draw[arr, densely dotted] (rrf.south) -- ++(0,-0.75) -| ([xshift=-6mm]evidence.north)
+    node[pos=0.3, above, font=\scriptsize] {proposed: no reranker};
 \end{tikzpicture}
-\caption{System overview. Abstracts are split into passages and indexed once, offline.
-For each claim, BM25 and the dense bi-encoder each return their top 100 passages
-(Stages 1--2), reciprocal rank fusion merges the two rankings (Stage 3), a cross-encoder
-rescores the top 50 (Stage 4), and a reader answers, citing the top five passages
-(Stage 5). The improved configuration (fine-tuned encoder, BM25 weight 0.3) skips the
-reranker (dotted path).}
+\caption{System overview. Abstracts are split into passages and indexed once, offline. For each
+claim, BM25 and the dense bi-encoder each return their top 100 passages (Stages 1--2),
+reciprocal rank fusion merges the two rankings (Stage 3), and in the standard pipeline a
+cross-encoder rescores the top 50 (Stage 4). The proposed retriever (fine-tuned encoder, BM25
+weight 0.3) omits the reranker (dotted path).}
 \label{fig:pipeline}
 \end{figure}
 
 \begin{table}[t]
 \centering\small
-\caption{Notation used in this chapter.}
+\caption{Notation used in this section.}
 \label{tab:notation}
 \begin{tabularx}{\textwidth}{@{}lX@{}}
 \toprule
@@ -85,15 +83,13 @@ $@k$ & a metric computed on the first $k$ abstracts of a ranking \\
 \end{table}
 
 % ---------------------------------------------------------------------------
-\subsection{Corpus preparation: sentence-window passages}
+\subsection{Passage Segmentation}
 \label{sec:chunking}
 
-Each abstract is split into sentences by a regular expression that breaks after a full
-stop, question or exclamation mark followed by white space and a capital letter, digit
-or bracket. A window of $W = 3$ consecutive sentences then slides over the abstract with a
-stride of $S = 2$, so consecutive passages share one sentence and evidence that straddles
-a boundary stays in one passage. The title is prepended to every passage, because in a
-scientific abstract it carries much of the topical signal. An abstract with $n$
+Each abstract is split into sentences, and a window of $W = 3$ consecutive sentences slides
+over it with a stride of $S = 2$, so consecutive passages share one sentence and evidence that
+straddles a boundary stays within one passage. The title is prepended to every passage,
+because in a scientific abstract it carries much of the topical signal. An abstract with $n$
 sentences yields
 \begin{equation}
 m(n) =
@@ -103,82 +99,55 @@ m(n) =
 \end{cases}
 \label{eq:npassages}
 \end{equation}
-passages: windows start at sentences $1, 1+S, 1+2S, \dots$ and the last one is the first
-that reaches sentence $n$. For example, $n = 7$ gives
-$\lceil (7-3)/2 \rceil + 1 = 3$ passages covering sentences 1--3, 3--5 and 5--7. A window
-shorter than $L = 120$ characters is not kept as a passage of its own, and in the
-configuration used for all reported results it also ends the abstract's passages
-(Algorithm~\ref{alg:chunking}, line~\ref{line:break}); Section~\ref{sec:results} shows
-that keeping the remaining sentences instead changes no result significantly. Over the
-corpus, the procedure yields $N = 21{,}015$ passages, 4.05 per abstract. Relevance is
-judged per abstract, so a ranked list of passages is turned back into a ranked list of
-abstracts by keeping each abstract at the position of its best-ranked passage.
-
-\begin{algorithm}[t]
-\caption{Sentence-window passages}
-\label{alg:chunking}
-\begin{algorithmic}[1]
-\Require abstract text $x$, title $t$, window $W = 3$, stride $S = 2$, minimum length $L = 120$
-\Ensure list of passages
-\State $s_1, \dots, s_n \gets \Call{SplitSentences}{x}$
-\If{$n \le W$} \Return $[\,t \Vert s_1 \cdots s_n\,]$ \EndIf
-\State $P \gets [\,]$; $i \gets 1$
-\While{$i \le n$}
-  \State $e \gets \min(i + W - 1,\, n)$; $\pi \gets s_i \cdots s_e$
-  \If{$|\pi| < L$ \textbf{and} $P \ne [\,]$} \textbf{break} \label{line:break}
-  \EndIf
-  \State append $t \Vert \pi$ to $P$
-  \If{$e = n$} \textbf{break} \EndIf
-  \State $i \gets i + S$
-\EndWhile
-\State \Return $P$
-\end{algorithmic}
-\end{algorithm}
+passages: windows start at sentences $1, 1+S, 1+2S, \dots$, and the last one is the first that
+reaches sentence $n$. For example, $n = 7$ gives $\lceil (7-3)/2 \rceil + 1 = 3$ passages
+covering sentences 1--3, 3--5 and 5--7. A window shorter than $L = 120$ characters is not kept
+as a separate passage and ends the abstract's passages; keeping the remaining sentences instead
+changes no result significantly (Section~\ref{sec:res-sensitivity}). The corpus yields
+$N = 21{,}015$ passages, 4.05 per abstract. Because relevance is judged per abstract, a ranked
+list of passages is converted into a ranked list of abstracts by keeping each abstract at the
+position of its best-ranked passage.
 
 % ---------------------------------------------------------------------------
-\subsection{Stage 1: sparse retrieval with BM25}
+\subsection{Sparse Retrieval with BM25}
 \label{sec:bm25}
 
-BM25 \parencite{robertson2009bm25} scores a passage $p$ for a claim $q$ by summing, over
-the claim's terms, how informative each term is and how often it occurs in the passage:
+BM25 \parencite{robertson2009bm25} scores a passage $p$ for a claim $q$ by summing, over the
+claim's terms, how informative each term is and how often it occurs in the passage:
 \begin{equation}
 \mathrm{BM25}(q, p) = \sum_{t \in q} \mathrm{IDF}(t) \cdot
 \frac{f(t,p)\,(k_1 + 1)}{f(t,p) + k_1\left(1 - b + b\,\dfrac{|p|}{\overline{|p|}}\right)},
 \label{eq:bm25}
 \end{equation}
-where $f(t,p)$ is the number of times term $t$ occurs in $p$, $|p|$ is the length of $p$
-in terms, $\overline{|p|}$ is the average passage length, and $k_1$ and $b$ are constants.
-The inverse document frequency
+where $f(t,p)$ is the number of times term $t$ occurs in $p$, $|p|$ is the length of $p$ in
+terms, $\overline{|p|}$ is the average passage length, and $k_1$ and $b$ are constants. The
+inverse document frequency
 \begin{equation}
 \mathrm{IDF}(t) = \ln \frac{N - n_t + 0.5}{n_t + 0.5}
 \label{eq:idf}
 \end{equation}
-is large for a term that occurs in few of the $N$ passages ($n_t$ is the number of
-passages containing $t$); a term in more than half of the passages would get a negative
-value, which is replaced by $0.25$ times the average IDF. The sum runs over the claim's
-terms with repetition. For example, with $N = 21{,}015$ passages, a rare term found in
-$n_t = 10$ of them gets $\mathrm{IDF} = \ln(21{,}005.5 / 10.5) = 7.60$, while a common term
-found in $n_t = 2{,}000$ gets $\ln(19{,}015.5 / 2{,}000.5) = 2.25$: one shared rare term
-outweighs three shared common ones.
+is large for a term that occurs in few of the $N$ passages ($n_t$ is the number of passages
+containing $t$); a term in more than half of the passages would receive a negative value, which
+is replaced by $0.25$ times the average IDF. For example, with $N = 21{,}015$ passages, a rare
+term found in $n_t = 10$ of them gets $\mathrm{IDF} = \ln(21{,}005.5 / 10.5) = 7.60$, while a
+common term found in $n_t = 2{,}000$ gets $\ln(19{,}015.5 / 2{,}000.5) = 2.25$: one shared rare
+term outweighs three shared common ones.
 
-\paragraph{What the two constants do.} The fraction in Equation~\eqref{eq:bm25} is the
-term-frequency factor. For a passage of average length ($|p| = \overline{|p|}$) it is
-$f(k_1 + 1)/(f + k_1)$, which grows with $f$ but saturates at $k_1 + 1$. With
-$k_1 = 0.9$, one occurrence gives $1 \times 1.9 / 1.9 = 1$ (the term contributes exactly its
-IDF), two give $2 \times 1.9 / 2.9 = 1.31$, and ten give $10 \times 1.9 / 10.9 = 1.74$:
-repeating a word cannot dominate the score. The constant $b \in [0, 1]$ sets how much a
-long passage is penalised: $b = 0$ ignores length, $b = 1$ normalises fully. With
-$k_1 = 0.9$ and $b = 0.4$, one occurrence in a passage twice the average length gives
-$1.9 / \bigl(1 + 0.9\,(1 - 0.4 + 0.4 \times 2)\bigr) = 1.9 / 2.26 = 0.84$ instead of 1. We use
-$k_1 = 0.9$ and $b = 0.4$, the values used by the BEIR benchmark \parencite{thakur2021beir}.
+\paragraph{Effect of $k_1$ and $b$.} The fraction in Equation~\eqref{eq:bm25} is the
+term-frequency factor. For a passage of average length ($|p| = \overline{|p|}$) it equals
+$f(k_1 + 1)/(f + k_1)$, which grows with $f$ but saturates at $k_1 + 1$. With $k_1 = 0.9$, one
+occurrence gives $1 \times 1.9 / 1.9 = 1$, two give $2 \times 1.9 / 2.9 = 1.31$, and ten give
+$10 \times 1.9 / 10.9 = 1.74$, so repeating a word cannot dominate the score. The constant
+$b \in [0, 1]$ sets how strongly a long passage is penalised. With $k_1 = 0.9$ and $b = 0.4$,
+one occurrence in a passage twice the average length gives
+$1.9 / \bigl(1 + 0.9\,(1 - 0.4 + 0.4 \times 2)\bigr) = 1.9 / 2.26 = 0.84$ instead of 1. These
+values, $k_1 = 0.9$ and $b = 0.4$, are those of the BEIR benchmark \parencite{thakur2021beir}.
 
-Text is lower-cased and split into terms by a regular expression that keeps hyphenated
-identifiers such as ``IL-6'' whole; 52 common stop words are removed, and the remaining
-terms are reduced to their stems \parencite{porter1980stemming}, so that ``inhibits'' and
-``inhibition'' match. Algorithm~\ref{alg:bm25} gives the procedure. BM25 is exact on rare
-terms such as gene and drug names, but it cannot match a claim phrased differently from its
-evidence: a claim about ``aspirin'' does not match an abstract that only says ``COX
-inhibitors''.
+Text is lower-cased and split into terms that keep hyphenated identifiers such as ``IL-6''
+whole; 52 common stop words are removed, and the remaining terms are reduced to their stems
+\parencite{porter1980stemming}, so that ``inhibits'' and ``inhibition'' match
+(Algorithm~\ref{alg:bm25}). BM25 is exact on rare terms such as gene and drug names, but it
+cannot match a claim phrased differently from its evidence.
 
 \begin{algorithm}[t]
 \caption{BM25 indexing and search}
@@ -201,15 +170,15 @@ inhibitors''.
 \end{algorithm}
 
 % ---------------------------------------------------------------------------
-\subsection{Stage 2: dense retrieval with a bi-encoder}
+\subsection{Dense Retrieval with a Bi-Encoder}
 \label{sec:dense}
 
 A bi-encoder \parencite{reimers2019sbert} maps a claim and a passage, each on its own, to
-vectors whose closeness reflects closeness in meaning. We use \texttt{all-MiniLM-L6-v2},
+vectors whose closeness reflects closeness in meaning. The encoder is \texttt{all-MiniLM-L6-v2},
 a six-layer Transformer \parencite{vaswani2017attention} distilled from a larger model
-\parencite{wang2020minilm}, with 22.7 million parameters. For an input of $m$ tokens it
-produces contextual token vectors $\mathbf{h}_1, \dots, \mathbf{h}_m \in \mathbb{R}^{384}$,
-which are averaged and scaled to unit length:
+\parencite{wang2020minilm}, with 22.7 million parameters. For an input of $m$ tokens it produces
+contextual token vectors $\mathbf{h}_1, \dots, \mathbf{h}_m \in \mathbb{R}^{384}$, which are
+averaged and scaled to unit length:
 \begin{equation}
 \mathbf{u} = \frac{1}{m} \sum_{i=1}^{m} \mathbf{h}_i,
 \qquad
@@ -224,21 +193,18 @@ s(q, p) = \mathbf{v}_q^{\top} \mathbf{v}_p
 = \cos(\mathbf{u}_q, \mathbf{u}_p),
 \label{eq:cosine}
 \end{equation}
-where the second step substitutes Equation~\eqref{eq:pooling}: because both vectors have
-unit length, the inner product equals the cosine of the angle between the averaged token
-vectors, a value in $[-1, 1]$. In two dimensions, for example, $\mathbf{u}_q = (3, 4)$ and
+where the second step substitutes Equation~\eqref{eq:pooling}: because both vectors have unit
+length, the inner product equals the cosine of the angle between the averaged token vectors, a
+value in $[-1, 1]$. In two dimensions, for example, $\mathbf{u}_q = (3, 4)$ and
 $\mathbf{u}_p = (4, 3)$ both have length 5, so $\mathbf{v}_q = (0.6, 0.8)$,
-$\mathbf{v}_p = (0.8, 0.6)$ and $s(q, p) = 0.6 \times 0.8 + 0.8 \times 0.6 = 0.96$; the
-encoder does the same in 384 dimensions.
+$\mathbf{v}_p = (0.8, 0.6)$ and $s(q, p) = 0.6 \times 0.8 + 0.8 \times 0.6 = 0.96$; the encoder
+does the same in 384 dimensions.
 
 Passage vectors are computed once, offline, and stored in an exact inner-product index
-\parencite{johnson2021faiss}: $N \times 384$ floats of 4 bytes, that is
-$21{,}015 \times 384 \times 4 = 32.3$~MB. At query time only the claim is encoded, and the
-index computes Equation~\eqref{eq:cosine} against all $N$ passages
-($21{,}015 \times 384 \approx 8.1$ million multiply--adds) and returns the 100 largest
-(Algorithm~\ref{alg:dense}). The search is exact, not approximate, because at this size it
-takes a few milliseconds. The cost of this speed is that claim and passage never see each
-other inside the network; they meet only in the final inner product.
+\parencite{johnson2021faiss}: $21{,}015 \times 384 \times 4$ bytes $= 32.3$~MB. At query time only
+the claim is encoded, and the index computes Equation~\eqref{eq:cosine} against all $N$
+passages and returns the 100 largest (Algorithm~\ref{alg:dense}). Claim and passage never
+interact inside the network; they meet only in the final inner product.
 
 \begin{algorithm}[t]
 \caption{Dense indexing and search}
@@ -257,67 +223,65 @@ other inside the network; they meet only in the final inner product.
 \end{algorithm}
 
 % ---------------------------------------------------------------------------
-\subsection{In-domain fine-tuning of the dense encoder}
+\subsection{In-Domain Fine-Tuning of the Dense Encoder}
 \label{sec:finetune}
 
-The encoder of Stage 2 was trained on general web text, not on scientific claims. The
-improvement proposed in this paper adapts it with the training claims that SciFact provides.
-These 809 claims are disjoint from the 300 test claims; 120 of them are held out as a
-development set (fixed random split, seed 42) and the remaining 689 are used for training.
+The encoder of Stage 2 was trained on general web text, not on scientific claims. The proposed
+retriever adapts it with the training claims that SciFact provides. These 809 claims are
+disjoint from the 300 test claims; 120 of them are held out as a development set (fixed random
+split, seed 42), and the remaining 689 are used for training.
 
-\paragraph{Training pairs.} Relevance is judged per abstract, but the index holds
-passages, so each judged (claim, abstract) pair is turned into a (claim, passage) pair by
-taking the passage of the abstract that the starting encoder $E_0$ already finds most
-similar to the claim:
+\paragraph{Training pairs.} Relevance is judged per abstract, but the index holds passages, so
+each judged (claim, abstract) pair is converted into a (claim, passage) pair by taking the
+passage of the abstract that the starting encoder $E_0$ already finds most similar to the
+claim:
 \begin{equation}
 p_i^{+} = \operatorname*{arg\,max}_{p \,\in\, \mathcal{P}(a_i)} s_0(q_i, p),
 \label{eq:positive}
 \end{equation}
 where $\mathcal{P}(a_i)$ are the passages of abstract $a_i$ and $s_0$ is
-Equation~\eqref{eq:cosine} computed with $E_0$. For example, if a relevant abstract has
-three passages with similarities 0.41, 0.63 and 0.52 to the claim, the second becomes the
-claim's positive $p_i^{+}$. This is a weak label, but it needs no manual annotation. The 689 training claims give 792 pairs.
+Equation~\eqref{eq:cosine} computed with $E_0$. For example, if a relevant abstract has three
+passages with similarities 0.41, 0.63 and 0.52 to the claim, the second becomes the claim's
+positive $p_i^{+}$. This is a weak label that requires no manual annotation. The 689 training
+claims yield 792 pairs.
 
-\paragraph{Loss.} Training uses the multiple-negatives ranking loss
-\parencite{henderson2017smartreply}, with in-batch negatives as in dense passage retrieval
+\paragraph{Training objective.} Training uses the multiple-negatives ranking loss
+\parencite{henderson2017smartreply} with in-batch negatives, as in dense passage retrieval
 \parencite{karpukhin2020dpr}. For a mini-batch of $B$ pairs
-$(q_1, p_1^{+}), \dots, (q_B, p_B^{+})$, form the $B \times B$ matrix of scaled similarities
+$(q_1, p_1^{+}), \dots, (q_B, p_B^{+})$, the $B \times B$ matrix of scaled similarities is
 \begin{equation}
 S_{ij} = \lambda \, \mathbf{v}_{q_i}^{\top} \mathbf{v}_{p_j^{+}},
 \qquad i, j = 1, \dots, B,
 \label{eq:simmatrix}
 \end{equation}
-and minimise
+and the loss is
 \begin{equation}
 \mathcal{L} = -\frac{1}{B} \sum_{i=1}^{B}
 \log \frac{\exp(S_{ii})}{\sum_{j=1}^{B} \exp(S_{ij})}.
 \label{eq:mnrl}
 \end{equation}
-Each term of Equation~\eqref{eq:mnrl} is a softmax cross-entropy whose correct class for
-claim $i$ is its own passage (column $i$): the loss is small when $S_{ii}$ is much larger
-than every $S_{ij}$ with $j \ne i$. The other $B - 1$ passages of the batch serve as
-negatives, so with $B = 32$ each claim is contrasted with 31 negatives at no extra cost.
-The scale $\lambda = 20$ sharpens the softmax: cosines lie in $[-1, 1]$, and without it the
-largest possible gap between a positive and a negative, 2, would leave the probabilities
-too close to uniform for a useful gradient.
+Each term of Equation~\eqref{eq:mnrl} is a softmax cross-entropy whose correct class for claim
+$i$ is its own passage: the loss is small when $S_{ii}$ is much larger than every $S_{ij}$ with
+$j \ne i$. With $B = 32$, each claim is contrasted with 31 negatives at no extra cost. The scale
+$\lambda = 20$ sharpens the softmax, because cosines lie in $[-1, 1]$ and would otherwise leave
+the probabilities too close to uniform for a useful gradient.
 
-\paragraph{Worked example.} Take $B = 2$, and let claim 1 have cosine 0.6 with its own
-passage and 0.4 with the other claim's passage. With $\lambda = 20$, $S_{11} = 12$ and
-$S_{12} = 8$, so the softmax gives the correct passage the probability
+\paragraph{Worked example.} Take $B = 2$, and let claim 1 have cosine 0.6 with its own passage
+and 0.4 with the other claim's passage. With $\lambda = 20$, $S_{11} = 12$ and $S_{12} = 8$, so
+the softmax gives the correct passage the probability
 $e^{12} / (e^{12} + e^{8}) = 1 / (1 + e^{-4}) = 0.982$, and claim 1 contributes
-$-\ln 0.982 = 0.018$ to the sum in Equation~\eqref{eq:mnrl}. Without the scale
-($\lambda = 1$), the same cosines give $1 / (1 + e^{-0.2}) = 0.550$, barely above the
-uniform 0.5, and a loss of 0.598, although the claim already prefers its own passage.
+$-\ln 0.982 = 0.018$ to the sum in Equation~\eqref{eq:mnrl}. Without the scale ($\lambda = 1$),
+the same cosines give $1 / (1 + e^{-0.2}) = 0.550$, barely above the uniform 0.5, and a loss of
+0.598, although the claim already prefers its own passage.
 
-\paragraph{Optimisation and early stopping.} The model is trained for 12 epochs with
-AdamW \parencite{loshchilov2019adamw} (learning rate $2 \times 10^{-5}$, weight decay
-0.01, gradients clipped to norm 1). With $\lfloor 792 / 32 \rfloor = 24$ steps per epoch
-(the last partial batch is dropped) there are $24 \times 12 = 288$ steps; the learning rate
-rises linearly over the first $\lfloor 0.1 \times 288 \rfloor = 28$ steps and then decays
-linearly to zero. After every epoch, the whole corpus is re-encoded and the development
-claims are retrieved by dense search alone; the weights of the epoch with the highest
-development nDCG@10 are kept (Algorithm~\ref{alg:finetune}). The test claims are not used
-for training or for any choice.
+\paragraph{Optimisation and early stopping.} The model is trained for 12 epochs with AdamW
+\parencite{loshchilov2019adamw} (learning rate $2 \times 10^{-5}$, weight decay 0.01, gradients
+clipped to norm 1). With $\lfloor 792 / 32 \rfloor = 24$ steps per epoch there are
+$24 \times 12 = 288$ steps; the learning rate rises linearly over the first
+$\lfloor 0.1 \times 288 \rfloor = 28$ steps and then decays linearly to zero. After every epoch,
+the development claims are retrieved by dense search alone, and the weights of the epoch with
+the highest development nDCG@10 are kept (Algorithm~\ref{alg:finetune}). The test claims are
+used neither for training nor for any choice.
 
 \begin{algorithm}[t]
 \caption{In-domain fine-tuning with in-batch negatives and early stopping}
@@ -341,38 +305,38 @@ for training or for any choice.
 \end{algorithm}
 
 % ---------------------------------------------------------------------------
-\subsection{Stage 3: weighted reciprocal rank fusion}
+\subsection{Weighted Reciprocal Rank Fusion}
 \label{sec:rrf}
 
-The two rankings are merged by reciprocal rank fusion \parencite{cormack2009rrf}, which
-looks only at ranks, not at scores:
+The two rankings are merged by reciprocal rank fusion \parencite{cormack2009rrf}, which uses
+only ranks, not scores:
 \begin{equation}
 \mathrm{RRF}(p) = \frac{w}{k + r_{\mathrm{B}}(p)} + \frac{1}{k + r_{\mathrm{D}}(p)},
 \label{eq:rrf}
 \end{equation}
-where $r_{\mathrm{B}}(p)$ and $r_{\mathrm{D}}(p)$ are the ranks of $p$ in the BM25 and
-dense lists, a term is zero when $p$ is not among that retriever's $K = 100$ passages,
-$k = 60$, and $w$ is the weight of the BM25 ranking ($w = 1$ is the standard, unweighted
-fusion). Ranks are used because BM25 scores (unbounded, corpus-dependent) and cosines (in
-$[-1, 1]$) are not on a common scale \parencite{bruch2024fusion}. The constant $k$ damps
-the top: rank 1 contributes $1/61 = 0.0164$ and rank 2 contributes $1/62 = 0.0161$, so no
-single list can dominate through its very first position. The 100 passages with the
-highest RRF score form the fused list (Algorithm~\ref{alg:rrf}).
+where $r_{\mathrm{B}}(p)$ and $r_{\mathrm{D}}(p)$ are the ranks of $p$ in the BM25 and dense
+lists, a term is zero when $p$ is not among that retriever's $K = 100$ passages, $k = 60$, and
+$w$ is the weight of the BM25 ranking ($w = 1$ is the standard, unweighted fusion). Ranks are
+used because BM25 scores (unbounded and corpus-dependent) and cosines (in $[-1, 1]$) are not on a
+common scale \parencite{bruch2024fusion}. The constant $k$ damps the top: rank 1 contributes
+$1/61 = 0.0164$ and rank 2 contributes $1/62 = 0.0161$, so no single list can dominate through
+its first position. The 100 passages with the highest RRF score form the fused list
+(Algorithm~\ref{alg:rrf}).
 
-\paragraph{Choosing $w$.} The weight is chosen on the 120 development claims, never on the
-test claims: for $w \in \{0, 0.1, 0.2, 0.3, 0.5, 0.7, 1, 1.5, 2\}$, fuse the fine-tuned
-dense ranking with BM25 and measure nDCG@10. The best development score, 0.788, is reached
-at $w = 0.3$ (0.770 at $w = 0$, which is dense retrieval alone, and 0.772 at the standard
-$w = 1$). The following result explains why a weight in this range behaves differently from
-the standard fusion.
+\paragraph{Selection of the weight.} The weight is chosen on the 120 development claims, never
+on the test claims: for $w \in \{0, 0.1, 0.2, 0.3, 0.5, 0.7, 1, 1.5, 2\}$, the fine-tuned dense
+ranking is fused with BM25 and nDCG@10 is measured. The best development score, 0.788, is
+reached at $w = 0.3$ (0.770 at $w = 0$, which is dense retrieval alone, and 0.772 at the
+standard $w = 1$). The following result explains why a weight in this range behaves differently
+from standard fusion.
 
 \paragraph{Proposition 1 (break-even weight).}
-\textit{Let each retriever return $K$ passages and let $w < (k+1)/(k+K)$. Then every
-passage found only by BM25 receives a lower RRF score than every passage found by the
-dense retriever. With $k = 60$ and $K = 100$ the bound is $61/160 = 0.38125$.}
+\textit{Let each retriever return $K$ passages and let $w < (k+1)/(k+K)$. Then every passage
+found only by BM25 receives a lower RRF score than every passage found by the dense retriever.
+With $k = 60$ and $K = 100$ the bound is $61/160 = 0.38125$.}
 
-\paragraph{Proof.} Let $p_{\mathrm{B}}$ be a passage in the BM25 list but not in the dense
-list. Its dense term in Equation~\eqref{eq:rrf} is zero and its rank is at least 1, so
+\paragraph{Proof.} Let $p_{\mathrm{B}}$ be a passage in the BM25 list but not in the dense list.
+Its dense term in Equation~\eqref{eq:rrf} is zero and its rank is at least 1, so
 \begin{equation}
 \mathrm{RRF}(p_{\mathrm{B}}) = \frac{w}{k + r_{\mathrm{B}}(p_{\mathrm{B}})} \le \frac{w}{k + 1}.
 \label{eq:bmonly}
@@ -390,21 +354,20 @@ w < \frac{k+1}{k+K}
 \frac{w}{k+1} < \frac{1}{k+K},
 \label{eq:breakeven}
 \end{equation}
-and chaining Equations~\eqref{eq:bmonly}, \eqref{eq:breakeven} and \eqref{eq:denseonly}
-gives $\mathrm{RRF}(p_{\mathrm{B}}) \le \frac{w}{k+1} < \frac{1}{k+K} \le
-\mathrm{RRF}(p_{\mathrm{D}})$. \hfill$\square$
+and chaining Equations~\eqref{eq:bmonly}, \eqref{eq:breakeven} and \eqref{eq:denseonly} gives
+$\mathrm{RRF}(p_{\mathrm{B}}) \le \frac{w}{k+1} < \frac{1}{k+K} \le \mathrm{RRF}(p_{\mathrm{D}})$.
+\hfill$\square$
 
-\paragraph{Consequence.} The dense list holds exactly $K = 100$ passages and the fused list
-keeps the top 100, so below the break-even weight the fused list consists of exactly the
-dense retriever's candidates. BM25 can no longer add a passage; it can only re-order the
-dense candidates. That is what the improved system needs: the fine-tuned encoder finds the
-evidence, and BM25 sharpens the order with exact-term matches. At $w = 0.3$, the best a
-BM25-only passage can score is $0.3/61 = 0.0049$, below the $1/160 = 0.0063$ of the last
-dense candidate.
+\paragraph{Consequence.} The dense list holds exactly $K = 100$ passages and the fused list keeps
+the top 100, so below the break-even weight the fused list consists of exactly the dense
+retriever's candidates: BM25 can no longer add a passage and can only re-order them. The
+fine-tuned encoder therefore finds the evidence, and BM25 sharpens the order with exact-term
+matches. At $w = 0.3$, the best a BM25-only passage can score is $0.3/61 = 0.0049$, below the
+$1/160 = 0.0063$ of the last dense candidate.
 
-\paragraph{How far can BM25 still move a passage?} At $w = 0.3$, a passage that is first
-for BM25 and at dense rank $r$ scores $1/(60 + r) + 0.3/61$. It ties with the dense
-retriever's top passage (if BM25 does not retrieve that one) when
+\paragraph{Extent of re-ordering.} At $w = 0.3$, a passage ranked first by BM25 and at dense rank
+$r$ scores $1/(60 + r) + 0.3/61$. It ties with the dense retriever's top passage (if BM25 does
+not retrieve that passage) when
 \begin{equation}
 \frac{1}{60 + r} + \frac{0.3}{61} = \frac{1}{61}
 \;\Longleftrightarrow\;
@@ -413,11 +376,10 @@ retriever's top passage (if BM25 does not retrieve that one) when
 r = \frac{61}{0.7} - 60 \approx 27.
 \label{eq:lift}
 \end{equation}
-So agreement from BM25 can lift a dense candidate by up to about 26 places, but it never
-brings in a passage the dense retriever missed. In standard fusion ($w = 1 > 0.381$), by
-contrast, a BM25-only passage at rank 1 scores $1/61$ and outranks every dense candidate
-below dense rank 1, so a weaker BM25 ranking can push good dense candidates out of the top
-ten.
+Agreement from BM25 can thus lift a dense candidate by up to about 26 places, but it never
+brings in a passage that the dense retriever missed. In standard fusion ($w = 1 > 0.381$), by
+contrast, a BM25-only passage at rank 1 scores $1/61$ and outranks every dense candidate below
+dense rank 1, so a weaker BM25 ranking can push good dense candidates out of the top ten.
 
 \begin{algorithm}[t]
 \caption{Weighted reciprocal rank fusion}
@@ -434,87 +396,32 @@ ten.
 \end{algorithm}
 
 % ---------------------------------------------------------------------------
-\subsection{Stage 4: cross-encoder reranking}
+\subsection{Cross-Encoder Reranking}
 \label{sec:rerank}
 
-A cross-encoder \parencite{nogueira2019passage} reads the claim and the passage together,
-as one input \texttt{[CLS]}~$q$~\texttt{[SEP]}~$p$~\texttt{[SEP]} of up to 512 tokens, so every
-claim token can attend to every passage token \parencite{devlin2019bert}. A linear layer
-maps the final vector of the \texttt{[CLS]} token, $\mathbf{h}_{\mathrm{CLS}}$, to a
-relevance score
+The standard pipeline reranks the fused list with a cross-encoder \parencite{nogueira2019passage},
+which reads the claim and the passage together as one input of up to 512 tokens, so every claim
+token can attend to every passage token \parencite{devlin2019bert}. A linear layer maps the final
+vector of the classification token, $\mathbf{h}_{\mathrm{CLS}}$, to a relevance score
 \begin{equation}
 s_{\mathrm{CE}}(q, p) = \mathbf{w}^{\top} \mathbf{h}_{\mathrm{CLS}}(q, p) + c,
 \label{eq:ce}
 \end{equation}
-with learned $\mathbf{w}$ and $c$; any monotone transformation such as a sigmoid leaves the
+with learned $\mathbf{w}$ and $c$; a monotone transformation such as a sigmoid leaves the
 ranking unchanged. For example, raw scores of 5.36 and $-2.30$ become
-$1 / (1 + e^{-5.36}) = 0.995$ and $1 / (1 + e^{2.30}) = 0.091$, in the same order. We use \texttt{ms-marco-MiniLM-L-6-v2}, trained on the MS~MARCO web-search
-collection \parencite{bajaj2016msmarco}. Nothing can be precomputed: every claim costs one
-forward pass per candidate, so only the top $M = 50$ fused passages are rescored and the
-rest keep their fused order below them (Algorithm~\ref{alg:rerank}); for the 300 test
-claims that is $300 \times 50 = 15{,}000$ forward passes. The improved
-configuration does not use this stage.
-
-\begin{algorithm}[t]
-\caption{Cross-encoder reranking of the fused list}
-\label{alg:rerank}
-\begin{algorithmic}[1]
-\Require claim $q$, fused list $F$, depth $M = 50$
-\Ensure reranked list
-\State $H \gets F[1..M]$; $T \gets F[M+1..]$
-\For{each $p \in H$} $\sigma(p) \gets s_{\mathrm{CE}}(q, p)$ by Eq.~\eqref{eq:ce} \EndFor
-\State sort $H$ by $\sigma$, descending
-\State \Return $H$ followed by $T$ in its fused order
-\end{algorithmic}
-\end{algorithm}
+$1 / (1 + e^{-5.36}) = 0.995$ and $1 / (1 + e^{2.30}) = 0.091$, in the same order. The model,
+\texttt{ms-marco-MiniLM-L-6-v2}, is trained on the MS~MARCO web-search collection
+\parencite{bajaj2016msmarco}. Because every claim costs one forward pass per candidate, only the
+top $M = 50$ fused passages are rescored, which for the 300 test claims is
+$300 \times 50 = 15{,}000$ forward passes. The proposed retriever does not use this stage.
 
 % ---------------------------------------------------------------------------
-\subsection{Stage 5: grounded answer generation}
-\label{sec:reader}
-
-The five highest-ranked passages are numbered [1] to [5] and given to
-\texttt{flan-t5-base} \parencite{chung2024flan}, an instruction-tuned version of T5
-\parencite{raffel2020t5}, with the instruction to explain in one sentence whether the
-passages support the claim; decoding is greedy, with at most 128 new tokens. The sentence
-$y$ is then credited to the passage with which it shares the most terms (post-hoc
-attribution):
-\begin{equation}
-c(y) = \operatorname*{arg\,max}_{i \in \{1, \dots, 5\}} \bigl| T(y) \cap T(p_i) \bigr|,
-\label{eq:attribution}
-\end{equation}
-where $T(\cdot)$ is the set of terms produced by the BM25 tokeniser of
-Section~\ref{sec:bm25}; ties go to the higher-ranked passage, and if no term is shared the
-answer cites passage [1] (Algorithm~\ref{alg:reader}). For example, if $y$ shares 4 terms
-with passage [2], 4 with passage [3] and at most 1 with each of the others, the tie goes to
-the higher-ranked passage and $c(y) = 2$. This prompt was chosen on 20
-training claims: asked instead to answer and cite inline, the model replies with only a
-passage number, such as ``[3].'', for 49 of 50 test claims.
-
-As a second reader, \texttt{roberta-base-squad2}
-\parencite{liu2019roberta,rajpurkar2018squad2} copies a span from the top passage: it
-assigns every passage token a start score $\alpha_s$ and an end score $\beta_e$ and returns
-the span that maximises $\alpha_s + \beta_e$ subject to $s \le e < s + 30$.
-
-\begin{algorithm}[t]
-\caption{Answer generation with post-hoc attribution}
-\label{alg:reader}
-\begin{algorithmic}[1]
-\Require claim $q$, ranked passages $p_1, \dots, p_5$, reader $G$
-\Ensure answer sentence with one citation
-\State $\mathit{prompt} \gets$ instruction, ``[1] $p_1$'' $\cdots$ ``[5] $p_5$'', ``Claim: $q$''
-\State $y \gets G(\mathit{prompt})$ \Comment{greedy, at most 128 tokens}
-\State $i^{\ast} \gets c(y)$ by Eq.~\eqref{eq:attribution}
-\State \Return ``$y$ [$i^{\ast}$]''
-\end{algorithmic}
-\end{algorithm}
-
-% ---------------------------------------------------------------------------
-\subsection{Evaluation metrics}
+\subsection{Evaluation Metrics}
 \label{sec:metrics}
 
-All metrics are computed on the ranked list of abstracts for each claim and averaged over
-the claims. For a claim $q$ with relevant set $\mathcal{R}_q$, let $a_i$ be the abstract at
-rank $i$ and $\mathrm{rel}_i = \mathrm{rel}(a_i)$ its relevance grade (0 if not relevant):
+All metrics are computed on the ranked list of abstracts for each claim and averaged over the
+claims. For a claim $q$ with relevant set $\mathcal{R}_q$, let $a_i$ be the abstract at rank $i$
+and $\mathrm{rel}_i = \mathrm{rel}(a_i)$ its relevance grade (0 if not relevant):
 \begin{align}
 \mathrm{Recall@}k &= \frac{\bigl|\{\, i \le k : \mathrm{rel}_i > 0 \,\}\bigr|}{|\mathcal{R}_q|},
 &
@@ -530,33 +437,30 @@ and
 \mathrm{nDCG@}k = \frac{\mathrm{DCG@}k}{\mathrm{IDCG@}k},
 \label{eq:ndcg}
 \end{equation}
-where $\mathrm{IDCG@}k$ is the DCG@$k$ of the ideal ranking, with all relevant abstracts
-first (RR is 0 if no relevant abstract is retrieved). nDCG@10 \parencite{jarvelin2002ndcg}
-is the main metric: it rewards finding the evidence and ranking it high, and it lies in
-$[0, 1]$.
+where $\mathrm{IDCG@}k$ is the DCG@$k$ of the ideal ranking, with all relevant abstracts first
+(RR is 0 if no relevant abstract is retrieved). nDCG@10 \parencite{jarvelin2002ndcg} is the main
+metric: it rewards both finding the evidence and ranking it high, and it lies in $[0, 1]$.
 
 \paragraph{Worked example.} Let $\mathcal{R}_q = \{a_2, a_5, a_9\}$ and the ranking be
 $a_1, a_2, a_3, a_4, a_5$. The relevant abstracts are at ranks 2 and 5, so
-$\mathrm{DCG@}5 = 1/\log_2 3 + 1/\log_2 6 = 0.6309 + 0.3869 = 1.0178$. The ideal ranking puts
-the three relevant abstracts first:
+$\mathrm{DCG@}5 = 1/\log_2 3 + 1/\log_2 6 = 0.6309 + 0.3869 = 1.0178$. The ideal ranking puts the
+three relevant abstracts first:
 $\mathrm{IDCG@}5 = 1/\log_2 2 + 1/\log_2 3 + 1/\log_2 4 = 1 + 0.6309 + 0.5 = 2.1309$. Hence
 $\mathrm{nDCG@}5 = 1.0178 / 2.1309 = 0.4776$, while $\mathrm{Recall@}5 = 2/3$ and
-$\mathrm{RR} = 1/2$. The same example is one of the hand-checked unit tests of the
-implementation.
+$\mathrm{RR} = 1/2$.
 
 % ---------------------------------------------------------------------------
-\subsection{Statistical significance: the paired bootstrap}
+\subsection{Statistical Significance Testing}
 \label{sec:bootstrap}
 
-Two systems A and B are evaluated on the same $n = 300$ claims, so the comparison is
-paired. Let $x_i = m_{\mathrm{B}}(q_i) - m_{\mathrm{A}}(q_i)$ be the difference in nDCG@10
-on claim $i$ and
+Two systems A and B are evaluated on the same $n = 300$ claims, so the comparison is paired. Let
+$x_i = m_{\mathrm{B}}(q_i) - m_{\mathrm{A}}(q_i)$ be the difference in nDCG@10 on claim $i$ and
 \begin{equation}
 \bar{x} = \frac{1}{n} \sum_{i=1}^{n} x_i
 \label{eq:meandiff}
 \end{equation}
-its mean. Under the null hypothesis that the two systems are equally good, the differences
-would be centred on zero. The test therefore resamples the centred differences
+its mean. Under the null hypothesis that the two systems are equally good, the differences would
+be centred on zero. The test therefore resamples the centred differences
 $x_i' = x_i - \bar{x}$, drawing $n$ values with replacement $R = 10{,}000$ times
 \parencite{efron1993bootstrap,koehn2004significance}, and computes the two-sided $p$-value
 \begin{equation}
@@ -566,16 +470,16 @@ p = \frac{1}{R} \sum_{b=1}^{R}
 \end{equation}
 the fraction of resampled means at least as far from zero as the observed one
 (Algorithm~\ref{alg:bootstrap}). A difference is called significant when $p < 0.05$; with
-$R = 10{,}000$ resamples, $p$ cannot be resolved below $10^{-4}$, so a count of zero is
-reported as $p < 0.0001$.
+$R = 10{,}000$ resamples, $p$ cannot be resolved below $10^{-4}$, so a count of zero is reported
+as $p < 0.0001$.
 
-\paragraph{Worked example.} With $n = 4$ claims and differences $x = (0.2, 0, -0.1, 0.3)$,
-the mean is $\bar{x} = 0.4 / 4 = 0.1$, and the centred differences are
-$x' = (0.1, -0.1, -0.2, 0.2)$, which sum to zero. The resample $(0.1, 0.2, 0.2, -0.1)$ has
-mean 0.1, at least $|\bar{x}|$, so it is counted; the resample $(-0.2, -0.1, 0.1, -0.1)$
-has mean $-0.075$, and $|-0.075| < 0.1$, so it is not. For the improvement on SciFact
-($\bar{x} = 0.0433$ over $n = 300$ claims), 27 of the 10,000 resampled means were at least
-as far from zero, so $p = 27 / 10{,}000 = 0.0027$, reported as $p = 0.003$.
+\paragraph{Worked example.} With $n = 4$ claims and differences $x = (0.2, 0, -0.1, 0.3)$, the
+mean is $\bar{x} = 0.4 / 4 = 0.1$, and the centred differences are
+$x' = (0.1, -0.1, -0.2, 0.2)$, which sum to zero. The resample $(0.1, 0.2, 0.2, -0.1)$ has mean
+0.1, at least $|\bar{x}|$, so it is counted; the resample $(-0.2, -0.1, 0.1, -0.1)$ has mean
+$-0.075$, and $|-0.075| < 0.1$, so it is not. For the improvement on SciFact
+($\bar{x} = 0.0433$ over $n = 300$ claims), 27 of the 10,000 resampled means were at least as
+far from zero, so $p = 27 / 10{,}000 = 0.0027$, reported as $p = 0.003$.
 
 \begin{algorithm}[t]
 \caption{Two-sided paired bootstrap test}
@@ -592,37 +496,3 @@ as far from zero, so $p = 27 / 10{,}000 = 0.0027$, reported as $p = 0.003$.
 \State \Return $c / R$
 \end{algorithmic}
 \end{algorithm}
-
-% ---------------------------------------------------------------------------
-\subsection{Abstention analysis}
-\label{sec:abstention}
-
-A reader should be able to answer ``not enough evidence'' when retrieval has failed. To
-test whether a retrieval signal could make that decision, each claim is labelled a
-\emph{hit} if a relevant abstract is among the five passages given to the reader, and a
-\emph{miss} otherwise. For a signal $z$ (the top cross-encoder score, or the top dense
-similarity) with values $z_h$ on the hits $H$ and $z_m$ on the misses $M$, the area under
-the ROC curve is the probability that a random hit scores higher than a random miss
-\parencite{hanley1982auc}:
-\begin{equation}
-\mathrm{AUC} = \frac{1}{|H|\,|M|} \sum_{h \in H} \sum_{m \in M}
-\Bigl( \mathbb{1}[z_h > z_m] + \tfrac{1}{2}\, \mathbb{1}[z_h = z_m] \Bigr).
-\label{eq:auc}
-\end{equation}
-An AUC of 0.5 means the signal carries no information; 1 means it separates hits from
-misses perfectly. The reader would abstain when $z < \theta$, with the threshold chosen on
-the development claims to maximise the share of misses caught minus the share of hits
-refused,
-\begin{equation}
-J(\theta) = \frac{|\{ m \in M : z_m < \theta \}|}{|M|} - \frac{|\{ h \in H : z_h < \theta \}|}{|H|},
-\label{eq:youden}
-\end{equation}
-and then applied once to the test claims.
-
-\paragraph{Worked example.} Let three hits score $z_h = 0.9, 0.8, 0.6$ and two misses
-$z_m = 0.7, 0.2$. Of the $3 \times 2 = 6$ hit--miss pairs, the hit scores higher in five
-(all but 0.6 against 0.7), so $\mathrm{AUC} = 5/6 = 0.83$. Among the observed scores, the
-threshold $\theta = 0.8$ maximises Equation~\eqref{eq:youden}: it catches both misses and
-refuses one hit of three, so $J = 2/2 - 1/3 = 0.67$. On the real test claims, the threshold
-chosen on the development claims catches 68 of 74 misses and refuses 109 of 226 hits, so
-$J = 68/74 - 109/226 = 0.919 - 0.482 = 0.437$ (Section~\ref{sec:res-abstention}).
