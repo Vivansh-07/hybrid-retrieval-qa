@@ -4,8 +4,8 @@
 [![paper](https://github.com/Vivansh-07/hybrid-retrieval-qa/actions/workflows/paper.yml/badge.svg)](https://github.com/Vivansh-07/hybrid-retrieval-qa/actions/workflows/paper.yml)
 [![full paper](https://github.com/Vivansh-07/hybrid-retrieval-qa/actions/workflows/paper_full.yml/badge.svg)](https://github.com/Vivansh-07/hybrid-retrieval-qa/actions/workflows/paper_full.yml)
 
-**The paper:** *Improving Evidence Retrieval for Scientific Claim Verification: In-Domain
-Fine-Tuning with Analytically Weighted Rank Fusion*. The source is in [`paper_full/`](paper_full/):
+**The paper:** *Weighted Rank Fusion for Scientific Evidence Retrieval*. The source is in
+[`paper_full/`](paper_full/):
 about 40 pages, APA 7 references, pseudocode for every algorithm and a worked example for every
 equation. GitHub builds the PDF (Actions → paper_full → artifact). A shorter 12-page version of
 the earlier ablation is in [`paper/`](paper/).

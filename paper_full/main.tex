@@ -66,12 +66,11 @@
 \newcolumntype{L}{>{\raggedright\arraybackslash}X}                % ragged-right table columns:
 \newcolumntype{P}[1]{>{\raggedright\arraybackslash}p{#1}}         % no stretched gaps in narrow cells
 
-\title{\textbf{Improving Evidence Retrieval for Scientific Claim Verification:\\
-In-Domain Fine-Tuning with Analytically Weighted Rank Fusion}}
+\title{\textbf{Weighted Rank Fusion for Scientific Evidence Retrieval}}
 \author{Pooja Gupta, Vivansh Garg\\[2pt]
-\normalsize Department of Computer Science and Engineering (Data Science)\\
+\normalsize Department of Data Science and Engineering\\
 \normalsize Manipal University Jaipur, Jaipur, Rajasthan, India\\[2pt]
-\normalsize \texttt{pooja.gupta@jaipur.manipal.edu}, \texttt{vivanshgarg05@gmail.com}}
+\normalsize \texttt{pooja.gupta@jaipur.manipal.edu}, \texttt{vivansh.2430010261@muj.manipal.edu}}
 \date{}   % no date on the title page (supervisor, 5 Nov); scripts/make_sncs.py expects this line
 
 \begin{document}
@@ -109,10 +108,12 @@ person's data in any form.
 \paragraph{Competing interests} The authors declare that they have no competing interests.
 
 \paragraph{Data availability} The datasets analysed during the current study are publicly
-available: SciFact \parencite{wadden2020scifact} and NFCorpus \parencite{boteva2016nfcorpus},
-both obtained through the BEIR benchmark \parencite{thakur2021beir}. The code, configuration
-files and result files generated during the study are available from the authors on
-reasonable request.
+available: SciFact \parencite{wadden2020scifact} at \url{https://github.com/allenai/scifact} and
+NFCorpus \parencite{boteva2016nfcorpus} at
+\url{https://www.cl.uni-heidelberg.de/statnlpgroup/nfcorpus/}, both obtained through the BEIR
+benchmark \parencite{thakur2021beir} at \url{https://github.com/beir-cellar/beir}. The code,
+configuration files and result files generated during the study are available at
+\url{https://github.com/Vivansh-07/hybrid-retrieval-qa}.
 
 \paragraph{Author contributions} Vivansh Garg implemented the system, carried out the
 experiments and the analysis, and wrote the manuscript. Pooja Gupta supervised the work and
