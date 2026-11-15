@@ -39,7 +39,7 @@ jobs:
       - name: Collect the files
         run: |
           mkdir -p release
-          cp paper_full/main.pdf release/Improving_Evidence_Retrieval_full_paper.pdf
+          cp paper_full/main.pdf release/Weighted_Rank_Fusion_full_paper.pdf
           cp paper/main.pdf release/Hybrid_Sparse_Dense_Retrieval_paper.pdf
           cp docs/Problem_Statement.pdf release/Problem_Statement.pdf
           cp paper/Literature_Survey.docx release/Literature_Survey.docx
@@ -58,7 +58,7 @@ jobs:
           body: |
             The version of the project submitted for assessment.
 
-            - **Paper** (full length, APA 7): `Improving_Evidence_Retrieval_full_paper.pdf`
+            - **Paper** (full length, APA 7): `Weighted_Rank_Fusion_full_paper.pdf`
             - **Short paper** (the earlier ablation, Springer LNCS): `Hybrid_Sparse_Dense_Retrieval_paper.pdf`
             - **Problem statement**: `Problem_Statement.pdf`
             - **Literature survey**: `Literature_Survey.docx`

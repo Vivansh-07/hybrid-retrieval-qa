@@ -128,15 +128,15 @@ def footer(canvas, doc):
     canvas.saveState()
     canvas.setFont("Helvetica", 8)
     canvas.setFillColor(MUTED)
-    canvas.drawString(2 * cm, 1.2 * cm, "Problem Statement  |  Improving Evidence Retrieval for Scientific Claim Verification")
+    canvas.drawString(2 * cm, 1.2 * cm, "Problem Statement  |  Weighted Rank Fusion for Scientific Evidence Retrieval")
     canvas.drawRightString(A4[0] - 2 * cm, 1.2 * cm, f"Page {doc.page}")
     canvas.restoreState()
 
 
 story = [
-    Paragraph("Improving Evidence Retrieval for<br/>Scientific Claim Verification", title),
+    Paragraph("Weighted Rank Fusion for<br/>Scientific Evidence Retrieval", title),
     Paragraph("Problem Statement &middot; Deep Learning Course Project", subtitle),
-    Paragraph("Vivansh Garg &middot; B.Tech CSE (Data Science), 3rd year &middot; 1 Oct 2026, updated 13 Oct 2026", subtitle),
+    Paragraph("Vivansh Garg &middot; B.Tech CSE (Data Science), 3rd year &middot; 1 Oct 2026, updated 15 Nov 2026", subtitle),
     Spacer(1, 10),
 
     Paragraph("1. The project in one sentence", h1),
@@ -255,7 +255,7 @@ story = [
     Paragraph("9. Scope and deliverables", h1),
     Paragraph("<b>Scope:</b> one step, evidence retrieval, on English scientific abstracts (SciFact, NFCorpus); "
               "pretrained models plus models fine-tuned by us; everything runs on a laptop GPU.", body),
-    Paragraph("<b>Deliverables:</b> a working system with a live web demo; a full research paper (about 40 pages, "
+    Paragraph("<b>Deliverables:</b> a working system with a live web demo; a full research paper (29 pages, "
               "APA 7, 50 references, pseudocode for every algorithm and every equation worked through); a "
               "shorter Springer LNCS version (12 pages); a literature survey; a 12-slide presentation; the code "
               "on GitHub with a log of every experiment.", body),
@@ -341,7 +341,7 @@ def build(out: Path = OUT) -> None:
     out.parent.mkdir(parents=True, exist_ok=True)
     doc = SimpleDocTemplate(str(out), pagesize=A4, leftMargin=2 * cm, rightMargin=2 * cm,
                             topMargin=1.6 * cm, bottomMargin=1.9 * cm,
-                            title="Problem Statement: Improving Evidence Retrieval for Scientific Claim Verification",
+                            title="Problem Statement: Weighted Rank Fusion for Scientific Evidence Retrieval",
                             author="Vivansh Garg")
     doc.build(story, onFirstPage=footer, onLaterPages=footer)
 
