@@ -170,9 +170,12 @@ def convert_algorithms(body: str, numbers: dict) -> str:
 
 # --- equations, floats, references -------------------------------------------------------------
 
+EQ_MARK = "EQNO{}EQNO"   # carried inside the Word equation; finish() moves it to the right margin
+
+
 def convert_equations(body: str, numbers: dict) -> str:
     def tagged(math: str, label: str) -> str:
-        return f"\n\\[\n{math.strip()} \\qquad ({numbers[label]})\n\\]\n"
+        return f"\n\\[\n{math.strip()} \\text{{{EQ_MARK.format(numbers[label])}}}\n\\]\n"
 
     def equation(m):
         inner = m.group(2)
@@ -320,11 +323,23 @@ def reference_docx(pandoc: str, path: Path) -> None:
     for name, size in sizes.items():
         if name in [s.name for s in doc.styles]:
             doc.styles[name].font.size = Pt(size)
+    # paragraphs as in the PDF: no gap between them, the first after a heading flush, later ones indented
     for name in ("Body Text", "First Paragraph"):
         if name in [s.name for s in doc.styles]:
             fmt = doc.styles[name].paragraph_format
             fmt.line_spacing = 1.5
             fmt.alignment = WD_ALIGN_PARAGRAPH.JUSTIFY
+            fmt.space_before, fmt.space_after = Pt(0), Pt(0)
+            fmt.first_line_indent = Cm(0.75) if name == "Body Text" else Cm(0)
+    if "Bibliography" in [s.name for s in doc.styles]:   # APA: hanging indent of 1.27 cm, as in the PDF
+        fmt = doc.styles["Bibliography"].paragraph_format
+        fmt.left_indent, fmt.first_line_indent = Cm(1.27), Cm(-1.27)
+        fmt.space_after = Pt(6)
+    for name, (before, after) in {"Heading 1": (18, 8), "Heading 2": (12, 6), "Heading 3": (10, 4)}.items():
+        if name in [s.name for s in doc.styles]:
+            fmt = doc.styles[name].paragraph_format
+            fmt.space_before, fmt.space_after = Pt(before), Pt(after)
+            fmt.keep_with_next = True
     for name in ("Table Caption", "Image Caption"):
         if name in [s.name for s in doc.styles]:
             doc.styles[name].font.italic = False
@@ -336,12 +351,15 @@ def reference_docx(pandoc: str, path: Path) -> None:
 
 
 def finish(path: Path) -> None:
-    """Touches pandoc cannot express: ruled tables and algorithms, a regular-weight author block."""
+    """The PDF's layout where pandoc cannot express it: ruled tables and algorithms, equation numbers
+    at the right margin, page numbers, a centred abstract on page 1, the Introduction and the
+    References on new pages, a regular-weight author block."""
     from docx import Document
+    from docx.enum.table import WD_CELL_VERTICAL_ALIGNMENT, WD_TABLE_ALIGNMENT
     from docx.enum.text import WD_ALIGN_PARAGRAPH
     from docx.oxml import OxmlElement
     from docx.oxml.ns import qn
-    from docx.shared import Pt
+    from docx.shared import Cm, Pt
 
     def border(parent, edges):
         for edge, size in edges.items():
@@ -369,10 +387,18 @@ def finish(path: Path) -> None:
                 tc_borders = OxmlElement("w:tcBorders")
                 tc_pr.append(tc_borders)
             border(tc_borders, {"bottom": 6})
+        after = table._tbl.getnext()   # air between a table and the text below it
+        if after is not None and after.tag == qn("w:p"):
+            spacing = after.get_or_add_pPr().find(qn("w:spacing"))
+            if spacing is None:
+                spacing = OxmlElement("w:spacing")
+                after.get_or_add_pPr().append(spacing)
+            spacing.set(qn("w:before"), "200")
         for row in table.rows:
             for cell in row.cells:
                 for p in cell.paragraphs:
                     p.paragraph_format.line_spacing = 1.0
+                    p.paragraph_format.first_line_indent = Cm(0)   # body text's indent does not belong in cells
                     for run in p.runs:
                         run.font.size = Pt(10)
     for p in doc.paragraphs:
@@ -382,6 +408,7 @@ def finish(path: Path) -> None:
         if re.match(r"Algorithm \d+\.", p.text):   # a ruled box, single-spaced, like the PDF
             fmt = p.paragraph_format
             fmt.alignment = WD_ALIGN_PARAGRAPH.LEFT   # justified lines with breaks would stretch apart
+            fmt.first_line_indent = Cm(0)
             fmt.line_spacing = 1.15
             fmt.space_before, fmt.space_after = Pt(6), Pt(10)
             p_pr = p._p.get_or_add_pPr()
@@ -392,6 +419,98 @@ def finish(path: Path) -> None:
             border(p_bdr, {"top": 8, "bottom": 8})
             for run in p.runs:
                 run.font.size = Pt(11)
+
+    # a paragraph opening with a bold run-in heading ("Proof.", "RQ1") starts flush, as in the PDF
+    for p in doc.paragraphs:
+        if p.style.name in ("Body Text", "First Paragraph") and p.runs and p.runs[0].bold:
+            p.paragraph_format.first_line_indent = Cm(0)
+            p.paragraph_format.space_before = Pt(6)
+
+    # title block: a little air between the lines, as in the PDF
+    for p in doc.paragraphs:
+        if p.style.name in ("Title", "Author"):
+            p.paragraph_format.space_after = Pt(4 if p.style.name == "Author" else 10)
+
+    # abstract: centred heading, indented 11-pt block, then the Introduction on a new page
+    paragraphs = doc.paragraphs
+    for i, p in enumerate(paragraphs):
+        if p.style.name.startswith("Heading") and p.text.strip() == "Abstract":
+            p.alignment = WD_ALIGN_PARAGRAPH.CENTER
+            for q in paragraphs[i + 1:]:
+                if q.style.name.startswith("Heading"):
+                    break
+                q.paragraph_format.left_indent = q.paragraph_format.right_indent = Cm(1.0)
+                q.paragraph_format.first_line_indent = Cm(0)
+                q.paragraph_format.line_spacing = 1.15
+                q.paragraph_format.space_after = Pt(6)
+                for run in q.runs:
+                    run.font.size = Pt(11)
+        if p.style.name == "Heading 1" and p.text.strip().endswith(("Introduction", "References")):
+            p.paragraph_format.page_break_before = True
+
+    # equation numbers at the right margin: each numbered display equation goes into the middle
+    # cell of an invisible three-cell row, with its number in the right-hand cell
+    m_t = qn("m:t")
+    for p in list(doc.paragraphs):
+        marks = [t for t in p._p.iter(m_t) if t.text and re.fullmatch(EQ_MARK.format(r"(\d+)"), t.text)]
+        if not marks:
+            continue
+        number = re.fullmatch(EQ_MARK.format(r"(\d+)"), marks[0].text).group(1)
+        run = marks[0].getparent()
+        run.getparent().remove(run)
+        table = doc.add_table(rows=1, cols=3)
+        table.alignment = WD_TABLE_ALIGNMENT.CENTER
+        tbl_pr = table._tbl.tblPr
+        layout = OxmlElement("w:tblLayout")
+        layout.set(qn("w:type"), "fixed")
+        tbl_pr.append(layout)
+        no_borders = OxmlElement("w:tblBorders")   # invisible: the row only positions the number
+        for edge in ("top", "left", "bottom", "right", "insideH", "insideV"):
+            el = OxmlElement(f"w:{edge}")
+            el.set(qn("w:val"), "nil")
+            no_borders.append(el)
+        tbl_pr.append(no_borders)
+        for cell, width in zip(table.rows[0].cells, (Cm(1.6), Cm(12.8), Cm(1.6))):
+            cell.width = width
+            cell.vertical_alignment = WD_CELL_VERTICAL_ALIGNMENT.CENTER
+            # the table style rules its first row; cell borders override the style
+            tc_borders = OxmlElement("w:tcBorders")
+            for edge in ("top", "left", "bottom", "right"):
+                el = OxmlElement(f"w:{edge}")
+                el.set(qn("w:val"), "nil")
+                tc_borders.append(el)
+            cell._tc.get_or_add_tcPr().append(tc_borders)
+        p._p.addnext(table._tbl)
+        middle = table.rows[0].cells[1]
+        middle._tc.remove(middle.paragraphs[0]._p)
+        middle._tc.append(p._p)
+        p.paragraph_format.first_line_indent = Cm(0)
+        p.paragraph_format.space_before = p.paragraph_format.space_after = Pt(3)
+        right = table.rows[0].cells[2].paragraphs[0]
+        right.alignment = WD_ALIGN_PARAGRAPH.RIGHT
+        right.add_run(f"({number})")
+        # the text after a display equation continues the sentence: no first-line indent
+        after = table._tbl.getnext()
+        if after is not None and after.tag == qn("w:p"):
+            p_pr = after.get_or_add_pPr()
+            ind = p_pr.find(qn("w:ind"))
+            if ind is None:
+                ind = OxmlElement("w:ind")
+                p_pr.append(ind)
+            ind.set(qn("w:firstLine"), "0")
+
+    # page numbers, centred at the foot of every page
+    for section in doc.sections:
+        footer = section.footer.paragraphs[0]
+        footer.alignment = WD_ALIGN_PARAGRAPH.CENTER
+        field = OxmlElement("w:fldSimple")
+        field.set(qn("w:instr"), "PAGE")
+        run = OxmlElement("w:r")
+        text = OxmlElement("w:t")
+        text.text = "1"
+        run.append(text)
+        field.append(run)
+        footer._p.append(field)
     doc.save(path)
 
 
